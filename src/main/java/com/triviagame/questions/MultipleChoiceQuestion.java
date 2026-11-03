@@ -1,5 +1,9 @@
 package com.triviagame;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 public class MultipleChoiceQuestion extends Question {
 
     private String[] choices;
@@ -15,9 +19,7 @@ public class MultipleChoiceQuestion extends Question {
         super(id, categoryId, text, answer);
         this.choices = choices.clone();
         
-        java.util.Collections.shuffle(
-        	    java.util.Arrays.asList(this.choices)
-        );
+        Collections.shuffle(Arrays.asList(this.choices));
     }
 
     @Override
@@ -32,13 +34,32 @@ public class MultipleChoiceQuestion extends Question {
     }
 
     @Override
+    public List<String> getChoices() {
+        return Collections.unmodifiableList(
+            Arrays.asList(choices)
+        );
+    }
+
+    @Override
     public boolean checkAnswer(String input) {
         if (input == null) {
             return false;
         }
 
+        String in = input.trim();
+ 
+        if (in.isEmpty()) {
+            return false;
+        }
+
+        for (String choice : choices) {
+            if (choice.equalsIgnoreCase(in)) {
+                return choice.equalsIgnoreCase(answer);
+            }
+        }
+
         try {
-            int selected = Integer.parseInt(input.trim());
+            int selected = Integer.parseInt(in);
 
             if (selected < 1 || selected > choices.length) {
                 return false;
