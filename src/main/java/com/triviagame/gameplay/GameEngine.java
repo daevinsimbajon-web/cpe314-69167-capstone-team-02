@@ -4,6 +4,7 @@ package com.triviagame.gameplay;
 import java.sql.SQLException;
 import java.util.*;
 
+import com.triviagame.questions.Question;
 import com.trivia.db.ScoreDao;
 
 public class GameEngine {
@@ -17,6 +18,7 @@ public class GameEngine {
     private ScoreDao scoreDao = new ScoreDao();
 
     private int score = 0;
+    private int total = 0;
     private int playerId;
     private int sessionId;
 
@@ -32,6 +34,13 @@ public class GameEngine {
     }
 
     public void loadQuestions(List<Question> list) {
+
+        if (list == null) {
+            throw new IllegalArgumentException(
+                "Question list cannot be null"
+            );
+        }
+        
         questions.clear();
         history.clear();
         scoreHistory.clear();
@@ -39,6 +48,7 @@ public class GameEngine {
 
         score = 0;
         questions.addAll(list);
+        total = list.size();
     }
 
     public boolean hasNextQuestion() {
@@ -132,5 +142,13 @@ public class GameEngine {
 
     public int getScore() {
         return score;
+    }
+
+    public int getTotal() {
+        return total;
+    }
+ 
+    public int getRemaining() {
+        return questions.size();
     }
 }
