@@ -1,5 +1,7 @@
 package com.triviagame;
 
+import java.util.List;
+
 public abstract class Question {
 
     protected int id;
@@ -31,12 +33,19 @@ public abstract class Question {
         return text;
     }
 
+    public String getCorrectAnswer() {
+        return answer;
+    }
+
     public boolean checkAnswer(String input) {
         return input != null
+            && answer != null
             && answer.equalsIgnoreCase(input.trim());
     }
 
     public abstract int getPoints();
 
     public abstract void display();
+
+    public abstract List<String> getChoices();
 }
