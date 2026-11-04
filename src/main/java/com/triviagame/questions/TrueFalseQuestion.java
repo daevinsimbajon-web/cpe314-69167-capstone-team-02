@@ -1,5 +1,7 @@
 package com.triviagame.questions;
 
+import java.util.List;
+
 public class TrueFalseQuestion extends Question {
 
     public TrueFalseQuestion(String text, String answer) {
@@ -16,6 +18,11 @@ public class TrueFalseQuestion extends Question {
     public void display() {
         System.out.println(text);
         System.out.println("(True / False)");
+    }
+
+    @Override
+    public List<String> getChoices() {
+        return List.of("True", "False");
     }
 
     @Override
