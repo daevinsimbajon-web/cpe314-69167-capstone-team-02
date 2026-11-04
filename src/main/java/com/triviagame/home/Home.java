@@ -1,4 +1,3 @@
-
 package com.triviagame.home;
 
 import com.triviagame.players.Players;
@@ -8,6 +7,7 @@ import com.triviagame.db.QuestionDao;
 import com.triviagame.db.CategoryDao;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -18,32 +18,33 @@ import javafx.scene.paint.Color;
 
 public class Home {
 
-   private int getPlayerCount() {
-    try {
-        return new PlayerDao().getAllPlayers().size();
-    } catch (SQLException e) {
-        e.printStackTrace();
-        return 0;
+    private int getPlayerCount() {
+        try {
+            return new PlayerDao().getAllPlayers().size();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return 0;
+        }
     }
-}
 
-private int getQuestionCount() {
-    try {
-        return new QuestionDao().getAllQuestions().size();
-    } catch (SQLException e) {
-        e.printStackTrace();
-        return 0;
+    private int getQuestionCount() {
+        try {
+            return new QuestionDao().getAllQuestions().size();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return 0;
+        }
     }
-}
 
-private int getCategoryCount() {
-    try {
-        return new CategoryDao().getAllCategories().size();
-    } catch (SQLException e) {
-        e.printStackTrace();
-        return 0;
+    private int getCategoryCount() {
+        try {
+            return new CategoryDao().getAllCategories().size();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return 0;
+        }
     }
-}
+
     private final BorderPane root = new BorderPane();
 
     private final String background = "#10111F";
@@ -59,6 +60,45 @@ private int getCategoryCount() {
 
     public Parent getView() {
         return root;
+    }
+
+    // One place that swaps the center area of the window.
+    // Every button calls this instead of touching root directly.
+    private void showScreen(Node screen) {
+        root.setCenter(screen);
+    }
+
+    // Temporary screen so the buttons do something visible.
+    // Replace the calls to this with the real screens later.
+    private VBox createPlaceholder(String title, String message) {
+        VBox content = new VBox(25);
+        content.setPadding(new Insets(40));
+
+        Label heading = new Label(title);
+        heading.setTextFill(Color.WHITE);
+        heading.setStyle(
+            "-fx-font-size: 30px; -fx-font-weight: bold;"
+        );
+
+        Label subtitle = new Label(message);
+        subtitle.setTextFill(Color.web("#A0A1B5"));
+
+        content.getChildren().addAll(heading, subtitle);
+        return content;
+    }
+
+    private void openNewGame() {
+        showScreen(createPlaceholder(
+            "New Game",
+            "Game setup screen coming soon."
+        ));
+    }
+
+    private void openResults() {
+        showScreen(createPlaceholder(
+            "Results",
+            "Results and score history coming soon."
+        ));
     }
 
     private VBox createSidebar() {
@@ -85,13 +125,16 @@ private int getCategoryCount() {
         Button results = navButton("▤   Results", false);
 
         dashboard.setOnAction(event ->
-    root.setCenter(createDashboard())
-);
+            showScreen(createDashboard())
+        );
 
-players.setOnAction(event ->
-    root.setCenter(new Players().getView())
-);
+        players.setOnAction(event ->
+            showScreen(new Players().getView())
+        );
 
+        // NEW: these two had no handler before
+        game.setOnAction(event -> openNewGame());
+        results.setOnAction(event -> openResults());
 
         sidebar.getChildren().addAll(
             logo, menu, dashboard, players, game, results
@@ -133,22 +176,22 @@ players.setOnAction(event ->
         subtitle.setTextFill(Color.web("#A0A1B5"));
 
         HBox statistics = new HBox(20,
-    createStatCard("TOTAL PLAYERS",
-        String.valueOf(getPlayerCount()),
-        "Registered players"),
+            createStatCard("TOTAL PLAYERS",
+                String.valueOf(getPlayerCount()),
+                "Registered players"),
 
-    createStatCard("GAMES PLAYED",
-        "0",
-        "Total sessions"),
+            createStatCard("GAMES PLAYED",
+                "0",
+                "Total sessions"),
 
-    createStatCard("QUESTIONS",
-        String.valueOf(getQuestionCount()),
-        "Available questions"),
+            createStatCard("QUESTIONS",
+                String.valueOf(getQuestionCount()),
+                "Available questions"),
 
-    createStatCard("CATEGORIES",
-        String.valueOf(getCategoryCount()),
-        "Available categories")
-);
+            createStatCard("CATEGORIES",
+                String.valueOf(getCategoryCount()),
+                "Available categories")
+        );
 
         VBox activity = new VBox(12);
         activity.setPadding(new Insets(25));
@@ -176,6 +219,9 @@ players.setOnAction(event ->
             "-fx-font-weight: bold;" +
             "-fx-background-radius: 9;"
         );
+
+        // NEW: this button had no handler before
+        start.setOnAction(event -> openNewGame());
 
         activity.getChildren().addAll(
             activityTitle, description, start
