@@ -1,369 +1,209 @@
 
 package com.triviagame.db;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.UUID;
 
-public class ScoreDao {
+import static org.junit.jupiter.api.Assertions.*;
 
-    // Represents a saved score record
-    public record ScoreRecord(
-            int id,
-            int sessionId,
-            int playerId,
-            int categoryId,
-            int questionId,
-            boolean isCorrect,
-            int points
-    ) {
+public class ScoreDaoTest {
+
+    @BeforeAll
+    static void setupDatabase() throws SQLException {
+        Database.initializeSchema();
     }
 
-    // CREATE: Start a new game session
-    public int createGameSession() throws SQLException {
+    @Test
+    void testScoreCRUD() throws SQLException {
 
-        String sql = """
-            INSERT INTO game_sessions (played_at)
-            VALUES (CURRENT_TIMESTAMP)
-            """;
+        PlayerDao playerDao = new PlayerDao();
+        CategoryDao categoryDao = new CategoryDao();
+        QuestionDao questionDao = new QuestionDao();
+        ScoreDao scoreDao = new ScoreDao();
 
-        try (Connection connection =
-                     Database.getConnection();
-             PreparedStatement statement =
-                     connection.prepareStatement(sql)) {
+        // Prepare related records
+        int playerId = playerDao.addPlayer(
+                "Player_" + UUID.randomUUID()
+        );
 
-            int rows = statement.executeUpdate();
+        int categoryId = categoryDao.addCategory(
+                "Science_" + UUID.randomUUID()
+        );
 
-            if (rows != 1) {
-                throw new SQLException(
-                        "Failed to create game session"
-                );
+        int questionId = questionDao.addQuestion(
+                "What is 2 + 2?",
+                "4",
+                "[\"3\",\"5\",\"6\"]",
+                "easy",
+                categoryId
+        );
+
+        int sessionId = scoreDao.createGameSession();
+
+        int scoreId = 0;
+
+        try {
+
+            // INSERT
+            scoreId = scoreDao.addScore(
+                    sessionId,
+                    playerId,
+                    categoryId,
+                    questionId,
+                    true,
+                    10
+            );
+
+            assertTrue(scoreId > 0);
+
+            // SELECT
+            ScoreDao.ScoreRecord score =
+                    scoreDao.getScoreById(scoreId)
+                            .orElseThrow();
+
+            assertEquals(playerId, score.playerId());
+            assertEquals(sessionId, score.sessionId());
+            assertEquals(categoryId, score.categoryId());
+            assertEquals(questionId, score.questionId());
+            assertTrue(score.isCorrect());
+            assertEquals(10, score.points());
+
+            // Check player's scores
+            int savedScoreId = scoreId;
+
+            assertTrue(
+                    scoreDao.getScoresByPlayer(playerId)
+                            .stream()
+                            .anyMatch(s ->
+                                    s.id() == savedScoreId
+                            )
+            );
+
+            // Check session scores
+            assertTrue(
+                    scoreDao.getScoresBySession(sessionId)
+                            .stream()
+                            .anyMatch(s ->
+                                    s.id() == savedScoreId
+                            )
+            );
+
+            // Check total points
+            assertEquals(
+                    10L,
+                    scoreDao.getTotalPointsByPlayer(playerId)
+            );
+
+            // UPDATE
+            assertTrue(
+                    scoreDao.updateScore(
+                            scoreId,
+                            true,
+                            15
+                    )
+            );
+
+            ScoreDao.ScoreRecord updated =
+                    scoreDao.getScoreById(scoreId)
+                            .orElseThrow();
+
+            assertEquals(15, updated.points());
+
+            assertEquals(
+                    15L,
+                    scoreDao.getTotalPointsByPlayer(playerId)
+            );
+
+        } finally {
+
+            // Clean up test records in dependency order
+            if (scoreId > 0) {
+                scoreDao.deleteScore(scoreId);
             }
 
-            return getLastInsertedId(connection);
+            questionDao.deleteQuestion(questionId);
+            playerDao.deletePlayer(playerId);
+            categoryDao.deleteCategory(categoryId);
+            scoreDao.deleteGameSession(sessionId);
         }
-    }
 
-    // INSERT: Save a player's answer and score
-    public int addScore(
-            int sessionId,
-            int playerId,
-            int categoryId,
-            int questionId,
-            boolean isCorrect,
-            int points
-    ) throws SQLException {
-
-        if (sessionId <= 0 || playerId <= 0
-                || categoryId <= 0 || questionId <= 0) {
-            throw new IllegalArgumentException(
-                    "All IDs must be positive"
+        if (scoreId > 0) {
+            assertTrue(
+                    scoreDao.getScoreById(scoreId).isEmpty()
             );
         }
-
-        if (points < 0) {
-            throw new IllegalArgumentException(
-                    "Points cannot be negative"
-            );
-        }
-
-        String sql = """
-            INSERT INTO scores (
-                session_id,
-                player_id,
-                category_id,
-                question_id,
-                is_correct,
-                points
-            )
-            VALUES (?, ?, ?, ?, ?, ?)
-            """;
-
-        try (Connection connection =
-                     Database.getConnection();
-             PreparedStatement statement =
-                     connection.prepareStatement(sql)) {
-
-            statement.setInt(1, sessionId);
-            statement.setInt(2, playerId);
-            statement.setInt(3, categoryId);
-            statement.setInt(4, questionId);
-            statement.setInt(5, isCorrect ? 1 : 0);
-            statement.setInt(6, points);
-
-            int rows = statement.executeUpdate();
-
-            if (rows != 1) {
-                throw new SQLException(
-                        "Failed to save score"
-                );
-            }
-
-            return getLastInsertedId(connection);
-        }
     }
 
-    // SELECT: Find a score by ID
-    public Optional<ScoreRecord> getScoreById(int id)
-            throws SQLException {
+    @Test
+    void testInvalidScoreInputs() {
 
-        String sql = """
-            SELECT id, session_id, player_id,
-                   category_id, question_id,
-                   is_correct, points
-            FROM scores
-            WHERE id = ?
-            """;
+        ScoreDao dao = new ScoreDao();
 
-        try (Connection connection =
-                     Database.getConnection();
-             PreparedStatement statement =
-                     connection.prepareStatement(sql)) {
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> dao.addScore(
+                        -1, 1, 1, 1, true, 10
+                )
+        );
 
-            statement.setInt(1, id);
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> dao.addScore(
+                        1, 1, 1, 1, true, -5
+                )
+        );
 
-            try (ResultSet result =
-                         statement.executeQuery()) {
-
-                if (result.next()) {
-                    return Optional.of(
-                            mapScore(result)
-                    );
-                }
-            }
-        }
-
-        return Optional.empty();
-    }
-
-    // SELECT: Find scores belonging to one player
-    public List<ScoreRecord> getScoresByPlayer(
-            int playerId
-    ) throws SQLException {
-
-        String sql = """
-            SELECT id, session_id, player_id,
-                   category_id, question_id,
-                   is_correct, points
-            FROM scores
-            WHERE player_id = ?
-            ORDER BY id ASC
-            """;
-
-        return getScoreList(sql, playerId);
-    }
-
-    // SELECT: Get scores from one game session
-    public List<ScoreRecord> getScoresBySession(
-            int sessionId
-    ) throws SQLException {
-
-        String sql = """
-            SELECT id, session_id, player_id,
-                   category_id, question_id,
-                   is_correct, points
-            FROM scores
-            WHERE session_id = ?
-            ORDER BY id ASC
-            """;
-
-        return getScoreList(sql, sessionId);
-    }
-
-    // SELECT: Calculate total points for a player
-    public long getTotalPointsByPlayer(
-            int playerId
-    ) throws SQLException {
-
-        String sql = """
-            SELECT COALESCE(SUM(points), 0) AS total
-            FROM scores
-            WHERE player_id = ?
-            """;
-
-        try (Connection connection =
-                     Database.getConnection();
-             PreparedStatement statement =
-                     connection.prepareStatement(sql)) {
-
-            statement.setInt(1, playerId);
-
-            try (ResultSet result =
-                         statement.executeQuery()) {
-
-                if (result.next()) {
-                    return result.getLong("total");
-                }
-            }
-        }
-
-        return 0;
-    }
-
-    // SELECT: Number of game sessions that have at least one saved
-    // answer (sessions started but never answered are not counted)
-    public int countPlayedSessions() throws SQLException {
-
-        String sql = """
-            SELECT COUNT(DISTINCT session_id) AS total
-            FROM scores
-            """;
-
-        try (Connection connection =
-                     Database.getConnection();
-             PreparedStatement statement =
-                     connection.prepareStatement(sql);
-             ResultSet result =
-                     statement.executeQuery()) {
-
-            if (result.next()) {
-                return result.getInt("total");
-            }
-        }
-
-        return 0;
-    }
-
-    // UPDATE: Change the score for an answer
-    public boolean updateScore(
-            int scoreId,
-            boolean isCorrect,
-            int points
-    ) throws SQLException {
-
-        if (scoreId <= 0 || points < 0) {
-            throw new IllegalArgumentException(
-                    "Invalid score ID or points"
-            );
-        }
-
-        String sql = """
-            UPDATE scores
-            SET is_correct = ?,
-                points = ?
-            WHERE id = ?
-            """;
-
-        try (Connection connection =
-                     Database.getConnection();
-             PreparedStatement statement =
-                     connection.prepareStatement(sql)) {
-
-            statement.setInt(1, isCorrect ? 1 : 0);
-            statement.setInt(2, points);
-            statement.setInt(3, scoreId);
-
-            return statement.executeUpdate() > 0;
-        }
-    }
-
-    // DELETE: Remove a score
-    public boolean deleteScore(int scoreId)
-            throws SQLException {
-
-        String sql = """
-            DELETE FROM scores
-            WHERE id = ?
-            """;
-
-        try (Connection connection =
-                     Database.getConnection();
-             PreparedStatement statement =
-                     connection.prepareStatement(sql)) {
-
-            statement.setInt(1, scoreId);
-
-            return statement.executeUpdate() > 0;
-        }
-    }
-
-    // DELETE: Remove an unused game session
-    public boolean deleteGameSession(int sessionId)
-            throws SQLException {
-
-        String sql = """
-            DELETE FROM game_sessions
-            WHERE id = ?
-            """;
-
-        try (Connection connection =
-                     Database.getConnection();
-             PreparedStatement statement =
-                     connection.prepareStatement(sql)) {
-
-            statement.setInt(1, sessionId);
-
-            return statement.executeUpdate() > 0;
-        }
-    }
-
-    // Helper: Retrieve scores using a parameterized query
-    private List<ScoreRecord> getScoreList(
-            String sql,
-            int id
-    ) throws SQLException {
-
-        List<ScoreRecord> scores = new ArrayList<>();
-
-        try (Connection connection =
-                     Database.getConnection();
-             PreparedStatement statement =
-                     connection.prepareStatement(sql)) {
-
-            statement.setInt(1, id);
-
-            try (ResultSet result =
-                         statement.executeQuery()) {
-
-                while (result.next()) {
-                    scores.add(mapScore(result));
-                }
-            }
-        }
-
-        return scores;
-    }
-
-    // Helper: Convert SQL row into ScoreRecord
-    private ScoreRecord mapScore(
-            ResultSet result
-    ) throws SQLException {
-
-        return new ScoreRecord(
-                result.getInt("id"),
-                result.getInt("session_id"),
-                result.getInt("player_id"),
-                result.getInt("category_id"),
-                result.getInt("question_id"),
-                result.getInt("is_correct") == 1,
-                result.getInt("points")
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> dao.updateScore(
+                        0, true, 10
+                )
         );
     }
 
-    // Helper: Get ID generated by the last INSERT
-    private int getLastInsertedId(
-            Connection connection
-    ) throws SQLException {
+    @Test
+    void testNonexistentScore() throws SQLException {
 
-        String sql =
-                "SELECT last_insert_rowid() AS id";
+        ScoreDao dao = new ScoreDao();
 
-        try (PreparedStatement statement =
-                     connection.prepareStatement(sql);
-             ResultSet result =
-                     statement.executeQuery()) {
+        assertTrue(
+                dao.getScoreById(
+                        Integer.MAX_VALUE
+                ).isEmpty()
+        );
 
-            if (result.next()) {
-                return result.getInt("id");
-            }
-        }
+        assertFalse(
+                dao.deleteScore(
+                        Integer.MAX_VALUE
+                )
+        );
 
-        throw new SQLException(
-                "Generated ID could not be retrieved"
+        assertEquals(
+                0L,
+                dao.getTotalPointsByPlayer(
+                        Integer.MAX_VALUE
+                )
+        );
+    }
+
+    @Test
+    void testForeignKeyProtection() {
+
+        ScoreDao dao = new ScoreDao();
+
+        assertThrows(
+                SQLException.class,
+                () -> dao.addScore(
+                        Integer.MAX_VALUE,
+                        Integer.MAX_VALUE,
+                        Integer.MAX_VALUE,
+                        Integer.MAX_VALUE,
+                        true,
+                        10
+                )
         );
     }
 }
