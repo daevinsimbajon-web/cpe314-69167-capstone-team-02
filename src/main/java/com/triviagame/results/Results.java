@@ -1,172 +1,169 @@
 package com.triviagame.results;
 
+import com.triviagame.db.AnalyticsDao;
+import com.triviagame.home.Ui;
+
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Scanner;
+import java.util.Map;
 
-import com.triviagame.db.PlayerDao;
-import com.triviagame.db.ScoreDao;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleLongProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.geometry.Pos;
+import javafx.scene.Parent;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 
+/**
+ * Leaderboard screen. This replaces the old console-based Results
+ * class, which used Scanner and System.out and could not be shown
+ * in the JavaFX window.
+ */
 public class Results {
 
-    private final ScoreDao scoreDao;
-    private final PlayerDao playerDao;
+    // One row of the leaderboard
+    public record Row(
+            int rank,
+            String player,
+            long totalPoints,
+            double averagePoints
+    ) {
+    }
+
+    private final VBox root = new VBox();
+    private final AnalyticsDao analyticsDao = new AnalyticsDao();
+    private final TableView<Row> table = new TableView<>();
+    private final Label summary = Ui.label("", "card-note");
 
     public Results() {
-        scoreDao = new ScoreDao();
-        playerDao = new PlayerDao();
-    }
+        root.getStyleClass().add("screen");
 
-    public void show(Scanner scanner) throws SQLException {
+        VBox card = createCard();
+        VBox.setVgrow(card, Priority.ALWAYS);
 
-        boolean running = true;
-
-        while (running) {
-
-            System.out.println("\n===== GAME RESULTS =====");
-            System.out.println("1. View Leaderboard");
-            System.out.println("2. View Player Results");
-            System.out.println("3. Back to Home");
-            System.out.print("Choose an option: ");
-
-            String choice = scanner.nextLine().trim();
-
-            switch (choice) {
-
-                case "1":
-                    showLeaderboard();
-                    break;
-
-                case "2":
-                    showPlayerResults(scanner);
-                    break;
-
-                case "3":
-                    running = false;
-                    break;
-
-                default:
-                    System.out.println("Invalid option.");
-            }
-        }
-    }
-
-    public void showLeaderboard() throws SQLException {
-
-        List<PlayerDao.PlayerRecord> players =
-                playerDao.getAllPlayers();
-
-        if (players.isEmpty()) {
-            System.out.println("No players available.");
-            return;
-        }
-
-        record PlayerScore(
-                String name,
-                long points
-        ) {}
-
-        List<PlayerScore> leaderboard =
-                new java.util.ArrayList<>();
-
-        for (PlayerDao.PlayerRecord player : players) {
-
-            long points = scoreDao.getTotalPointsByPlayer(
-                    player.id()
-            );
-
-            leaderboard.add(
-                new PlayerScore(player.name(), points)
-            );
-        }
-
-        leaderboard.sort(
-            Comparator.comparingLong(
-                PlayerScore::points
-            ).reversed()
+        root.getChildren().addAll(
+                Ui.label("Results", "title"),
+                Ui.label("Leaderboard across all saved games.", "subtitle"),
+                card
         );
 
-        System.out.println("\n===== LEADERBOARD =====");
-
-        int rank = 1;
-
-        for (PlayerScore player : leaderboard) {
-
-            System.out.println(
-                rank + ". " + player.name()
-                + " - " + player.points() + " points"
-            );
-
-            rank++;
-        }
+        loadLeaderboard();
     }
 
-    private void showPlayerResults(Scanner scanner)
-            throws SQLException {
+    public Parent getView() {
+        return root;
+    }
 
-        System.out.print("Enter Player ID: ");
+    private VBox createCard() {
+        VBox card = new VBox();
+        card.getStyleClass().add("card");
 
-        int playerId;
+        VBox heading = new VBox(5,
+                Ui.label("Leaderboard", "card-title"),
+                summary
+        );
 
+        HBox header = new HBox(
+                15,
+                heading,
+                Ui.spacer(),
+                Ui.button("↻  Refresh", "secondary-button",
+                        event -> loadLeaderboard())
+        );
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        TableColumn<Row, Number> rankColumn = new TableColumn<>("Rank");
+        rankColumn.setCellValueFactory(data ->
+                new SimpleIntegerProperty(data.getValue().rank())
+        );
+
+        TableColumn<Row, String> playerColumn = new TableColumn<>("Player");
+        playerColumn.setCellValueFactory(data ->
+                new SimpleStringProperty(data.getValue().player())
+        );
+
+        TableColumn<Row, Number> totalColumn =
+                new TableColumn<>("Total points");
+        totalColumn.setCellValueFactory(data ->
+                new SimpleLongProperty(data.getValue().totalPoints())
+        );
+
+        TableColumn<Row, String> averageColumn =
+                new TableColumn<>("Average per answer");
+        averageColumn.setCellValueFactory(data ->
+                new SimpleStringProperty(
+                        String.format("%.1f", data.getValue().averagePoints())
+                )
+        );
+
+        table.getColumns().add(rankColumn);
+        table.getColumns().add(playerColumn);
+        table.getColumns().add(totalColumn);
+        table.getColumns().add(averageColumn);
+        table.setColumnResizePolicy(
+                TableView.CONSTRAINED_RESIZE_POLICY
+        );
+        table.setPlaceholder(new Label(
+                "No scores yet. Play a game or import score history."
+        ));
+        VBox.setVgrow(table, Priority.ALWAYS);
+
+        card.getChildren().addAll(header, table);
+        return card;
+    }
+
+    // Reads the database again every time, so new games show up
+    private void loadLeaderboard() {
         try {
-            playerId = Integer.parseInt(
-                scanner.nextLine().trim()
-            );
-            
-        } catch (NumberFormatException e) {
-            
-            System.out.println("Invalid player ID.");
-            return;
+            List<AnalyticsDao.PlayerTotal> totals =
+                    analyticsDao.getTopPlayers(100);
+
+            Map<String, Double> averages = new HashMap<>();
+
+            for (AnalyticsDao.PlayerAverage average
+                    : analyticsDao.getAveragePointsPerPlayer()) {
+
+                averages.putIfAbsent(
+                        average.playerName(),
+                        average.averagePoints()
+                );
+            }
+
+            List<Row> rows = new ArrayList<>();
+            int rank = 0;
+            long previousTotal = -1;
+
+            for (int i = 0; i < totals.size(); i++) {
+                AnalyticsDao.PlayerTotal total = totals.get(i);
+
+                // Players with the same points share a rank
+                if (total.totalPoints() != previousTotal) {
+                    rank = i + 1;
+                    previousTotal = total.totalPoints();
+                }
+
+                rows.add(new Row(
+                        rank,
+                        total.playerName(),
+                        total.totalPoints(),
+                        averages.getOrDefault(total.playerName(), 0.0)
+                ));
+            }
+
+            table.setItems(FXCollections.observableArrayList(rows));
+
+            summary.setText(rows.size() + " players ranked");
+
+        } catch (SQLException e) {
+            Ui.error("Unable to load results: " + e.getMessage());
         }
-
-        var player = playerDao.getPlayerById(playerId);
-
-        if (player.isEmpty()) {
-            System.out.println("Player not found.");
-            return;
-        }
-
-        List<ScoreDao.ScoreRecord> scores = scoreDao.getScoresByPlayer(playerId);
-
-        System.out.println(
-            "\nResults for: " + player.get().name()
-        );
-
-        if (scores.isEmpty()) {
-            System.out.println("No game results yet.");
-            return;
-        }
-
-        for (ScoreDao.ScoreRecord result : scores) {
-
-            System.out.println("------------------");
-
-            System.out.println(
-                "Session ID: " + result.sessionId()
-            );
-
-            System.out.println(
-                "Question ID: " + result.questionId()
-            );
-
-            System.out.println(
-                "Correct: " + result.isCorrect()
-            );
-
-            System.out.println(
-                "Points: " + result.points()
-            );
-        }
-
-        System.out.println("------------------");
-
-        long totalPoints =
-                scoreDao.getTotalPointsByPlayer(playerId);
-
-        System.out.println(
-            "Total Points: " + totalPoints
-        );
     }
 }
