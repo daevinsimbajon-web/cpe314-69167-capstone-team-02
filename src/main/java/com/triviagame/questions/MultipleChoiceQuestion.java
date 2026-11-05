@@ -8,17 +8,23 @@ public class MultipleChoiceQuestion extends Question {
 
     private String[] choices;
 
-    public MultipleChoiceQuestion(String text,
-            String[] choices, String answer) {
+    public MultipleChoiceQuestion(
+            String text,
+            String[] choices,
+            String answer) {
         this(0, 0, text, choices, answer);
     }
 
-    public MultipleChoiceQuestion(int id, int categoryId,
-            String text, String[] choices, String answer) {
+    public MultipleChoiceQuestion(
+            int id,
+            int categoryId,
+            String text,
+            String[] choices,
+            String answer) {
 
         super(id, categoryId, text, answer);
         this.choices = choices.clone();
-        
+
         Collections.shuffle(Arrays.asList(this.choices));
     }
 
@@ -47,7 +53,7 @@ public class MultipleChoiceQuestion extends Question {
         }
 
         String in = input.trim();
- 
+
         if (in.isEmpty()) {
             return false;
         }
