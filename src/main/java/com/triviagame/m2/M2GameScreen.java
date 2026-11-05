@@ -576,8 +576,7 @@ public final class M2GameScreen {
         if (turn.question()
                 instanceof MultipleChoiceQuestion multiple) {
 
-            String[] options =
-                    multiple.getChoices();
+            String[] options = multiple.getChoices().toArray(new String[0]);
 
             for (int i = 0; i < options.length; i++) {
 
