@@ -32,8 +32,8 @@
 | Version | Date | Authors | Changes |
 | :--- | :--- | :--- | :--- |
 | **0.1** | 10/24/26 - 10/26/26 | Justine B. Cuizon, Clarence A. Elegino, Joshua G. Malaya, Gebrielle P. Mirasol, John S. Simbajon | Initial draft — Week 8 sections (Section 1 to 2). Removing Unnecessary Instruction. Generating the Table of Contents. |
-| **0.2** | 10/28/26 | Group 2 | Week 9 sections added. |
-| **0.3** | 11/05/26 | Group 2 | Week 10 sections added (Sections 5 and 6). Sections 1, 2, 3 and 4 revised to match the implemented code: real package and class names, real database schema, JSON score import instead of CSV, corrected team roles table. |
+| **0.2** | 10/28/26 | John Daevin Simbajon | Week 9 sections added. |
+| **0.3** | 11/05/26 | Gebrielle Mirasol | Week 10 sections added (Sections 5 and 6). Sections 1, 2, 3 and 4 revised to match the implemented code: real package and class names, real database schema, JSON score import instead of CSV, corrected team roles table. |
 | **1.0** | *Pending* | Group 2 | Final compilation and polish — Week 11. |
 
 ---
