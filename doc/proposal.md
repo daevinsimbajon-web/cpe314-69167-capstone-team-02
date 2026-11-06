@@ -24,7 +24,18 @@ Trivia & Quiz Night Manager is an offline-first Java desktop application designe
 ## **2. Entity-Relationship Sketch** 
 
 ## **3. Feature Checklist**
-Planned Feature Requirement(s) It Satisfies** Question hierarchy (abstract Question with OOP and recursion Science, History, and Entertainment subclasses) and recursive category-tree walk Game engine: Queue serves questions in order, Queue and Stack Stack provides “undo last answer” SQLite database layer: Player, GameSession, Database and ER model Question, Category, and Score tables with DAO classes using PreparedStatement Open Trivia Database API client with JSON parsed REST API into Question objects Data mining and charts: average score per Data mining, visualization and tests on category, most-missed questions, score trend, AnalyticsService) shown as bar and line charts JavaFX GUI (buttons, category ComboBox, playerGUI with + wired controls , concurrency name TextField, ListView/TableView) with JSON import and API fetch running on background ~~—~~ threads and a progress bar 
+| Planned Feature | Requirement Satisfied |
+| :--- | :--- |
+| Abstract Question, MultipleChoiceQuestion, and TrueFalseQuestion | OOP, inheritance, and polymorphism |
+| Recursive Category hierarchy | Recursion |
+| GameEngine using Queue for question ordering and Stack for Undo | Queue and Stack |
+| SQLite database with DAO classes using PreparedStatement | JDBC and database integration |
+| OpenTdbClient and QuestionParser | Public REST API and JSON parsing |
+| QuestionBankService with local question storage | Offline-first gameplay |
+| JavaFX application with event handlers | GUI |
+| FetchQuestionsTask, JsonImportTask, and ScoreJsonImporter | Concurrency |
+| AnalyticsDao and AnalyticsScreen | Data mining and visualization |
+| JUnit 5 automated tests | Automated Testing |
 
 
 ## **4. Task Split** 
