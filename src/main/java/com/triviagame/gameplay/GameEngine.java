@@ -1,4 +1,3 @@
-
 package com.triviagame.gameplay;
 
 import java.sql.SQLException;
@@ -9,28 +8,44 @@ import com.triviagame.db.ScoreDao;
 
 public class GameEngine {
 
-    private Queue<Question> questions = new LinkedList<>();
+    private final Deque<Question> questions =
+            new ArrayDeque<>();
 
-    private Stack<Question> history = new Stack<>();
-    private Stack<Integer> scoreHistory = new Stack<>();
-    private Stack<Integer> savedScoreIds = new Stack<>();
+    private final Deque<AnswerHistory> history =
+            new ArrayDeque<>();;
 
-    private ScoreDao scoreDao = new ScoreDao();
-
+    private final ScoreDao scoreDao;
+    
     private int score = 0;
     private int total = 0;
-    private int playerId;
-    private int sessionId;
+
+    private record AnswerHistory(
+            Question question,
+            int previousScore,
+            int savedScoreId) {
+    }
 
     // Constructor for normal game and unit testing
     public GameEngine() {
-        this(0, 0);
+        this(0, 0, new ScoreDao());
     }
 
     // Constructor for database-connected gameplay
     public GameEngine(int playerId, int sessionId) {
+        this(playerId, sessionId, new ScoreDao());
+    }
+
+    public GameEngine(
+            int playerId,
+            int sessionId,
+            ScoreDao scoreDao) {
+
         this.playerId = playerId;
         this.sessionId = sessionId;
+        this.scoreDao = Objects.requireNonNull(
+                scoreDao,
+                "ScoreDao cannot be null"
+        );
     }
 
     public void loadQuestions(List<Question> list) {
@@ -43,8 +58,6 @@ public class GameEngine {
         
         questions.clear();
         history.clear();
-        scoreHistory.clear();
-        savedScoreIds.clear();
 
         score = 0;
         questions.addAll(list);
@@ -56,7 +69,7 @@ public class GameEngine {
     }
 
     public Question nextQuestion() {
-        return questions.peek();
+        return questions.peekFirst();
     }
 
     public boolean submitAnswer(String answer)
@@ -66,14 +79,14 @@ public class GameEngine {
             return false;
         }
 
-        Question question = questions.peek();
+        Question question = questions.peekFirst();
 
         boolean correct = question.checkAnswer(answer);
 
         // Runtime polymorphism
         int points = correct ? question.getPoints() : 0;
 
-        int savedId = 0;
+        int savedScoreId = 0;
 
         // Save to SQLite if this is a database game.
         if (playerId > 0 && sessionId > 0) {
@@ -85,7 +98,7 @@ public class GameEngine {
                 );
             }
 
-            savedId = scoreDao.addScore(
+            savedScoreId = scoreDao.addScore(
                 sessionId,
                 playerId,
                 question.getCategoryId(),
@@ -96,12 +109,12 @@ public class GameEngine {
         }
 
         // Only change game state after saving succeeds.
-        questions.poll();
+        questions.removeFirst();
 
-        history.push(question);
-        scoreHistory.push(score);
-        savedScoreIds.push(savedId);
-
+        history.push(new AnswerHistory(
+                question, score, savedScoreId
+        ));
+    
         score += points;
 
         return correct;
@@ -113,29 +126,27 @@ public class GameEngine {
             return false;
         }
 
-        int savedId = savedScoreIds.peek();
+        AnswerHistory previous = history.peek();
 
         // Remove the previously saved answer from SQLite.
-        if (savedId > 0) {
-            if (!scoreDao.deleteScore(savedId)) {
+        (previous.savedScoreId() > 0) {
+
+            boolean deleted = scoreDao.deleteScore(
+                    previous.savedScoreId()
+            );
+
+            if (!deleted) {
                 throw new SQLException(
-                    "Unable to undo saved score"
+                        "Unable to undo saved score"
                 );
             }
         }
+        
+        history.pop();
+        
+        questions.addFirst(previous.question())
 
-        savedScoreIds.pop();
-
-        Question previous = history.pop();
-
-        score = scoreHistory.pop();
-
-        LinkedList<Question> updated = new LinkedList<>();
-
-        updated.add(previous);
-        updated.addAll(questions);
-
-        questions = updated;
+        score = previous.previousScore();
 
         return true;
     }
