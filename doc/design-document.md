@@ -33,14 +33,15 @@
 | :--- | :--- | :--- | :--- |
 | **0.1** | 10/24/26 - 10/26/26 | Justine Cuizon, Clarence Philip Elegino, Joshua Malaya, Gebrielle Mirasol, John Daevin Simbajon | Initial draft — Week 8 sections (Section 1 to 2). Removing Unnecessary Instruction. Generating the Table of Contents. |
 | **0.2** | 10/28/26 | John Daevin Simbajon | Week 9 sections added. |
-| **0.3** | 11/05/26 | Gebrielle Mirasol | Week 10 sections added (Sections 5 and 6). Sections 1, 2, 3 and 4 revised to match the implemented code: real package and class names, real database schema, JSON score import instead of CSV, corrected team roles table. |
+| **0.3** | 11/05/26<br>11/06/26 | Gebrielle Mirasol<br>John Daevin Simbajon | Week 10 sections added (Sections 5 and 6). Sections 1, 2, 3 and 4 revised to match the implemented code: real package and class names, real database schema, JSON score import instead of CSV, corrected team roles table. <br> Revised One-Paragraph Pitch |
 | **1.0** | *Pending* | Group 2 | Final compilation and polish — Week 11. |
 
 ---
 
 ## 1. Introduction & Project Overview
 
-**Trivia & Quiz Game Night Manager** is a Java desktop application (JavaFX) that helps friends, classmates, and community groups organize and run trivia nights. The group can download fresh questions from the public Open Trivia Database or play the questions already saved on the computer. Players are chosen from a saved player list, pick a category and a number of questions, and answer them one at a time, with an "undo last answer" option for mistakes. Every player, game session, and score is saved in a local SQLite database, and past score history can be imported from a JSON file. The app then analyzes the saved results and shows a leaderboard, accuracy per category as a bar chart, and points earned in each game as a line chart.
+**Trivia & Quiz Game Night Manager** is an offline-first Java desktop application designed for local multiplayer trivia games. Players can register their names, choose a category, and take turns answering questions using the same device. The game uses a Queue to manage question order and a Stack to support undo functionality. SQLite stores questions, players, game sessions, and scores locally. OpenTDB is an optional source for downloading additional trivia questions, which can be saved for offline use. The system also supports score tracking, analytics, and visualizations to help participants review their performance across games.
+
 
 - **Theme:** Custom idea (an entertainment and social-gaming tool for trivia nights).
 - **Problem solved:** Quiz hosts usually keep score on paper or in scattered spreadsheets, so results are easy to lose and hard to compare from one night to the next.
