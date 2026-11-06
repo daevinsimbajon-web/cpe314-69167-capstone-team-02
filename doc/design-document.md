@@ -127,39 +127,66 @@
 The GUI and `GameEngine` only ever hold a `Question`. Each question type decides its own points, answer choices, and answer checking, so adding a new type (for example a numeric-answer question) means adding one subclass and one case in `QuestionMapper`, with no change to the game or the screens.
 
 ### Supporting Classes by Package
+
 All packages are under `com.triviagame`.
 
-- **`questions`**: `Question` (abstract), `MultipleChoiceQuestion`, `TrueFalseQuestion`, `QuestionMapper` (turns a saved database row into the right `Question` subclass)
-- **`category`**: `Category` (in-memory tree with recursive `findCategory` and `getAllQuestions`)
-- **`db`**: `Database`, `PlayerDao`, `QuestionDao`, `CategoryDao` (including the recursive `getQuestionsRecursively`), `ScoreDao`, `AnalyticsDao`, `SampleQuestionSeeder`, `ScoreJsonImporter`, `DatabaseDemo`
-- **`api`**: `OpenTriviaClient`, `ApiQuestion`, `ApiCategory`, `ApiException`, `QuestionDownloader`
-- **`gameplay`**: `GameEngine` (Queue + Stack), `NewGameScreen`, `GameScreen`
-- **`analytics`**: `AnalyticsScreen`
-- **`results`**: `Results`
-- **`importer`**: `ImportScreen`
-- **`download`**: `DownloadScreen`
-- **`players`**: `Players`
-- **`home`**: `Home`, `Navigator`, `Ui`
-- **root**: `App` (JavaFX entry point, loads `style.css`), `Main`
+- `questions`: Question, MultipleChoiceQuestion, TrueFalseQuestion, QuestionMapper
+- `category`: Category
+- `db`: Database, PlayerDao, CategoryDao, QuestionDao, ScoreDao, AnalyticsDao, SampleQuestionSeeder, ScoreJsonImporter, QuestionBankService, SessionPlayerDao, TimedAnswerDao
+- `api`: OpenTdbClient, QuestionParser, BankQuestion
+- `tasks`: FetchQuestionsTask, JsonImportTask
+- `gameplay`: GameEngine, NewGameScreen, GameScreen
+- `m2`: RoundRobinGame, M2GameScreen, M2DemoApp, M2Launcher
+- `analytics`: AnalyticsScreen
+- `results`: Results
+- `importer`: ImportScreen
+- `players`: Players
+- `home`: Home, Navigator, Ui
+- Root package: App, Main
 
-### Table 2: How each class follows the Single Responsibility Principle
-| Class | Its single responsibility |
+### Table 2: How Each Class Follows the Single Responsibility Principle
+
+| Class or Component | Responsibility |
 | :--- | :--- |
-| **Question and subclasses** | Represent one question and decide its own points, choices, and answer check. No database or GUI code. |
-| **QuestionMapper** | Convert one saved question row into a `Question` object (reads the wrong answers with Jackson). |
-| **Category** | Hold one category with its questions and subcategories, and search the tree recursively. |
-| **Database** | Open the SQLite connection (foreign keys on) and create the tables. |
-| **PlayerDao, CategoryDao, QuestionDao, ScoreDao** | Run the SQL (`PreparedStatement`) for one table each. `CategoryDao` also walks the category tree recursively. |
-| **AnalyticsDao** | Run the read-only aggregation queries (accuracy, rankings, per-game points, best category). It does not draw charts. |
-| **ScoreJsonImporter** | Read a JSON file of past scores, validate each entry, and save the valid ones. It never touches the GUI. |
-| **OpenTriviaClient** | Build the HTTP request, call the Open Trivia Database, and turn the JSON answer into `ApiQuestion` objects. It never touches the database. |
-| **QuestionDownloader** | Take downloaded questions, skip duplicates, and save the new ones through the DAOs. |
-| **GameEngine** | Run one game: Queue for question order, Stack for undo, saving scores through `ScoreDao`. No GUI code. |
-| **Home, Navigator, Ui** | Sidebar navigation, the interface the screens use to move between each other, and small helpers that build labels and buttons. |
-| **Players, NewGameScreen, GameScreen, Results, AnalyticsScreen, ImportScreen, DownloadScreen** | One screen each. They display data and react to clicks and call the classes above, but contain no SQL and no scoring rules. |
+| Question and subclasses | Represent questions, scoring rules, and answer choices |
+| QuestionMapper | Convert stored questions into the appropriate Question subclass |
+| Category | Provide hierarchical category searching through recursion |
+| Database | Establish SQLite connections and initialize the schema |
+| DAO classes | Handle SQLite operations using PreparedStatement |
+| GameEngine | Manage question ordering, scores, and Undo |
+| OpenTdbClient | Send HTTP requests to OpenTDB |
+| QuestionParser | Parse and validate JSON question data |
+| BankQuestion | Represent imported question data |
+| QuestionBankService | Save questions and skip duplicates |
+| FetchQuestionsTask | Download trivia questions using a background task |
+| JsonImportTask | Import questions from local JSON files |
+| ScoreJsonImporter | Import historical scores asynchronously |
+| AnalyticsDao | Perform analytical database queries |
+| M2GameScreen | Display the separate M2 multiplayer game interface |
+| RoundRobinGame | Manage multiplayer turns and scoring |
+| Home and Navigator | Handle navigation between application screens |
 
 ### Design Rationale
-The project is layered so each layer only talks to the one below it: screens call `GameEngine`, the importer, the downloader, and the DAOs; those call `Database`; the model classes (`Question`, `Category`) know nothing about either. This kept the five members working in parallel (each owned one layer) and made most of the code testable without a window. Two choices make testing easier. `OpenTriviaClient` receives its HTTP call through a small `Transport` interface, so tests supply a fake answer and need no internet. `Database` reads its file path from the `trivia.db` system property, so tests use `target/test.db` and never touch the real game data. Question types use inheritance and polymorphism because the screens must treat every type the same way, while the rules (points, choices, answer check) differ per type.
+
+The application follows a layered architecture separating question models, game logic, database operations, API integration, background processing, and JavaFX interfaces.
+
+The primary JavaFX application starts from App, initializes SQLite, and displays Home.
+
+NewGameScreen creates and configures GameEngine, while GameScreen presents questions and handles player input.
+
+GameEngine uses a Queue for question ordering and maintains an Undo history. ScoreDao handles database score persistence.
+
+Database stores application records in data/trivia.db. It creates the data directory when necessary and enables SQLite foreign-key enforcement.
+
+OpenTdbClient uses Java HttpClient to request trivia questions. QuestionParser converts the JSON response into BankQuestion records.
+
+QuestionBankService stores questions in SQLite and skips duplicates.
+
+FetchQuestionsTask and JsonImportTask perform question operations outside the JavaFX application thread.
+
+The separate M2 package provides a local multiplayer demonstration through RoundRobinGame and M2GameScreen. Integration with the primary Home navigation remains pending.
+
+JUnit 5 tests cover game logic, database access, recursion, question parsing, and edge cases.
 
 ---
 
@@ -366,32 +393,56 @@ The default main Home navigation still requires integration before these control
 
 ## 6. Concurrency Design
 
-### Table 6: Long-running operations and how each runs
-| Operation | Class | Threading approach | UI update |
+The application performs potentially slow HTTP requests and JSON imports on background threads to keep the JavaFX interface responsive.
+
+### Table 6: Background Operations
+
+| Operation | Implementation | Background Processing | UI Update |
 | :--- | :--- | :--- | :--- |
-| **Import a score history JSON file** (thousands of entries, many database writes) | `ScoreJsonImporter.importAsync` called from `ImportScreen` | One daemon worker thread from `Executors.newSingleThreadExecutor`, started with `CompletableFuture.supplyAsync(..., executor)` | `whenComplete` hands the result to `Platform.runLater`, which updates the status, closes the progress indicator, and re-enables the buttons. |
-| **Download questions from the internet** (network wait plus database writes) | `QuestionDownloader` called from `DownloadScreen` | A `javafx.concurrent.Task` run on its own daemon thread | `Task.setOnSucceeded` and `setOnFailed` run on the JavaFX thread and update the status and the results box. |
+| Import historical scores | ScoreJsonImporter and ImportScreen | CompletableFuture using a single-thread executor | Platform.runLater |
+| Download trivia questions | FetchQuestionsTask and M2GameScreen | JavaFX Task on a daemon worker thread | setOnSucceeded and setOnFailed |
+| Import local trivia questions | JsonImportTask and M2GameScreen | JavaFX Task on a daemon worker thread | setOnSucceeded and setOnFailed |
 
-### Approach
-JavaFX allows controls to be touched only on the JavaFX Application Thread. So both operations follow the same pattern:
-1. The click handler (on the JavaFX thread) disables the buttons, shows a `ProgressIndicator`, and starts the work on a background thread. It returns immediately.
-2. The background thread does all slow work (file reading, HTTP, SQLite) and touches no control.
-3. When the work ends, the result (or the error) goes back to the JavaFX thread (`Platform.runLater` or the `Task` handlers), which updates the screen.
+### API Download Process
 
-The importer uses a single worker thread, so two imports run one after the other and never write to the database at the same time. Worker threads are daemon threads, so a running import never keeps the application from closing, and `Home.shutdown()` closes the importer when the window closes.
+1. The user requests additional questions in M2GameScreen.
+2. M2GameScreen starts FetchQuestionsTask.
+3. FetchQuestionsTask calls OpenTdbClient.
+4. OpenTdbClient sends an HTTP request to OpenTDB.
+5. QuestionParser validates and parses the returned JSON.
+6. QuestionBankService checks for duplicates and saves new questions to SQLite.
+7. JavaFX Task handlers display the result or error.
 
-### How the UI stays responsive
-While an import or download runs, the JavaFX thread is free, so the window keeps redrawing and the rest of the sidebar stays clickable. Only the Import and Download buttons are disabled, which prevents starting the same operation twice. To demonstrate it, import `sample_scores_2000.json` (2,000 entries) and click another sidebar item while the progress indicator is spinning.
+Downloaded questions remain available for offline gameplay.
 
-*(Figure 5: Import thread flow)*
-```
-JavaFX thread                        score-json-importer thread
--------------                        --------------------------
-Import clicked
-  disable buttons, show progress
-  importAsync(file) ----------------> read + validate entries
-  (returns at once; UI is free)       save each valid score (SQLite)
-                                      build ImportResult
-  Platform.runLater(update UI) <----- result ready
-  show counts, hide progress
-```
+### JSON Question Import Process
+
+1. The user selects a local JSON file.
+2. M2GameScreen creates JsonImportTask.
+3. QuestionParser reads and validates the questions.
+4. QuestionBankService saves new questions to SQLite.
+5. The JavaFX interface displays the import result.
+
+### Historical Score Import
+
+ScoreJsonImporter uses CompletableFuture with a single-thread executor.
+
+ImportScreen receives completion results through whenComplete and Platform.runLater.
+
+This allows large JSON score imports to run without blocking the JavaFX application thread.
+
+### Thread Safety and UI Responsiveness
+
+Network requests and database imports run outside the JavaFX application thread.
+
+JavaFX controls are updated on the application thread through JavaFX Task handlers or Platform.runLater.
+
+The corresponding import buttons are disabled while question import tasks are running and re-enabled after completion.
+
+The API download and question JSON import functions currently belong to M2GameScreen, which is separate from the main Home navigation.
+
+### Verification
+
+The application should be tested to confirm that background imports do not freeze the interface.
+
+Tests should also verify that errors are reported and previously stored questions remain accessible after a failed API request.
