@@ -1,129 +1,449 @@
-CPE 314 — Software Design 
+# CPE 314 — Software Design
+**University of Cebu**  
+**Computer Engineering Department**
 
-University of Cebu 
+## Trivia & Quiz Night Manager
+### Project Design Document
 
-Computer Engineering Department 
+| Information | Details |
+| :--- | :--- |
+| **Group Name / No.:** | 2 |
+| **Members:** | **John Daevin S. Simbajon** - (Team Lead + Integrator/DevOps)<br>**Clarence Philip A. Elegino** - (Core OOP/Logic Developer)<br>**Justine B. Cuizon** - (Database Admin + Data Developer + API)<br>**Joshua Neil G. Malaya** - (UI/UX Designer + JavaFX Developer)<br>**Gebrielle P. Mirasol** - (Analytics + QA) |
+| **Instructor:** | Richyll Son |
+| **Term:** | First Semester, S.Y. 2026-2027 |
+| **Document Version / Date:** | V0.3 - 11/05/26 |
 
-# **Trivia & Quiz Night Manager** 
+---
 
-_Project Design Document_ 
+## Table of Contents
+- [Revision History](#revision-history)
+- [1. Introduction & Project Overview](#1-introduction--project-overview)
+- [2. Preliminary ER Sketch & Team Roles](#2-preliminary-er-sketch--team-roles)
+- [3. System Architecture & Object-Oriented Design](#3-system-architecture--object-oriented-design)
+- [4. Data Model & Database Design](#4-data-model--database-design)
+- [5. API Integration Design](#5-api-integration-design)
+- [6. Concurrency Design](#6-concurrency-design)
 
-|**Group Name/ No.:**|2|
-|---|---|
-|**Members:**|John Daevin S. Simbajon -(Team Lead + Integrator/DevsOps)|
-||Clarence Philip A. Elegino - (Core OOP/Logic Developer)|
-||Justine B. Cuizon - (Database Admin + Data Developer + API)|
-||Joshua Neil G. Malaya - (UI/UX Designer + JavaFX Developer)|
-||Gebrielle P. Mirasol - (Analytics + QA)|
-|**Instructor:**|Richyll Son|
-|**Term:**|First Semester,S.Y. 2026-2027|
-|**Document Version / Date:**|_V0.2 - 10/28/26_|
+---
 
+## Revision History
+*Update this table each week as your team adds or revises sections of this document.*
 
+| Version | Date | Authors | Changes |
+| :--- | :--- | :--- | :--- |
+| **0.1** | 10/24/26 - 10/26/26 | Justine Cuizon, Clarence Philip Elegino, Joshua Malaya, Gebrielle Mirasol, John Daevin Simbajon | Initial draft — Week 8 sections (Section 1 to 2). Removing Unnecessary Instruction. Generating the Table of Contents. |
+| **0.2** | 10/28/26 | John Daevin Simbajon | Week 9 sections added. |
+| **0.3** | 11/05/26<br>11/06/26 | Gebrielle Mirasol<br>John Daevin Simbajon | Week 10 sections added (Sections 5 and 6). Sections 1, 2, 3 and 4 revised to match the implemented code: real package and class names, real database schema, JSON score import instead of CSV, corrected team roles table. <br> Revised One-Paragraph Pitch |
+| **1.0** | *Pending* | Group 2 | Final compilation and polish — Week 11. |
 
-CPE 314 | Software Design   ·   University of Cebu   ·   Richyll Son   ·   Page 1 
+---
 
-## **Table of Contents** 
+## 1. Introduction & Project Overview
 
-|_Trivia & Quiz Night Manager ............................................................................................................................ 1_|
-|---|
-|_Table of Contents .......................................................................................................................................... 2_|
-|_Revision History ............................................................................................................................................ 3_|
-|_Formatting Guidelines ....................................................................................._**_Error! Bookmark not defined._**|
-|_1. Introduction & Project Overview ............................................................................................................... 3_|
-|_2. Preliminary ER Sketch & Team Roles ......................................................................................................... 4_|
-|_3. System Architecture & Object-Oriented Design ......................................................................................... 5_|
-|_4. Data Model & Database Design ................................................................................................................ 5_|
-|_5. API Integration Design .............................................................................................................................. 5_|
-|_6. Concurrency Design .................................................................................................................................. 5_|
-|_7. Data Mining & Visualization Design .......................................................................................................... 5_|
-|_8. Testing Summary ....................................................................................................................................... 6_|
-|_9. Individual Contributions ............................................................................................................................ 6_|
-|_Appendix ....................................................................................................................................................... 6_|
-
-
-
-CPE 314 | Software Design   ·   University of Cebu   ·   Richyll Son   ·   Page 2 
-
-## **Revision History** 
-
-_Update this table each week as your team adds or revises sections of this document._ 
-
-|**Version**|**Date**|**Authors**|**Changes**|
-|---|---|---|---|
-|0.1|10/24/26-<br>10/26/26|Justine B. Cuizon,<br>Clarence A. Elegino,<br>Joshua G. Malaya,<br>Gebrielle P. Mirasol,<br>John S. Simbajon|Initial draft — Week 8 sections<br>(Section 1 to 2)<br>Removing Unnecesary Instruction<br>Generating the Table of Contents|
-|0.2|||Week 9 sections added|
-|0.3|||Week 10 sections added|
-|1.0|||Final compilation and polish —<br>Week 11|
+**Trivia & Quiz Game Night Manager** is an offline-first Java desktop application designed for local multiplayer trivia games. Players can register their names, choose a category, and take turns answering questions using the same device. The game uses a Queue to manage question order and a Stack to support undo functionality. SQLite stores questions, players, game sessions, and scores locally. OpenTDB is an optional source for downloading additional trivia questions, which can be saved for offline use. The system also supports score tracking, analytics, and visualizations to help participants review their performance across games.
 
 
+- **Theme:** Custom idea (an entertainment and social-gaming tool for trivia nights).
+- **Problem solved:** Quiz hosts usually keep score on paper or in scattered spreadsheets, so results are easy to lose and hard to compare from one night to the next.
+- **Key value proposition:** One app that fetches questions, scores each player, stores the history, and turns it into clear charts, so groups can see who is improving and which categories are hardest.
 
-## **1. Introduction & Project Overview** 
+---
 
-- Trivia & Quiz Game Night Manager is a Java desktop application that helps friends, classmates, and community groups organize and run trivia nights. Players enter their names, choose a category, and answer questions fetched live from the Open Trivia Database, with an “undo last answer” option for mistakes. Every player, game session, and score is saved in a local SQLite database, and past score history can be imported from CSV files. The app then analyzes the saved results and shows average score per category, most-missed questions, and score trends over time as labeled bar and line charts. Theme: Custom idea (an entertainment and social-gaming tool for trivia nights). 
+## 2. Preliminary ER Sketch & Team Roles
 
-Problem solved: Quiz hosts usually keep score on paper or in scattered spreadsheets, so results are easy to lose and hard to compare from one night to the next. 
+### Preliminary ER Sketch
+*(Figure 1: Entities, Key Attributes and Relationships — Week 8 proposal, superseded by Figure 3 in Section 4)*
 
-Key value proposition: One app that fetches questions, scores each player, stores the history, and turns it into clear charts, so groups can see who is improving and which categories are hardest. 
+```
++------------------+          +------------------------+          +-------------------+
+|     CATEGORY     |          |        QUESTION        |          |   GAME_SESSION    |
++------------------+          +------------------------+          +-------------------+
+| PK id            |<---+     | PK id                  |          | PK id             |
+| UK name          |    |     | UK text                |          |    played_at      |
+| FK parent_id     |+---+     |    correct_answer      |          +---------+---------+
++--------+---------+          |    incorrect_answers   |                    |
+         |                    |    difficulty          |                    |
+         |                    | FK category_id         |                    |
+         |                    +-----------+------------+                    |
+         |                                |                                 |
+         +-------------------+            |            +--------------------+
+                             |            |            |
+                             v            v            v
+                      +------------------------------------+      +-------------------+
+                      |               SCORE                |      |      PLAYER       |
+                      +------------------------------------+      +-------------------+
+                      | PK id                              |      | PK id             |
+                      | FK session_id                      |      | UK name           |
+                      | FK player_id                       |<-----+-------------------+
+                      | FK category_id                     |
+                      | FK question_id                     |
+                      |    is_correct                      |
+                      |    points                          |
+                      +------------------------------------+
+```
 
-CPE 314 | Software Design   ·   University of Cebu   ·   Richyll Son   ·   Page 3 
+### Table 1: Team members and primary roles
+| Member | Primary Role |
+| :--- | :--- |
+| **John Daevin S. Simbajon** | Team Lead + Integrator/DevOps |
+| **Clarence Philip A. Elegino** | Core OOP/Logic Developer |
+| **Justine B. Cuizon** | Database Admin + Data Developer + API |
+| **Joshua Neil G. Malaya** | UI/UX Designer + JavaFX Developer |
+| **Gebrielle P. Mirasol** | Analytics + QA |
 
-## **2. Preliminary ER Sketch & Team Roles** 
+---
 
-**Figure 1: Entities, Key Attributes and Relationships** 
+## 3. System Architecture & Object-Oriented Design
+
+### Class Hierarchy
+*(Figure 2: Class hierarchy)*
+
+```
+        +------------------------------------------------------+
+        |                <<abstract>> Question                 |
+        |------------------------------------------------------|
+        | # id, categoryId, text, answer                       |
+        |------------------------------------------------------|
+        | + getText(), getId(), getCategoryId()               |
+        | + getCorrectAnswer(): String                         |
+        | + checkAnswer(String): boolean   (case-insensitive)  |
+        | + <<abstract>> getPoints(): int                      |
+        | + <<abstract>> getChoices(): List<String>            |
+        | + <<abstract>> display(): void                       |
+        +---------------------------+--------------------------+
+                                    ^
+                +-------------------+--------------------+
+                |                                        |
++---------------+-----------------+      +---------------+-----------------+
+|      MultipleChoiceQuestion     |      |        TrueFalseQuestion        |
+|---------------------------------|      |---------------------------------|
+| choices = correct + wrong,      |      | choices = ["True", "False"]     |
+|   shuffled once                 |      | getPoints() = 5                 |
+| getPoints() = 10                |      | checkAnswer: inherited          |
+| checkAnswer: choice text, then  |      +---------------------------------+
+|   1-based position              |
++---------------------------------+
+```
+
+The GUI and `GameEngine` only ever hold a `Question`. Each question type decides its own points, answer choices, and answer checking, so adding a new type (for example a numeric-answer question) means adding one subclass and one case in `QuestionMapper`, with no change to the game or the screens.
+
+### Supporting Classes by Package
+
+All packages are under `com.triviagame`.
+
+- `questions`: Question, MultipleChoiceQuestion, TrueFalseQuestion, QuestionMapper
+- `category`: Category
+- `db`: Database, PlayerDao, CategoryDao, QuestionDao, ScoreDao, AnalyticsDao, SampleQuestionSeeder, ScoreJsonImporter, QuestionBankService, SessionPlayerDao, TimedAnswerDao
+- `api`: OpenTdbClient, QuestionParser, BankQuestion
+- `tasks`: FetchQuestionsTask, JsonImportTask
+- `gameplay`: GameEngine, NewGameScreen, GameScreen
+- `m2`: RoundRobinGame, M2GameScreen, M2DemoApp, M2Launcher
+- `analytics`: AnalyticsScreen
+- `results`: Results
+- `importer`: ImportScreen
+- `players`: Players
+- `home`: Home, Navigator, Ui
+- Root package: App, Main
+
+### Table 2: How Each Class Follows the Single Responsibility Principle
+
+| Class or Component | Responsibility |
+| :--- | :--- |
+| Question and subclasses | Represent questions, scoring rules, and answer choices |
+| QuestionMapper | Convert stored questions into the appropriate Question subclass |
+| Category | Provide hierarchical category searching through recursion |
+| Database | Establish SQLite connections and initialize the schema |
+| DAO classes | Handle SQLite operations using PreparedStatement |
+| GameEngine | Manage question ordering, scores, and Undo |
+| OpenTdbClient | Send HTTP requests to OpenTDB |
+| QuestionParser | Parse and validate JSON question data |
+| BankQuestion | Represent imported question data |
+| QuestionBankService | Save questions and skip duplicates |
+| FetchQuestionsTask | Download trivia questions using a background task |
+| JsonImportTask | Import questions from local JSON files |
+| ScoreJsonImporter | Import historical scores asynchronously |
+| AnalyticsDao | Perform analytical database queries |
+| M2GameScreen | Display the separate M2 multiplayer game interface |
+| RoundRobinGame | Manage multiplayer turns and scoring |
+| Home and Navigator | Handle navigation between application screens |
+
+### Design Rationale
+
+The application follows a layered architecture separating question models, game logic, database operations, API integration, background processing, and JavaFX interfaces.
+
+The primary JavaFX application starts from App, initializes SQLite, and displays Home.
+
+NewGameScreen creates and configures GameEngine, while GameScreen presents questions and handles player input.
+
+GameEngine uses a Queue for question ordering and maintains an Undo history. ScoreDao handles database score persistence.
+
+Database stores application records in data/trivia.db. It creates the data directory when necessary and enables SQLite foreign-key enforcement.
+
+OpenTdbClient uses Java HttpClient to request trivia questions. QuestionParser converts the JSON response into BankQuestion records.
+
+QuestionBankService stores questions in SQLite and skips duplicates.
+
+FetchQuestionsTask and JsonImportTask perform question operations outside the JavaFX application thread.
+
+The separate M2 package provides a local multiplayer demonstration through RoundRobinGame and M2GameScreen. Integration with the primary Home navigation remains pending.
+
+JUnit 5 tests cover game logic, database access, recursion, question parsing, and edge cases.
+
+---
+
+## 4. Data Model & Database Design
+
+### Finalized ER Diagram
+*(Figure 3: Finalized ER diagram)*
+
+```
++---------------------+                      +----------------------+
+|     CATEGORIES      |                      |      QUESTIONS       |
++---------------------+                      +----------------------+
+| PK id               |1                    M| PK id                |
+|    name             |<---------------------+    text              |
+| FK parent_id        |                      |    correct_answer    |
++----------+----------+                      |    incorrect_answers |
+ 1         | M  (parent_id -> id)            |    difficulty        |
+ +---------+                                 |    question_type     |
+           | 1                               | FK category_id       |
+           |                                 +-----------+----------+
+           | M                                           | 1
+           v                                             | M
++------------------------------------------------------------------+
+|                              SCORES                              |
++------------------------------------------------------------------+
+| PK id                                                            |
+| FK session_id                                                    |
+| FK player_id                                                     |
+| FK category_id                                                   |
+| FK question_id                                                   |
+|    is_correct (0 or 1)                                           |
+|    points                                                        |
++------------------------------------------------------------------+
+           ^                                            ^
+           | M                                          | M
+           | 1                                          | 1
++----------+----------+                      +----------+----------+
+|       PLAYERS       |                      |    GAME_SESSIONS    |
++---------------------+                      +---------------------+
+| PK id               |                      | PK id               |
+|    name             |                      |    played_at        |
++---------------------+                      +---------------------+
+```
+
+### Table 3: Relationship and Cardinality
+| Relationship | Cardinality | Foreign Key | Meaning |
+| :--- | :--- | :--- | :--- |
+| **categories $\rightarrow$ categories** | 1:M | `categories.parent_id` | A category has many subcategories (`NULL` = top level) |
+| **categories $\rightarrow$ questions** | 1:M | `questions.category_id` | A category contains many questions; each question has exactly one category |
+| **categories $\rightarrow$ scores** | 1:M | `scores.category_id` | Each answer is recorded under one category |
+| **questions $\rightarrow$ scores** | 1:M | `scores.question_id` | A question can be answered many times |
+| **players $\rightarrow$ scores** | 1:M | `scores.player_id` | A player has many score rows |
+| **game_sessions $\rightarrow$ scores** | 1:M | `scores.session_id` | A session has many score rows |
+| **players $\leftrightarrow$ game_sessions** | M:N | Resolved by `scores` | A player joins many sessions, and a session has many players |
+
+---
+
+### SQLite Schema
+This is the schema `Database.initializeSchema()` creates (shortened; see `Database.java` for the full code).
+
+```sql
+PRAGMA foreign_keys = ON;   -- run on every connection
+
+CREATE TABLE IF NOT EXISTS categories (
+    id        INTEGER PRIMARY KEY AUTOINCREMENT,
+    name      TEXT NOT NULL,
+    parent_id INTEGER REFERENCES categories(id)
+);
+
+CREATE TABLE IF NOT EXISTS players (
+    id   INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS game_sessions (
+    id        INTEGER PRIMARY KEY AUTOINCREMENT,
+    played_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS questions (
+    id                INTEGER PRIMARY KEY AUTOINCREMENT,
+    text              TEXT NOT NULL,
+    correct_answer    TEXT NOT NULL,
+    incorrect_answers TEXT NOT NULL,        -- JSON array of strings
+    difficulty        TEXT NOT NULL,
+    question_type     TEXT NOT NULL DEFAULT 'MULTIPLE_CHOICE',
+    category_id       INTEGER NOT NULL REFERENCES categories(id)
+);
+
+CREATE TABLE IF NOT EXISTS scores (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id  INTEGER NOT NULL REFERENCES game_sessions(id),
+    player_id   INTEGER NOT NULL REFERENCES players(id),
+    category_id INTEGER NOT NULL REFERENCES categories(id),
+    question_id INTEGER NOT NULL REFERENCES questions(id),
+    is_correct  INTEGER NOT NULL CHECK (is_correct IN (0, 1)),
+    points      INTEGER NOT NULL
+);
+```
+
+### Design Notes
+- `incorrect_answers` stores the wrong options as a JSON array, for example `["Earth","Venus","Jupiter"]`. It is read back with Jackson, so answers that contain commas or quotes survive. Storing them in one column keeps the model simple. A separate `answer_option` table would be the fully normalized alternative.
+- `question_type` (`MULTIPLE_CHOICE` or `TRUE_FALSE`) tells `QuestionMapper` which `Question` subclass to build. `initializeSchema()` adds the column to older database files that lack it.
+- A `CHECK` constraint keeps `is_correct` at 0 or 1. The DAO classes also reject empty text, answers, difficulty or names, non-positive IDs, and negative points before anything is saved, and `ScoreJsonImporter` checks the type and range of every field in each JSON entry.
+- Duplicate questions are prevented through `QuestionBankService.importQuestions()`. The service normalizes category names and question text, checks existing SQLite records, and skips duplicate questions during import. Duplicate prevention is implemented in application code rather than through a `UNIQUE` database constraint.
+- Every SQL statement in the DAO classes uses `PreparedStatement`, and `Database` turns on `PRAGMA foreign_keys` for each connection, since SQLite does not enforce foreign keys by default.
+- Deleting a player who already has scores is blocked by the foreign key, and the Players screen shows a friendly message instead of the raw error.
+
+---
 
 
+## 5. API Integration Design
 
-<!-- Start of picture text -->
-CATEGORY<br>nt “ PK<br>stig name uk<br>nt parents FK<br>QUESTION<br>re “ PK<br>sting text J GAME_SESSION PLAYER<br>sting commect_answer int 4 mK mo PK<br>sting incorrect_answers, dotetme<br>playedat strmg name UK<br>nt<br>——_categoryia FK<br>SCORE<br>int Py PK<br>1 int sessions FK<br>int players PK<br>int catogoryid FK<br>int questions FK<br>boolean s_correct<br><!-- End of picture text -->
+### Public API
 
-**Table 1: Team members and primary roles** 
+The application uses the Open Trivia Database (OpenTDB), a public trivia API that does not require an API key.
 
-|**Member**|**Primary Role**|
-|---|---|
-|_John Daevin S. Simbajon_|Team Lead + Integrator/DevOps|
-|_Gebrielle P. Mirasol_|Core OOP/Logic Developer|
-|_Justine B. Cuizon_|Database Admin + Data Developer + API|
-|_Clarence Philip A. Elegino_|UI/UX Designer + JavaFX Developer|
-|_Joshua Malaya_|Analytics + QA|
+The API is an optional source for downloading additional questions. Normal gameplay uses locally stored questions, supporting offline operation.
 
+### Actual API Classes
 
+| Class | Responsibility |
+| :--- | :--- |
+| `OpenTdbClient` | Sends HTTP requests to OpenTDB |
+| `QuestionParser` | Parses JSON responses and validates question data |
+| `BankQuestion` | Represents an imported question |
+| `FetchQuestionsTask` | Fetches and imports questions on a background JavaFX task |
+| `JsonImportTask` | Imports trivia questions from a local JSON file |
+| `QuestionBankService` | Saves questions to SQLite and skips duplicates |
 
-CPE 314 | Software Design   ·   University of Cebu   ·   Richyll Son   ·   Page 4 
+### Endpoint
 
-## **3. System Architecture & Object-Oriented Design** 
+The current application requests:
 
-_Present your class hierarchy (a diagram or a clear textual description) showing the abstract class/interface and its concrete subclasses, and justify how each class follows the Single Responsibility Principle. Explain the design rationale in a short paragraph._ 
+`GET https://opentdb.com/api.php?amount=10&encode=url3986`
 
-## **4. Data Model & Database Design** 
+### Table 4: API Request Parameters
 
-_Include the finalized ER diagram (3+ entities, at least one relationship with correct cardinality) and the actual SQLite schema (CREATE TABLE statements or an equivalent schema table). This section supersedes the preliminary sketch from Section 2._ 
+| Parameter | Current implementation | Purpose |
+| :--- | :--- | :--- |
+| `amount` | 1 to 50 | Number of questions requested |
+| `encode` | `url3986` | Percent-encodes question and answer text |
+| `category` | Not currently sent | No API category filter implemented |
+| `difficulty` | Not currently sent | No API difficulty filter implemented |
 
-## **5. API Integration Design** 
+The current OpenTdbClient uses a 12-second connection timeout and a 25-second request timeout.
 
-_Name the public API your app consumes, describe the endpoint(s) called, the shape of the JSON response, and how that data is parsed and used meaningfully in the app._ 
+### Multiple-Choice Answer Limitations
 
-## **6. Concurrency Design** 
+OpenTDB returns one correct answer and three incorrect answers for a standard multiple-choice question.
 
-_Identify the long-running operation(s) that run on a background thread, explain the threading approach used, and describe how the UI stays responsive during that operation._ 
+Therefore, each multiple-choice question normally has four answer options.
 
-## **7. Data Mining & Visualization Design** 
+The number of answer choices cannot be configured through the OpenTDB API.
 
-_Describe the aggregation or frequency-analysis step performed on your app's data and the chart(s) used to visualize the result, including why that chart type was chosen._ 
+True/False questions contain two choices: True and False.
 
-CPE 314 | Software Design   ·   University of Cebu   ·   Richyll Son   ·   Page 5 
+The application's MultipleChoiceQuestion class can display a variable number of choices, allowing appropriately formatted imported questions to use different answer counts.
 
-## **8. Testing Summary** 
+The download amount is separate from the answer count.
 
-_Summarize your JUnit test suite — how many tests exist, what they cover, and at least one meaningful edge case per tested class. A short table or list of key test cases is helpful here._ 
+### Response Processing
 
-## **9. Individual Contributions** 
+1. OpenTdbClient sends an HTTP GET request using Java HttpClient.
 
-_List what each team member specifically built or owned, referencing their git commit history, so the instructor can cross-check contribution during the Individual Q&A._ 
+2. The response is passed to QuestionParser.
 
-## **Appendix** 
+3. QuestionParser uses Jackson to parse the JSON response, verifies the response code, decodes question text, and validates each question.
 
-_(Add any additional references, links to full API documentation, licensing notes, or supplementary material here.)_ 
+4. Multiple-choice questions are mapped to MULTIPLE_CHOICE, while boolean questions are mapped to TRUE_FALSE.
 
-CPE 314 | Software Design   ·   University of Cebu   ·   Richyll Son   ·   Page 6 
+5. Parsed questions are represented by BankQuestion records.
 
+6. FetchQuestionsTask passes downloaded questions to QuestionBankService.
+
+7. QuestionBankService finds or creates categories, checks for duplicate questions, and saves new questions through QuestionDao.
+
+8. Questions are stored in SQLite and can be reused for offline gameplay.
+
+### Table 5: API Error Handling
+
+| Situation | Current handling |
+| :--- | :--- |
+| Invalid download amount | IllegalArgumentException |
+| HTTP status other than 200 | IOException with HTTP status |
+| Invalid OpenTDB response code | IOException from QuestionParser |
+| Malformed or incomplete JSON | Parsing exception |
+| Network failure or timeout | Exception reported by the background task |
+| Duplicate question | Skipped by QuestionBankService |
+
+The M2GameScreen displays import status and reports task failures while retaining access to the offline question bank.
+
+### Background Processing
+
+FetchQuestionsTask extends JavaFX Task and performs the network request and SQLite import outside the JavaFX application thread.
+
+JsonImportTask also runs in the background to read and save local JSON question files.
+
+Both operations are available in the separate M2GameScreen demonstration implementation.
+
+The default main Home navigation still requires integration before these controls are available through the primary application.
+
+---
+
+## 6. Concurrency Design
+
+The application performs potentially slow HTTP requests and JSON imports on background threads to keep the JavaFX interface responsive.
+
+### Table 6: Background Operations
+
+| Operation | Implementation | Background Processing | UI Update |
+| :--- | :--- | :--- | :--- |
+| Import historical scores | ScoreJsonImporter and ImportScreen | CompletableFuture using a single-thread executor | Platform.runLater |
+| Download trivia questions | FetchQuestionsTask and M2GameScreen | JavaFX Task on a daemon worker thread | setOnSucceeded and setOnFailed |
+| Import local trivia questions | JsonImportTask and M2GameScreen | JavaFX Task on a daemon worker thread | setOnSucceeded and setOnFailed |
+
+### API Download Process
+
+1. The user requests additional questions in M2GameScreen.
+2. M2GameScreen starts FetchQuestionsTask.
+3. FetchQuestionsTask calls OpenTdbClient.
+4. OpenTdbClient sends an HTTP request to OpenTDB.
+5. QuestionParser validates and parses the returned JSON.
+6. QuestionBankService checks for duplicates and saves new questions to SQLite.
+7. JavaFX Task handlers display the result or error.
+
+Downloaded questions remain available for offline gameplay.
+
+### JSON Question Import Process
+
+1. The user selects a local JSON file.
+2. M2GameScreen creates JsonImportTask.
+3. QuestionParser reads and validates the questions.
+4. QuestionBankService saves new questions to SQLite.
+5. The JavaFX interface displays the import result.
+
+### Historical Score Import
+
+ScoreJsonImporter uses CompletableFuture with a single-thread executor.
+
+ImportScreen receives completion results through whenComplete and Platform.runLater.
+
+This allows large JSON score imports to run without blocking the JavaFX application thread.
+
+### Thread Safety and UI Responsiveness
+
+Network requests and database imports run outside the JavaFX application thread.
+
+JavaFX controls are updated on the application thread through JavaFX Task handlers or Platform.runLater.
+
+The corresponding import buttons are disabled while question import tasks are running and re-enabled after completion.
+
+The API download and question JSON import functions currently belong to M2GameScreen, which is separate from the main Home navigation.
+
+### Verification
+
+The application should be tested to confirm that background imports do not freeze the interface.
+
+Tests should also verify that errors are reported and previously stored questions remain accessible after a failed API request.
