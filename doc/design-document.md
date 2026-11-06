@@ -264,73 +264,103 @@ CREATE TABLE IF NOT EXISTS scores (
 - `incorrect_answers` stores the wrong options as a JSON array, for example `["Earth","Venus","Jupiter"]`. It is read back with Jackson, so answers that contain commas or quotes survive. Storing them in one column keeps the model simple. A separate `answer_option` table would be the fully normalized alternative.
 - `question_type` (`MULTIPLE_CHOICE` or `TRUE_FALSE`) tells `QuestionMapper` which `Question` subclass to build. `initializeSchema()` adds the column to older database files that lack it.
 - A `CHECK` constraint keeps `is_correct` at 0 or 1. The DAO classes also reject empty text, answers, difficulty or names, non-positive IDs, and negative points before anything is saved, and `ScoreJsonImporter` checks the type and range of every field in each JSON entry.
-- Duplicate questions are prevented in code, not by a `UNIQUE` constraint: `QuestionDownloader` compares the trimmed, lower-cased question text with what is already saved, and also within the same download.
+- Duplicate questions are prevented through `QuestionBankService.importQuestions()`. The service normalizes category names and question text, checks existing SQLite records, and skips duplicate questions during import. Duplicate prevention is implemented in application code rather than through a `UNIQUE` database constraint.
 - Every SQL statement in the DAO classes uses `PreparedStatement`, and `Database` turns on `PRAGMA foreign_keys` for each connection, since SQLite does not enforce foreign keys by default.
 - Deleting a player who already has scores is blocked by the foreign key, and the Players screen shows a friendly message instead of the raw error.
 
 ---
 
+
 ## 5. API Integration Design
 
-**Public API:** the [Open Trivia Database](https://opentdb.com/api_config.php) (no API key needed). The class `OpenTriviaClient` sends the request, and `QuestionDownloader` saves the result.
+### Public API
+
+The application uses the Open Trivia Database (OpenTDB), a public trivia API that does not require an API key.
+
+The API is an optional source for downloading additional questions. Normal gameplay uses locally stored questions, supporting offline operation.
+
+### Actual API Classes
+
+| Class | Responsibility |
+| :--- | :--- |
+| `OpenTdbClient` | Sends HTTP requests to OpenTDB |
+| `QuestionParser` | Parses JSON responses and validates question data |
+| `BankQuestion` | Represents an imported question |
+| `FetchQuestionsTask` | Fetches and imports questions on a background JavaFX task |
+| `JsonImportTask` | Imports trivia questions from a local JSON file |
+| `QuestionBankService` | Saves questions to SQLite and skips duplicates |
 
 ### Endpoint
-```
-GET https://opentdb.com/api.php?amount=10&category=17&encode=url3986
-```
 
-### Table 4: Request parameters
-| Parameter | Value in our app | Why |
+The current application requests:
+
+`GET https://opentdb.com/api.php?amount=10&encode=url3986`
+
+### Table 4: API Request Parameters
+
+| Parameter | Current implementation | Purpose |
 | :--- | :--- | :--- |
-| `amount` | 1 to 50 (chosen in the Download screen) | The API allows at most 50 questions per call. |
-| `category` | Open Trivia category ID, chosen from `ApiCategory.DEFAULTS` (for example 17 = Science & Nature, 23 = History) | Each API category is mapped to one of our local top-level categories (Science, History, Entertainment). |
-| `encode` | `url3986` | Percent-encoding avoids HTML entities such as `&quot;` and `&#039;` in question text. The client decodes every text field with `URLDecoder`. |
+| `amount` | 1 to 50 | Number of questions requested |
+| `encode` | `url3986` | Percent-encodes question and answer text |
+| `category` | Not currently sent | No API category filter implemented |
+| `difficulty` | Not currently sent | No API difficulty filter implemented |
 
-### Shape of the JSON response
-```json
-{
-  "response_code": 0,
-  "results": [
-    {
-      "type": "multiple",
-      "difficulty": "easy",
-      "category": "Science%20%26%20Nature",
-      "question": "Which%20planet%20is%20the%20Red%20Planet%3F",
-      "correct_answer": "Mars",
-      "incorrect_answers": ["Earth", "Venus", "Jupiter"]
-    }
-  ]
-}
-```
+The current OpenTdbClient uses a 12-second connection timeout and a 25-second request timeout.
 
-### How the response is parsed and used
-1. `OpenTriviaClient.fetchQuestions(amount, categoryId)` builds the URI, sends the request through its `Transport` (a `java.net.http.HttpClient` with 5 s connect and 10 s request timeouts), and passes the body to `parse`.
-2. `parse` uses Jackson to read the tree. It checks `response_code` first, then reads each entry of `results` into an immutable `ApiQuestion` record (type, difficulty, category, text, correct answer, wrong answers), decoding every text field. Entries with a missing field, a bad escape, or an unknown type are skipped instead of stopping the whole download.
-3. `"multiple"` becomes `MULTIPLE_CHOICE` and `"boolean"` becomes `TRUE_FALSE`.
-4. `QuestionDownloader.download(category, amount)` fetches first, so going offline changes nothing in the database. It then finds or creates the local category, skips questions already saved (compared by trimmed, lower-cased text, including twice in the same download), and saves the rest with `QuestionDao.addQuestion`.
-5. The saved questions are used like any others: `NewGameScreen` loads them with `getQuestionsRecursively`, `QuestionMapper` turns them into `Question` objects, and the game is played and scored from them. The download therefore has a real effect on gameplay and later on the analytics, and is not just printed.
+### Multiple-Choice Answer Limitations
 
-### Table 5: How API problems are handled
-| Situation | Result shown to the user (`ApiException` message) |
+OpenTDB returns one correct answer and three incorrect answers for a standard multiple-choice question.
+
+Therefore, each multiple-choice question normally has four answer options.
+
+The number of answer choices cannot be configured through the OpenTDB API.
+
+True/False questions contain two choices: True and False.
+
+The application's MultipleChoiceQuestion class can display a variable number of choices, allowing appropriately formatted imported questions to use different answer counts.
+
+The download amount is separate from the answer count.
+
+### Response Processing
+
+1. OpenTdbClient sends an HTTP GET request using Java HttpClient.
+
+2. The response is passed to QuestionParser.
+
+3. QuestionParser uses Jackson to parse the JSON response, verifies the response code, decodes question text, and validates each question.
+
+4. Multiple-choice questions are mapped to MULTIPLE_CHOICE, while boolean questions are mapped to TRUE_FALSE.
+
+5. Parsed questions are represented by BankQuestion records.
+
+6. FetchQuestionsTask passes downloaded questions to QuestionBankService.
+
+7. QuestionBankService finds or creates categories, checks for duplicate questions, and saves new questions through QuestionDao.
+
+8. Questions are stored in SQLite and can be reused for offline gameplay.
+
+### Table 5: API Error Handling
+
+| Situation | Current handling |
 | :--- | :--- |
-| No internet or timeout (`IOException`) | "Could not reach the Open Trivia Database. Check your internet connection and try again." |
-| HTTP 429 or `response_code` 5 | "Too many requests. The Open Trivia Database allows one download every 5 seconds. Wait a moment and try again." |
-| `response_code` 1 | The category does not have enough questions; ask for fewer. |
-| `response_code` 2 | Invalid parameter. |
-| Other HTTP status or `response_code` | Message with the status or code. |
-| Malformed JSON, missing `results` | Error that the answer could not be read. |
-| Download cancelled (thread interrupted) | "cancelled"; the interrupt flag is restored. |
+| Invalid download amount | IllegalArgumentException |
+| HTTP status other than 200 | IOException with HTTP status |
+| Invalid OpenTDB response code | IOException from QuestionParser |
+| Malformed or incomplete JSON | Parsing exception |
+| Network failure or timeout | Exception reported by the background task |
+| Duplicate question | Skipped by QuestionBankService |
 
-The Open Trivia Database allows one request per 5 seconds per IP address, so the Download screen shows the rate-limit message instead of retrying automatically.
+The M2GameScreen displays import status and reports task failures while retaining access to the offline question bank.
 
-*(Figure 4: Data flow of one download)*
-```
-Download button -> DownloadScreen --(Task, background thread)--> QuestionDownloader
-   -> OpenTriviaClient --HTTPS--> opentdb.com
-   -> parse JSON -> ApiQuestion list
-   -> skip duplicates -> QuestionDao / CategoryDao -> SQLite
-   -> (JavaFX thread) status text + results box updated
-```
+### Background Processing
+
+FetchQuestionsTask extends JavaFX Task and performs the network request and SQLite import outside the JavaFX application thread.
+
+JsonImportTask also runs in the background to read and save local JSON question files.
+
+Both operations are available in the separate M2GameScreen demonstration implementation.
+
+The default main Home navigation still requires integration before these controls are available through the primary application.
 
 ---
 
