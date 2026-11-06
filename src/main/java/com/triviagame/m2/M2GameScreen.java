@@ -258,13 +258,22 @@ public final class M2GameScreen {
 
     public Parent getView() {
 
-        ScrollPane pane =
-                new ScrollPane(root);
+    ScrollPane pane = new ScrollPane(root);
 
-        pane.setFitToWidth(true);
+    pane.setFitToWidth(true);
 
-        return pane;
-    }
+    // Stop the question timer when leaving
+    // the M2 screen through Home navigation.
+    pane.sceneProperty().addListener(
+        (observable, oldScene, newScene) -> {
+            if (newScene == null) {
+                stopClock();
+            }
+        }
+    );
+
+    return pane;
+}
 
     private void addPlayer() {
 
