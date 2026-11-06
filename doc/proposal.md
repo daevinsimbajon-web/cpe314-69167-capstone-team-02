@@ -34,7 +34,7 @@ Trivia & Quiz Game Night Manager is a Java desktop app that helps friends, class
 | JavaFX application with event handlers | GUI |
 | FetchQuestionsTask, JsonImportTask, and ScoreJsonImporter | Concurrency |
 | AnalyticsDao and AnalyticsScreen | Data mining and visualization |
-| JUnit 5 automated tests | Automated Testing |
+| JUnit 5 automated tests | Automated Testing Evidence |
 
 
 ## **4. Task Split** 
