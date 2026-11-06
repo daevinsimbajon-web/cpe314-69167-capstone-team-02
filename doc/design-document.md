@@ -5,6 +5,8 @@
 ## Trivia & Quiz Night Manager
 ### Project Design Document
 
+### Table 1: Project Information
+
 | Information | Details |
 | :--- | :--- |
 | **Group Name / No.:** | 2 |
@@ -25,6 +27,7 @@
 - [6. Concurrency Design](#6-concurrency-design)
 
 ---
+### Table 2: Revision History
 
 ## Revision History
 *Update this table each week as your team adds or revises sections of this document.*
@@ -82,7 +85,7 @@
                       +------------------------------------+
 ```
 
-### Table 1: Team members and primary roles
+### Table 3: Team members and primary roles
 | Member | Primary Role |
 | :--- | :--- |
 | **John Daevin S. Simbajon** | Team Lead + Integrator/DevOps |
@@ -145,7 +148,7 @@ All packages are under `com.triviagame`.
 - `home`: Home, Navigator, Ui
 - Root package: App, Main
 
-### Table 2: How Each Class Follows the Single Responsibility Principle
+### Table 4 : How Each Class Follows the Single Responsibility Principle
 
 | Class or Component | Responsibility |
 | :--- | :--- |
@@ -232,7 +235,7 @@ JUnit 5 tests cover game logic, database access, recursion, question parsing, an
 +---------------------+                      +---------------------+
 ```
 
-### Table 3: Relationship and Cardinality
+### Table 5: Relationship and Cardinality
 | Relationship | Cardinality | Foreign Key | Meaning |
 | :--- | :--- | :--- | :--- |
 | **categories $\rightarrow$ categories** | 1:M | `categories.parent_id` | A category has many subcategories (`NULL` = top level) |
@@ -324,7 +327,7 @@ The current application requests:
 
 `GET https://opentdb.com/api.php?amount=10&encode=url3986`
 
-### Table 4: API Request Parameters
+### Table 6: API Request Parameters
 
 | Parameter | Current implementation | Purpose |
 | :--- | :--- | :--- |
@@ -367,7 +370,7 @@ The download amount is separate from the answer count.
 
 8. Questions are stored in SQLite and can be reused for offline gameplay.
 
-### Table 5: API Error Handling
+### Table 7: API Error Handling
 
 | Situation | Current handling |
 | :--- | :--- |
@@ -396,7 +399,7 @@ The default main Home navigation still requires integration before these control
 
 The application performs potentially slow HTTP requests and JSON imports on background threads to keep the JavaFX interface responsive.
 
-### Table 6: Background Operations
+### Table 8: Background Operations
 
 | Operation | Implementation | Background Processing | UI Update |
 | :--- | :--- | :--- | :--- |

@@ -35,7 +35,7 @@ Trivia & Quiz Night Manager is an offline-first Java desktop application designe
 | JavaFX application with event handlers | GUI |
 | FetchQuestionsTask, JsonImportTask, and ScoreJsonImporter | Concurrency |
 | AnalyticsDao and AnalyticsScreen | Data mining and visualization |
-| JUnit 5 automated tests | Automated Testing |
+| At least 6 JUnit 5 tests covering normal and edge cases | Automated Testing |
 
 
 ## **4. Task Split** 
