@@ -8,6 +8,7 @@ import com.triviagame.db.ScoreDao;
 import com.triviagame.db.ScoreJsonImporter;
 import com.triviagame.gameplay.NewGameScreen;
 import com.triviagame.importer.ImportScreen;
+import com.triviagame.m2.M2GameScreen;
 import com.triviagame.players.Players;
 import com.triviagame.results.Results;
 
@@ -25,14 +26,8 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-/**
- * The main window: a sidebar on the left and one screen in the center.
- * Every screen is created fresh when you open it, so it always shows
- * the latest data from the database.
- */
 public class Home implements Navigator {
 
-    // A database count that may throw
     @FunctionalInterface
     private interface SqlCount {
         int get() throws SQLException;
@@ -44,11 +39,11 @@ public class Home implements Navigator {
     private Button dashboardButton;
     private Button playersButton;
     private Button newGameButton;
+    private Button milestone2Button;
     private Button resultsButton;
     private Button analyticsButton;
     private Button importButton;
 
-    // Created the first time the Import screen opens
     private ScoreJsonImporter importer;
 
     public Home(Stage stage) {
@@ -61,7 +56,6 @@ public class Home implements Navigator {
         return root;
     }
 
-    // Called by App when the window closes
     public void shutdown() {
         if (importer != null) {
             importer.close();
@@ -114,6 +108,12 @@ public class Home implements Navigator {
         show(new ImportScreen(importer).getView());
     }
 
+    // Open existing Milestone 2 multiplayer and API screen.
+    private void openMilestone2() {
+        setActive(milestone2Button);
+        show(new M2GameScreen().getView());
+    }
+
     // ---------- Sidebar ----------
 
     private VBox createSidebar() {
@@ -124,17 +124,51 @@ public class Home implements Navigator {
         Label logo = Ui.label("✦ TRIVIA NIGHT", "logo");
         Label menu = Ui.label("MAIN MENU", "menu-label");
 
-        dashboardButton = navButton("⌂   Dashboard", this::openDashboard);
-        playersButton = navButton("♙   Players", this::openPlayers);
-        newGameButton = navButton("▶   New Game", this::openNewGame);
-        resultsButton = navButton("▤   Results", this::openResults);
-        analyticsButton = navButton("▥   Analytics", this::openAnalytics);
-        importButton = navButton("⇩   Import Scores", this::openImport);
+        dashboardButton = navButton(
+            "⌂   Dashboard",
+            this::openDashboard
+        );
+
+        playersButton = navButton(
+            "♙   Players",
+            this::openPlayers
+        );
+
+        newGameButton = navButton(
+            "▶   New Game",
+            this::openNewGame
+        );
+
+        milestone2Button = navButton(
+            "★   Multiplayer + API",
+            this::openMilestone2
+        );
+
+        resultsButton = navButton(
+            "▤   Results",
+            this::openResults
+        );
+
+        analyticsButton = navButton(
+            "▥   Analytics",
+            this::openAnalytics
+        );
+
+        importButton = navButton(
+            "⇩   Import Scores",
+            this::openImport
+        );
 
         sidebar.getChildren().addAll(
-                logo, menu,
-                dashboardButton, playersButton, newGameButton,
-                resultsButton, analyticsButton, importButton
+            logo,
+            menu,
+            dashboardButton,
+            playersButton,
+            newGameButton,
+            milestone2Button,
+            resultsButton,
+            analyticsButton,
+            importButton
         );
 
         return sidebar;
@@ -142,6 +176,7 @@ public class Home implements Navigator {
 
     private Button navButton(String text, Runnable action) {
         Button button = new Button(text);
+
         button.getStyleClass().add("nav-button");
         button.setMaxWidth(Double.MAX_VALUE);
         button.setOnAction(event -> action.run());
@@ -150,13 +185,16 @@ public class Home implements Navigator {
         return button;
     }
 
-    // Highlights the button of the screen that is open
     private void setActive(Button active) {
         for (Button button : navButtons) {
-            button.getStyleClass().remove("nav-button-active");
+            button.getStyleClass().remove(
+                "nav-button-active"
+            );
         }
 
-        active.getStyleClass().add("nav-button-active");
+        active.getStyleClass().add(
+            "nav-button-active"
+        );
     }
 
     // ---------- Dashboard ----------
@@ -165,73 +203,104 @@ public class Home implements Navigator {
         VBox content = new VBox();
         content.getStyleClass().add("screen");
 
-        Label heading = Ui.label("Dashboard", "title");
-        Label subtitle = Ui.label(
-                "Welcome back! Here's your trivia overview.",
-                "subtitle"
+        Label heading = Ui.label(
+            "Dashboard",
+            "title"
         );
 
-        HBox statistics = new HBox(20,
-                statCard("TOTAL PLAYERS",
-                        count(() -> new PlayerDao()
-                                .getAllPlayers().size()),
-                        "Registered players"),
+        Label subtitle = Ui.label(
+            "Welcome back! Here's your trivia overview.",
+            "subtitle"
+        );
 
-                statCard("GAMES PLAYED",
-                        count(() -> new ScoreDao()
-                                .countPlayedSessions()),
-                        "Sessions with saved answers"),
+        HBox statistics = new HBox(
+            20,
 
-                statCard("QUESTIONS",
-                        count(() -> new QuestionDao()
-                                .getAllQuestions().size()),
-                        "Available questions"),
+            statCard(
+                "TOTAL PLAYERS",
+                count(() -> new PlayerDao()
+                    .getAllPlayers().size()),
+                "Registered players"
+            ),
 
-                statCard("CATEGORIES",
-                        count(() -> new CategoryDao()
-                                .getAllCategories().size()),
-                        "Available categories")
+            statCard(
+                "GAMES PLAYED",
+                count(() -> new ScoreDao()
+                    .countPlayedSessions()),
+                "Sessions with saved answers"
+            ),
+
+            statCard(
+                "QUESTIONS",
+                count(() -> new QuestionDao()
+                    .getAllQuestions().size()),
+                "Available questions"
+            ),
+
+            statCard(
+                "CATEGORIES",
+                count(() -> new CategoryDao()
+                    .getAllCategories().size()),
+                "Available categories"
+            )
         );
 
         VBox quickStart = new VBox();
         quickStart.getStyleClass().add("card");
 
         Button start = Ui.button(
-                "Start New Game  →",
-                "primary-button",
-                event -> openNewGame()
+            "Start New Game  →",
+            "primary-button",
+            event -> openNewGame()
         );
 
         quickStart.getChildren().addAll(
-                Ui.label("Quick Start", "card-title"),
-                Ui.label("Ready to host your next Trivia Night?", "muted"),
-                start
+            Ui.label("Quick Start", "card-title"),
+            Ui.label(
+                "Ready to host your next Trivia Night?",
+                "muted"
+            ),
+            start
         );
 
         content.getChildren().addAll(
-                heading, subtitle, statistics, quickStart
+            heading,
+            subtitle,
+            statistics,
+            quickStart
         );
 
         return content;
     }
 
-    private VBox statCard(String title, String value, String description) {
+    private VBox statCard(
+            String title,
+            String value,
+            String description) {
+
         VBox box = new VBox();
-        box.getStyleClass().addAll("card", "stat-card");
+        box.getStyleClass().addAll(
+            "card",
+            "stat-card"
+        );
+
         box.setPrefWidth(230);
         box.setMaxWidth(Double.MAX_VALUE);
-        HBox.setHgrow(box, Priority.ALWAYS);
+
+        HBox.setHgrow(
+            box,
+            Priority.ALWAYS
+        );
 
         box.getChildren().addAll(
-                Ui.label(title, "stat-title"),
-                Ui.label(value, "stat-value"),
-                Ui.label(description, "stat-desc")
+            Ui.label(title, "stat-title"),
+            Ui.label(value, "stat-value"),
+            Ui.label(description, "stat-desc")
         );
 
         return box;
     }
 
-    // Shows "?" instead of crashing if the database fails
     private String count(SqlCount query) {
         try {
             return String.valueOf(query.get());
