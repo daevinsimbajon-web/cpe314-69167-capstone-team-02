@@ -51,7 +51,7 @@ public class NewGameScreen {
     private final ComboBox<CategoryChoice> categoryBox =
             new ComboBox<>();
     private final Spinner<Integer> countSpinner =
-            new Spinner<>(1, 50, 10);
+            new Spinner<>(1, 6, 5);
 
     private final Label hint = Ui.label("", "card-note");
 

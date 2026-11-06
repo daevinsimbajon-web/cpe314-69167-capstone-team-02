@@ -9,13 +9,10 @@ import com.triviagame.questions.QuestionMapper;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 public final class RoundRobinGame {
-
-    public static final int STARTING_LIVES = 3;
 
     private record Participant(
             SessionPlayerDao.RegisteredPlayer player,
@@ -29,73 +26,67 @@ public final class RoundRobinGame {
             int secondsPerQuestion,
             Question question,
             int score,
-            int questionNumber,
-            int livesRemaining) {
+            int questionNumber) {
     }
 
     public record AnswerResult(
             boolean correct,
             boolean timedOut,
-            int score,
-            boolean finalized,
-            int livesRemaining,
-            boolean eliminated) {
+            int score) {
     }
 
     private final int sessionId;
+
     private final List<Participant> participants =
             new ArrayList<>();
+
     private final TimedAnswerDao timings =
             new TimedAnswerDao();
 
-    private final int[] answersPerPlayer;
-    private final int[] lives;
+    private int activeIndex = 0;
+    private boolean awaitingNext = false;
+    private boolean finished = false;
 
-    private int activeIndex;
-    private boolean awaitingNext;
-    private boolean finished;
+    private int lastQuestionId = 0;
+    private int lastAnswerNumber = 0;
 
-    private int lastQuestionId;
-    private int lastAnswerPlayer = -1;
-    private int lastFinalAnswerLives;
+    private int[] answersPerPlayer;
 
     public RoundRobinGame(
             List<SessionPlayerDao.PlayerSetup> players,
             List<QuestionDao.QuestionRecord> bank,
-            int questionsPerPlayer) throws SQLException {
+            int questionsPerPlayer)
+            throws SQLException {
 
-        if (players == null || players.isEmpty()) {
+        if (bank == null ||
+                questionsPerPlayer < 1 ||
+                questionsPerPlayer > bank.size()) {
+
             throw new IllegalArgumentException(
-                    "Add at least one player."
+                "Not enough bank questions for requested game length"
             );
         }
 
-        if (bank == null
-                || questionsPerPlayer < 1
-                || questionsPerPlayer > bank.size()) {
-            throw new IllegalArgumentException(
-                    "Not enough questions for this game."
-            );
-        }
-
-        List<QuestionDao.QuestionRecord> shuffled =
+        List<QuestionDao.QuestionRecord> pool =
                 new ArrayList<>(bank);
 
-        Collections.shuffle(shuffled);
+        Collections.shuffle(pool);
 
         List<QuestionDao.QuestionRecord> selected =
-                shuffled.subList(0, questionsPerPlayer);
+                pool.subList(0, questionsPerPlayer);
 
         SessionPlayerDao.GameSetup setup =
                 new SessionPlayerDao().createGame(players);
 
         sessionId = setup.sessionId();
+
         timings.initialize();
 
-        for (var registered : setup.players()) {
+        for (var player : setup.players()) {
+
             GameEngine engine = new GameEngine(
-                    registered.playerId(),
-                    sessionId
+                player.playerId(),
+                sessionId
             );
 
             List<Question> questions =
@@ -103,21 +94,19 @@ public final class RoundRobinGame {
 
             for (var record : selected) {
                 questions.add(
-                        QuestionMapper.toQuestion(record)
+                    QuestionMapper.toQuestion(record)
                 );
             }
 
             engine.loadQuestions(questions);
 
             participants.add(
-                    new Participant(registered, engine)
+                new Participant(player, engine)
             );
         }
 
-        answersPerPlayer = new int[participants.size()];
-        lives = new int[participants.size()];
-
-        Arrays.fill(lives, STARTING_LIVES);
+        answersPerPlayer =
+                new int[participants.size()];
     }
 
     public int sessionId() {
@@ -132,180 +121,113 @@ public final class RoundRobinGame {
         return awaitingNext;
     }
 
-    public int livesForPlayer(int playerIndex) {
-        return lives[playerIndex];
-    }
-
-    public boolean isEliminated(int playerIndex) {
-        return lives[playerIndex] <= 0;
-    }
-
-    public int survivingPlayers() {
-        int count = 0;
-
-        for (int life : lives) {
-            if (life > 0) {
-                count++;
-            }
-        }
-
-        return count;
-    }
-
     public Turn currentTurn() {
+
         if (finished) {
             throw new IllegalStateException(
-                    "The game has ended."
+                "Game finished"
             );
         }
 
-        if (lives[activeIndex] <= 0) {
-            throw new IllegalStateException(
-                    "This player has been eliminated."
-            );
-        }
-
-        Participant p = participants.get(activeIndex);
+        Participant p =
+                participants.get(activeIndex);
 
         return new Turn(
-                p.player.name(),
-                p.player.playerId(),
-                p.player.turnOrder(),
-                p.player.secondsPerQuestion(),
-                p.engine.nextQuestion(),
-                p.engine.getScore(),
-                answersPerPlayer[activeIndex] + 1,
-                lives[activeIndex]
+            p.player.name(),
+            p.player.playerId(),
+            p.player.turnOrder(),
+            p.player.secondsPerQuestion(),
+            p.engine.nextQuestion(),
+            p.engine.getScore(),
+            answersPerPlayer[activeIndex] + 1
         );
     }
 
     public AnswerResult answer(
             String answer,
             long elapsedMs,
-            boolean timedOut) throws SQLException {
+            boolean timedOut)
+            throws SQLException {
 
         if (finished || awaitingNext) {
             throw new IllegalStateException(
-                    "No active unanswered turn."
+                "No active unanswered turn"
             );
         }
 
-        if (lives[activeIndex] <= 0) {
+        Participant p =
+                participants.get(activeIndex);
+
+        Question current =
+                p.engine.nextQuestion();
+
+        if (current == null) {
             throw new IllegalStateException(
-                    "This player is already eliminated."
+                "No question for player"
             );
         }
 
-        Participant p = participants.get(activeIndex);
-        Question question = p.engine.nextQuestion();
-
-        if (question == null) {
-            throw new IllegalStateException(
-                    "No current question."
-            );
-        }
-
-        boolean correct =
-                !timedOut && question.checkAnswer(answer);
-
-        int heartsBefore = lives[activeIndex];
-
-        // Each wrong answer, including timeout, costs one heart.
-        if (!correct) {
-            lives[activeIndex] = Math.max(
-                    0,
-                    lives[activeIndex] - 1
-            );
-        }
-
-        boolean eliminated = lives[activeIndex] == 0;
-
-        // Wrong answer, still alive, still within the time limit:
-        // allow another attempt without moving the question queue.
-        if (!correct && !timedOut && !eliminated) {
-            return new AnswerResult(
-                    false,
-                    false,
-                    p.engine.getScore(),
-                    false,
-                    lives[activeIndex],
-                    false
-            );
-        }
-
-        // Correct, timed out, or eliminated:
-        // finalize the answer and save it in the database.
-        boolean savedCorrect;
-
-        try {
-            savedCorrect = p.engine.submitAnswer(
-                    correct ? answer : ""
-            );
-        } catch (SQLException | RuntimeException ex) {
-            lives[activeIndex] = heartsBefore;
-            throw ex;
-        }
+        boolean correct = p.engine.submitAnswer(
+            timedOut ? "" : answer
+        );
 
         try {
             timings.save(
-                    sessionId,
-                    p.player.playerId(),
-                    question.getId(),
-                    Math.max(0, elapsedMs),
-                    timedOut
+                sessionId,
+                p.player.playerId(),
+                current.getId(),
+                elapsedMs,
+                timedOut
             );
 
-        } catch (SQLException ex) {
+        } catch (SQLException e) {
+
+            // Reverse the score if timing storage fails.
             try {
                 p.engine.undo();
             } catch (SQLException rollbackError) {
-                ex.addSuppressed(rollbackError);
+                e.addSuppressed(rollbackError);
             }
 
-            lives[activeIndex] = heartsBefore;
-            throw ex;
+            throw e;
         }
 
         answersPerPlayer[activeIndex]++;
 
-        lastAnswerPlayer = activeIndex;
-        lastQuestionId = question.getId();
-        lastFinalAnswerLives = heartsBefore;
+        lastAnswerNumber = activeIndex;
+        lastQuestionId = current.getId();
 
         awaitingNext = true;
 
         return new AnswerResult(
-                savedCorrect,
-                timedOut,
-                p.engine.getScore(),
-                true,
-                lives[activeIndex],
-                eliminated
+            correct,
+            timedOut,
+            p.engine.getScore()
         );
     }
 
-    // Internal undo retained for Queue/Stack coursework.
-    // It is not exposed as a player-facing button.
-    public boolean undoLast() throws SQLException {
-        if (!awaitingNext
-                || lastAnswerPlayer != activeIndex) {
+    public boolean undoLast()
+            throws SQLException {
+
+        if (!awaitingNext ||
+                lastAnswerNumber != activeIndex) {
             return false;
         }
 
-        Participant p = participants.get(activeIndex);
+        Participant p =
+                participants.get(activeIndex);
 
         if (!p.engine.undo()) {
             return false;
         }
 
         timings.remove(
-                sessionId,
-                p.player.playerId(),
-                lastQuestionId
+            sessionId,
+            p.player.playerId(),
+            lastQuestionId
         );
 
         answersPerPlayer[activeIndex]--;
-        lives[activeIndex] = lastFinalAnswerLives;
 
         awaitingNext = false;
         lastQuestionId = 0;
@@ -314,40 +236,35 @@ public final class RoundRobinGame {
     }
 
     public boolean nextTurn() {
+
         if (!awaitingNext) {
             throw new IllegalStateException(
-                    "Finish the current answer first."
+                "Answer the question first"
             );
         }
 
         awaitingNext = false;
 
-        // Skip every eliminated player, permanently.
-        for (int step = 1;
-                step <= participants.size();
-                step++) {
+        for (int i = 1; i <= participants.size(); i++) {
 
             int candidate =
-                    (activeIndex + step)
-                    % participants.size();
+                (activeIndex + i) % participants.size();
 
-            Participant next = participants.get(candidate);
-
-            if (lives[candidate] > 0
-                    && next.engine.hasNextQuestion()) {
+            if (participants.get(candidate)
+                    .engine.hasNextQuestion()) {
 
                 activeIndex = candidate;
                 return true;
             }
         }
 
-        // All players eliminated or finished their questions.
         finished = true;
         return false;
     }
 
     public List<TimedAnswerDao.Ranking> leaderboard()
             throws SQLException {
+
         return timings.ranking(sessionId);
     }
 }
