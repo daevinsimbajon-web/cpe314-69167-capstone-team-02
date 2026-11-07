@@ -4,6 +4,7 @@ import com.triviagame.analytics.AnalyticsScreen;
 import com.triviagame.db.CategoryDao;
 import com.triviagame.db.PlayerDao;
 import com.triviagame.db.QuestionDao;
+import com.triviagame.db.QuestionBankService;
 import com.triviagame.db.ScoreDao;
 import com.triviagame.db.ScoreJsonImporter;
 import com.triviagame.gameplay.NewGameScreen;
@@ -11,6 +12,7 @@ import com.triviagame.importer.ImportScreen;
 import com.triviagame.m2.M2GameScreen;
 import com.triviagame.players.Players;
 import com.triviagame.results.Results;
+import com.triviagame.tasks.FetchQuestionsTask;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -19,7 +21,9 @@ import java.util.List;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.Spinner;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -29,9 +33,7 @@ import javafx.stage.Stage;
 public class Home implements Navigator {
 
     @FunctionalInterface
-    private interface SqlCount {
-        int get() throws SQLException;
-    }
+    private interface SqlCount { int get() throws SQLException; }
 
     private final BorderPane root = new BorderPane();
     private final List<Button> navButtons = new ArrayList<>();
@@ -52,59 +54,46 @@ public class Home implements Navigator {
         openDashboard();
     }
 
-    public Parent getView() {
-        return root;
-    }
+    public Parent getView() { return root; }
 
     public void shutdown() {
-        if (importer != null) {
-            importer.close();
-        }
+        if (activeFetch != null && !activeFetch.isDone()) activeFetch.cancel();
+        if (importer != null) importer.close();
     }
-
-    // ---------- Navigator ----------
 
     @Override
-    public void show(Node screen) {
-        root.setCenter(screen);
-    }
+    public void show(Node screen) { root.setCenter(screen); }
 
     @Override
     public void openNewGame() {
-        setActive(newGameButton);
+        activate(newGameButton);
         show(new NewGameScreen(this).getView());
     }
 
     @Override
     public void openResults() {
-        setActive(resultsButton);
+        activate(resultsButton);
         show(new Results().getView());
     }
 
-    // ---------- Screens ----------
-
     private void openDashboard() {
-        setActive(dashboardButton);
-        show(createDashboard());
+        activate(dashboardButton);
+        show(makeDashboard());
     }
 
     private void openPlayers() {
-        setActive(playersButton);
+        activate(playersButton);
         show(new Players().getView());
     }
 
     private void openAnalytics() {
-        setActive(analyticsButton);
+        activate(analyticsButton);
         show(new AnalyticsScreen().getView());
     }
 
     private void openImport() {
-        setActive(importButton);
-
-        if (importer == null) {
-            importer = new ScoreJsonImporter();
-        }
-
+        activate(importButton);
+        if (importer == null) importer = new ScoreJsonImporter();
         show(new ImportScreen(importer).getView());
     }
 
@@ -170,7 +159,14 @@ public class Home implements Navigator {
             analyticsButton,
             importButton
         );
-
+        dashboardButton = nav("Dashboard", "home", this::openDashboard);
+        playersButton = nav("Players", "users", this::openPlayers);
+        newGameButton = nav("New Game", "play", this::openNewGame);
+        resultsButton = nav("Results", "list", this::openResults);
+        analyticsButton = nav("Analytics", "chart", this::openAnalytics);
+        importButton = nav("Import Scores", "download", this::openImport);
+        sidebar.getChildren().addAll(dashboardButton, playersButton,
+                newGameButton, resultsButton, analyticsButton, importButton);
         return sidebar;
     }
 
@@ -179,8 +175,8 @@ public class Home implements Navigator {
 
         button.getStyleClass().add("nav-button");
         button.setMaxWidth(Double.MAX_VALUE);
+        button.getStyleClass().add("nav-button");
         button.setOnAction(event -> action.run());
-
         navButtons.add(button);
         return button;
     }
@@ -197,9 +193,7 @@ public class Home implements Navigator {
         );
     }
 
-    // ---------- Dashboard ----------
-
-    private VBox createDashboard() {
+    private VBox makeDashboard() {
         VBox content = new VBox();
         content.getStyleClass().add("screen");
 
@@ -254,6 +248,16 @@ public class Home implements Navigator {
             event -> openNewGame()
         );
 
+        if (activeFetch != null && !activeFetch.isDone()) {
+            setDownloading(true);
+            fetchStatus.setText("Finding new questions...");
+        }
+
+        VBox quickStart = new VBox(14);
+        quickStart.getStyleClass().add("card");
+        Button start = Ui.button("Start New Game", "primary-button",
+                event -> openNewGame());
+        start.setGraphic(VectorIcons.of("play"));
         quickStart.getChildren().addAll(
             Ui.label("Quick Start", "card-title"),
             Ui.label(
@@ -269,7 +273,6 @@ public class Home implements Navigator {
             statistics,
             quickStart
         );
-
         return content;
     }
 
@@ -302,10 +305,7 @@ public class Home implements Navigator {
     }
 
     private String count(SqlCount query) {
-        try {
-            return String.valueOf(query.get());
-        } catch (SQLException e) {
-            return "?";
-        }
+        try { return String.valueOf(query.get()); }
+        catch (SQLException e) { return "?"; }
     }
 }
