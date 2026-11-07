@@ -450,3 +450,98 @@ The API download and question JSON import functions currently belong to M2GameSc
 The application should be tested to confirm that background imports do not freeze the interface.
 
 Tests should also verify that errors are reported and previously stored questions remain accessible after a failed API request.
+
+## 7. Data Mining & Visualization Design
+
+The Trivia & Quiz Night Manager uses data mining and visualization to analyze players' performance based on their saved game results.
+
+The application retrieves actual data from its SQLite database, performs SQL aggregation, and presents the results through JavaFX charts.
+
+### 7.2 Data Mining and Aggregation
+
+The `AnalyticsDao.java` class performs data analysis using SQL queries.
+
+The following database tables are used:
+
+* `scores` — stores players' answers, correctness, and earned points.
+* `players` — stores player information.
+* `categories` — identifies the category of each question.
+* `game_sessions` — identifies individual game sessions.
+
+The application uses SQL operations such as `COUNT()`, `SUM()`, `AVG()`, and `GROUP BY` to calculate performance statistics.
+
+#### Category Accuracy
+
+The application calculates the percentage of correct answers for each category.
+
+Accuracy is calculated using:
+
+Accuracy (%) = (Correct Answers / Total Answers) × 100
+
+For example, if players answer 8 out of 10 Science questions correctly:
+
+Accuracy = (8 / 10) × 100 = 80%
+
+The result is calculated using the actual saved answers rather than hard-coded values.
+
+#### Points per Game
+
+The application also calculates the total points earned by an individual player during each game session.
+
+The `getPointsPerSession()` method groups scores by game session and calculates their totals using `SUM(points)`.
+
+These results allow users to compare a player's performance across multiple games.
+
+### 7.3 Data Visualization
+
+The application uses the JavaFX chart components implemented in `AnalyticsScreen.java`.
+
+#### Bar Chart — Accuracy by Category
+
+The bar chart displays the percentage of correct answers for each trivia category.
+
+* X-axis: Category
+* Y-axis: Accuracy (%)
+* Data source: `AnalyticsDao.getAccuracyByCategory()`
+
+A bar chart was selected because it makes it easy to compare accuracy percentages across different categories and identify which topics players find easiest or most difficult.
+
+#### Line Chart — Points per Game
+
+The line chart shows a selected player's total points across saved game sessions.
+
+* X-axis: Game session (date played)
+* Y-axis: Points earned
+* Data source: `AnalyticsDao.getPointsPerSession()`
+
+A line chart was selected because it allows users to observe changes in player performance across successive game sessions.
+
+### 7.4 Dynamic Data Updates
+
+The charts are generated using actual data stored in SQLite.
+
+When a game is completed or new scores are successfully imported, the database contains additional score records.
+
+The user can open the Analytics screen or click Refresh to recalculate the statistics and update the charts.
+
+For example, if a category originally contains 8 correct answers out of 10 attempts, its accuracy is 80%.
+
+If two additional incorrect answers are saved, its accuracy becomes approximately 66.67%.
+
+This demonstrates that changes in the underlying database affect both the calculated results and the visualizations.
+
+### 7.5 Implementation and Design Rationale
+
+| Component         | Java Class               | Responsibility                                       |
+| ----------------- | ------------------------ | ---------------------------------------------------- |
+| Database          | `Database.java`          | Provides SQLite database connections                 |
+| Data Mining       | `AnalyticsDao.java`      | Performs SQL aggregation and analysis                |
+| Visualization     | `AnalyticsScreen.java`   | Displays bar and line charts using JavaFX            |
+| Score Persistence | `ScoreDao.java`          | Saves player scores used in analytics                |
+| JSON Import       | `ScoreJsonImporter.java` | Adds imported scores that can contribute to analysis |
+
+The design separates the data-processing layer from the presentation layer.
+
+`AnalyticsDao` handles database queries and calculations, while `AnalyticsScreen` handles chart rendering and user interaction.
+
+This separation follows the Single Responsibility Principle and allows the visualization interface to be modified without rewriting the SQL analysis logic
