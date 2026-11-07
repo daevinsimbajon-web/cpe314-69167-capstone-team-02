@@ -129,7 +129,7 @@ public class GameEngine {
         AnswerHistory previous = history.peek();
 
         // Remove the previously saved answer from SQLite.
-        (previous.savedScoreId() > 0) {
+        if (previous.savedScoreId() > 0) {
 
             boolean deleted = scoreDao.deleteScore(
                     previous.savedScoreId()
@@ -144,7 +144,7 @@ public class GameEngine {
         
         history.pop();
         
-        questions.addFirst(previous.question())
+        questions.addFirst(previous.question());
 
         score = previous.previousScore();
 
