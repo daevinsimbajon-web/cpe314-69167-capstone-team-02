@@ -1,14 +1,20 @@
-
 package com.triviagame;
 
 import com.triviagame.db.Database;
 import com.triviagame.db.SampleQuestionSeeder;
 import com.triviagame.home.Home;
+import com.triviagame.home.Ui;
+
+import java.net.URL;
+
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 public class App extends Application {
+
+    private Home home;
 
     @Override
     public void start(Stage stage) {
@@ -16,9 +22,15 @@ public class App extends Application {
             Database.initializeSchema();
             SampleQuestionSeeder.seed();
 
-            Home home = new Home(stage);
+            home = new Home(stage);
 
-            Scene scene = new Scene(home.getView(), 1440, 900);
+            Scene scene = new Scene(home.getView(), 1280, 800);
+
+            // All colors and styles live in src/main/resources/style.css
+            URL stylesheet = App.class.getResource("/style.css");
+            if (stylesheet != null) {
+                scene.getStylesheets().add(stylesheet.toExternalForm());
+            }
 
             stage.setTitle("Trivia Night Manager");
             stage.setMinWidth(1100);
@@ -27,7 +39,17 @@ public class App extends Application {
             stage.show();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            // Show the problem to the user instead of failing silently.
+            Ui.error("The app could not start:\n" + e.getMessage());
+            Platform.exit();
+        }
+    }
+
+    @Override
+    public void stop() {
+        // Stops the background import thread.
+        if (home != null) {
+            home.shutdown();
         }
     }
 

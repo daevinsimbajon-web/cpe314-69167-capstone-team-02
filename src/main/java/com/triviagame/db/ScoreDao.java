@@ -203,6 +203,29 @@ public class ScoreDao {
 
         return 0;
     }
+    // SELECT: Number of game sessions that have at least one saved
+    // answer (sessions started but never answered are not counted)
+    public int countPlayedSessions() throws SQLException {
+
+        String sql = """
+            SELECT COUNT(DISTINCT session_id) AS total
+            FROM scores
+            """;
+
+        try (Connection connection =
+                     Database.getConnection();
+             PreparedStatement statement =
+                     connection.prepareStatement(sql);
+             ResultSet result =
+                     statement.executeQuery()) {
+
+            if (result.next()) {
+                return result.getInt("total");
+            }
+        }
+
+        return 0;
+    }
 
     // UPDATE: Change the score for an answer
     public boolean updateScore(
