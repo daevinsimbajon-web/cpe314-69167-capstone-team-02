@@ -1,10 +1,13 @@
 package com.triviagame.gameplay;
 
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.List;
+import java.util.Objects;
 
-import com.triviagame.questions.Question;
 import com.triviagame.db.ScoreDao;
+import com.triviagame.questions.Question;
 
 public class GameEngine {
 
@@ -18,6 +21,8 @@ public class GameEngine {
     
     private int score = 0;
     private int total = 0;
+    private final int playerId;
+private final int sessionId;
 
     private record AnswerHistory(
             Question question,
