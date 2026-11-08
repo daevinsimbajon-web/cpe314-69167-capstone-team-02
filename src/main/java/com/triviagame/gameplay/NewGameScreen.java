@@ -89,6 +89,9 @@ public final class NewGameScreen {
  private long startedAt;
  private int secondsRemaining;
  private boolean questionVisible;
+ private static final int STARTING_LIVES = 3;
+ /** Hearts left per player id for the current game. */
+ private final Map<Integer, Integer> lives = new HashMap<>();
  public NewGameScreen(Navigator navigator) {
  this.navigator = navigator;
  root.getStyleClass().add("screen");
@@ -323,6 +326,7 @@ public final class NewGameScreen {
  return;
  }
  game = new RoundRobinGame(List.copyOf(pending), available, wanted);
+ lives.clear();
  show(setupCard, false);
  show(finalCard, false);
  show(gameCard, true);
@@ -334,6 +338,18 @@ public final class NewGameScreen {
  stopTimers();
  if (game == null || game.finished()) return;
  RoundRobinGame.Turn turn = game.currentTurn();
+ try {
+ // A player with no hearts left is out: their remaining turns are
+ // recorded as timed-out forfeits and skipped automatically.
+ while (livesOf(turn) <= 0) {
+ game.answer("", (long) turn.secondsPerQuestion() * 1000, true);
+ if (!game.nextTurn()) { showLeaderboard(); return; }
+ turn = game.currentTurn();
+ }
+ } catch (Exception e) {
+ Ui.error("Could not skip an eliminated player: " + e.getMessage());
+ return;
+ }
  show(readyPanel, true);
  show(questionPanel, false);
  readyTitle.setText(turn.playerName() + ", it's your turn!");
@@ -373,7 +389,7 @@ public final class NewGameScreen {
  questionNumber.setText("Question " + turn.questionNumber()
  + " • Answer correctly before time runs out");
  currentScore.setText("Score: " + turn.score());
- refreshHearts(turn.livesRemaining());
+ refreshHearts(livesOf(turn));
  answers.getChildren().clear();
  for (String option : question.getChoices()) {
  Button answer = new Button(QuestionParser.displayText(option));
@@ -411,19 +427,27 @@ public final class NewGameScreen {
  long limit = (long) turn.secondsPerQuestion() * 1000;
  long elapsed = timedOut ? limit
  : Math.min(limit, Math.max(0, (System.nanoTime() - startedAt) / 1_000_000));
- try {
- RoundRobinGame.AnswerResult result = game.answer(option, elapsed, timedOut);
- refreshHearts(result.livesRemaining());
- if (!result.finalized()) {
- // Wrong attempt: the question and its original countdown stay active.
+ // Hearts are tracked here: a wrong pick or a timeout costs one heart.
+ boolean right = !timedOut && turn.question().checkAnswer(option);
+ int livesLeft = livesOf(turn) - (right ? 0 : 1);
+ if (!timedOut && !right && livesLeft > 0) {
+ // Wrong attempt with hearts left: nothing is saved yet, and the
+ // question and its original countdown stay active.
+ lives.put(turn.playerId(), livesLeft);
+ refreshHearts(livesLeft);
  if (clicked != null) {
  clicked.setDisable(true);
  clicked.getStyleClass().add("choice-wrong");
  }
  message.setText("Not quite! You lost a heart. Try another answer.");
- status.setText(result.livesRemaining() + " hearts remaining — time is still running.");
+ status.setText(livesLeft + (livesLeft == 1 ? " heart" : " hearts")
+ + " remaining — time is still running.");
  return;
  }
+ try {
+ RoundRobinGame.AnswerResult result = game.answer(option, elapsed, timedOut);
+ lives.put(turn.playerId(), livesLeft);
+ refreshHearts(livesLeft);
  stopClock();
  for (var node : answers.getChildren()) {
  Button button = (Button) node;
@@ -435,7 +459,7 @@ public final class NewGameScreen {
  }
  currentScore.setText("Score: " + result.score());
  String correct = QuestionParser.displayText(turn.question().getCorrectAnswer());
- if (result.livesRemaining() == 0) {
+ if (livesLeft == 0) {
  message.setText("You lost your final heart - eliminated! "
  + "Correct answer: " + correct);
  status.setText(turn.playerName()
@@ -460,10 +484,13 @@ public final class NewGameScreen {
  private void refreshHearts(int remaining) {
  hearts.getChildren().clear();
  hearts.getChildren().add(Ui.label("Lives", "field-label"));
- for (int i = 0; i < RoundRobinGame.STARTING_LIVES; i++)
+ for (int i = 0; i < STARTING_LIVES; i++)
  hearts.getChildren().add(VectorIcons.heart(i < remaining));
  hearts.getChildren().add(Ui.label(remaining + " remaining", "muted"));
  hearts.setAlignment(Pos.CENTER_LEFT);
+ }
+ private int livesOf(RoundRobinGame.Turn turn) {
+ return lives.getOrDefault(turn.playerId(), STARTING_LIVES);
  }
  private void nextTurn() {
  if (game == null || !game.awaitingNext()) return;
