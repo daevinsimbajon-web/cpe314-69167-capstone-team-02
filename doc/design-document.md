@@ -43,8 +43,7 @@
 
 ## 1. Introduction & Project Overview
 
-**Trivia & Quiz Game Night Manager** is an offline-first Java desktop application designed for local multiplayer trivia games. Players can register their names, choose a category, and take turns answering questions using the same device. The game uses a Queue to manage question order and a Stack to support undo functionality. SQLite stores questions, players, game sessions, and scores locally. OpenTDB is an optional source for downloading additional trivia questions, which can be saved for offline use. The system also supports score tracking, analytics, and visualizations to help participants review their performance across games.
-
+**Trivia & Quiz Game Night Manager** is a Java desktop application that helps friends, classmates, and community groups organize and run trivia nights. Players enter their names, choose a category, and answer questions fetched live from the Open Trivia Database, with an "undo last answer" option for mistakes. Every player, game session, and score is saved in a local SQLite database, and past score history can be imported from CSV files. The app then analyzes the saved results and shows average score per category, most-missed questions, and score trends over time as labeled bar and line charts.
 
 - **Theme:** Custom idea (an entertainment and social-gaming tool for trivia nights).
 - **Problem solved:** Quiz hosts usually keep score on paper or in scattered spreadsheets, so results are easy to lose and hard to compare from one night to the next.
