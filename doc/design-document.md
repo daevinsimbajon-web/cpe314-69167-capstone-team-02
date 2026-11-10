@@ -56,9 +56,7 @@
 ### Preliminary ER Sketch
 *(Figure 1: Entities, Key Attributes and Relationships — Week 8 proposal, superseded by Figure 3 in Section 4)*
 
-```
 ![image alt](https://github.com/daevinsimbajon-web/cpe314-69167-capstone-team-02/blob/cdc334694aeffbb4527c06db8782033d53fabc6e/doc/images/Screenshot%202026-11-10%20102146.png)
-```
 
 ### Table 3: Team members and primary roles
 | Member | Primary Role |
@@ -76,9 +74,7 @@
 ### Class Hierarchy
 *(Figure 2: Class hierarchy)*
 
-```
 ![image alt](https://github.com/daevinsimbajon-web/cpe314-69167-capstone-team-02/blob/cdc334694aeffbb4527c06db8782033d53fabc6e/doc/images/Untitled.png)
-```
 
 The GUI and `GameEngine` only ever hold a `Question`. Each question type decides its own points, answer choices, and answer checking, so adding a new type (for example a numeric-answer question) means adding one subclass and one case in `QuestionMapper`, with no change to the game or the screens.
 
@@ -151,9 +147,7 @@ JUnit 5 tests cover game logic, database access, recursion, question parsing, an
 ### Finalized ER Diagram
 *(Figure 3: Finalized ER diagram)*
 
-```
 ![image alt](https://github.com/daevinsimbajon-web/cpe314-69167-capstone-team-02/blob/cdc334694aeffbb4527c06db8782033d53fabc6e/doc/images/Screenshot%202026-11-10%20102053.png)
-```
 
 ### Table 5: Relationship and Cardinality
 | Relationship | Cardinality | Foreign Key | Meaning |
