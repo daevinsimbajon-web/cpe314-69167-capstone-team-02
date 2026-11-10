@@ -57,7 +57,7 @@
 *(Figure 1: Entities, Key Attributes and Relationships — Week 8 proposal, superseded by Figure 3 in Section 4)*
 
 ```
-<img width="722" height="539" alt="image" src="https://github.com/user-attachments/assets/b2eb6cf6-a09a-4e44-9d66-30240e1b8b7e" />
+![image alt](https://github.com/daevinsimbajon-web/cpe314-69167-capstone-team-02/blob/cdc334694aeffbb4527c06db8782033d53fabc6e/doc/images/Screenshot%202026-11-10%20102146.png)
 ```
 
 ### Table 3: Team members and primary roles
@@ -77,7 +77,7 @@
 *(Figure 2: Class hierarchy)*
 
 ```
-<img width="457" height="342" alt="Untitled" src="https://github.com/user-attachments/assets/4db87465-67ad-423e-af48-f3ea7950b426" />
+![image alt](https://github.com/daevinsimbajon-web/cpe314-69167-capstone-team-02/blob/cdc334694aeffbb4527c06db8782033d53fabc6e/doc/images/Untitled.png)
 ```
 
 The GUI and `GameEngine` only ever hold a `Question`. Each question type decides its own points, answer choices, and answer checking, so adding a new type (for example a numeric-answer question) means adding one subclass and one case in `QuestionMapper`, with no change to the game or the screens.
@@ -152,7 +152,7 @@ JUnit 5 tests cover game logic, database access, recursion, question parsing, an
 *(Figure 3: Finalized ER diagram)*
 
 ```
-<img width="1097" height="571" alt="image" src="https://github.com/user-attachments/assets/279b7526-22f4-449e-955b-00ce7bee6029" />
+![image alt](https://github.com/daevinsimbajon-web/cpe314-69167-capstone-team-02/blob/cdc334694aeffbb4527c06db8782033d53fabc6e/doc/images/Screenshot%202026-11-10%20102053.png)
 ```
 
 ### Table 5: Relationship and Cardinality
