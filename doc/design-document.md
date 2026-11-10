@@ -57,31 +57,7 @@
 *(Figure 1: Entities, Key Attributes and Relationships — Week 8 proposal, superseded by Figure 3 in Section 4)*
 
 ```
-+------------------+          +------------------------+          +-------------------+
-|     CATEGORY     |          |        QUESTION        |          |   GAME_SESSION    |
-+------------------+          +------------------------+          +-------------------+
-| PK id            |<---+     | PK id                  |          | PK id             |
-| UK name          |    |     | UK text                |          |    played_at      |
-| FK parent_id     |+---+     |    correct_answer      |          +---------+---------+
-+--------+---------+          |    incorrect_answers   |                    |
-         |                    |    difficulty          |                    |
-         |                    | FK category_id         |                    |
-         |                    +-----------+------------+                    |
-         |                                |                                 |
-         +-------------------+            |            +--------------------+
-                             |            |            |
-                             v            v            v
-                      +------------------------------------+      +-------------------+
-                      |               SCORE                |      |      PLAYER       |
-                      +------------------------------------+      +-------------------+
-                      | PK id                              |      | PK id             |
-                      | FK session_id                      |      | UK name           |
-                      | FK player_id                       |<-----+-------------------+
-                      | FK category_id                     |
-                      | FK question_id                     |
-                      |    is_correct                      |
-                      |    points                          |
-                      +------------------------------------+
+<img width="722" height="539" alt="image" src="https://github.com/user-attachments/assets/b2eb6cf6-a09a-4e44-9d66-30240e1b8b7e" />
 ```
 
 ### Table 3: Team members and primary roles
@@ -101,30 +77,7 @@
 *(Figure 2: Class hierarchy)*
 
 ```
-        +------------------------------------------------------+
-        |                <<abstract>> Question                 |
-        |------------------------------------------------------|
-        | # id, categoryId, text, answer                       |
-        |------------------------------------------------------|
-        | + getText(), getId(), getCategoryId()               |
-        | + getCorrectAnswer(): String                         |
-        | + checkAnswer(String): boolean   (case-insensitive)  |
-        | + <<abstract>> getPoints(): int                      |
-        | + <<abstract>> getChoices(): List<String>            |
-        | + <<abstract>> display(): void                       |
-        +---------------------------+--------------------------+
-                                    ^
-                +-------------------+--------------------+
-                |                                        |
-+---------------+-----------------+      +---------------+-----------------+
-|      MultipleChoiceQuestion     |      |        TrueFalseQuestion        |
-|---------------------------------|      |---------------------------------|
-| choices = correct + wrong,      |      | choices = ["True", "False"]     |
-|   shuffled once                 |      | getPoints() = 5                 |
-| getPoints() = 10                |      | checkAnswer: inherited          |
-| checkAnswer: choice text, then  |      +---------------------------------+
-|   1-based position              |
-+---------------------------------+
+<img width="457" height="342" alt="Untitled" src="https://github.com/user-attachments/assets/4db87465-67ad-423e-af48-f3ea7950b426" />
 ```
 
 The GUI and `GameEngine` only ever hold a `Question`. Each question type decides its own points, answer choices, and answer checking, so adding a new type (for example a numeric-answer question) means adding one subclass and one case in `QuestionMapper`, with no change to the game or the screens.
@@ -199,39 +152,7 @@ JUnit 5 tests cover game logic, database access, recursion, question parsing, an
 *(Figure 3: Finalized ER diagram)*
 
 ```
-+---------------------+                      +----------------------+
-|     CATEGORIES      |                      |      QUESTIONS       |
-+---------------------+                      +----------------------+
-| PK id               |1                    M| PK id                |
-|    name             |<---------------------+    text              |
-| FK parent_id        |                      |    correct_answer    |
-+----------+----------+                      |    incorrect_answers |
- 1         | M  (parent_id -> id)            |    difficulty        |
- +---------+                                 |    question_type     |
-           | 1                               | FK category_id       |
-           |                                 +-----------+----------+
-           | M                                           | 1
-           v                                             | M
-+------------------------------------------------------------------+
-|                              SCORES                              |
-+------------------------------------------------------------------+
-| PK id                                                            |
-| FK session_id                                                    |
-| FK player_id                                                     |
-| FK category_id                                                   |
-| FK question_id                                                   |
-|    is_correct (0 or 1)                                           |
-|    points                                                        |
-+------------------------------------------------------------------+
-           ^                                            ^
-           | M                                          | M
-           | 1                                          | 1
-+----------+----------+                      +----------+----------+
-|       PLAYERS       |                      |    GAME_SESSIONS    |
-+---------------------+                      +---------------------+
-| PK id               |                      | PK id               |
-|    name             |                      |    played_at        |
-+---------------------+                      +---------------------+
+<img width="1097" height="571" alt="image" src="https://github.com/user-attachments/assets/279b7526-22f4-449e-955b-00ce7bee6029" />
 ```
 
 ### Table 5: Relationship and Cardinality
