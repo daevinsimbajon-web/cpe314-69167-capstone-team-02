@@ -1,0 +1,36 @@
+{
+  "questions": [
+    {
+      "category": "Science",
+      "text": "What instrument measures atmospheric pressure?",
+      "correctAnswer": "Barometer",
+      "incorrectAnswers": [
+        "Thermometer",
+        "Altimeter",
+        "Hygrometer"
+      ],
+      "difficulty": "easy",
+      "questionType": "MULTIPLE_CHOICE"
+    },
+    {
+      "category": "Science",
+      "text": "The Earth revolves around the Sun.",
+      "correctAnswer": "True",
+      "incorrectAnswers": ["False"],
+      "difficulty": "easy",
+      "questionType": "TRUE_FALSE"
+    },
+    {
+      "category": "History",
+      "text": "Which century did the first powered airplane flight occur?",
+      "correctAnswer": "20th century",
+      "incorrectAnswers": [
+        "18th century",
+        "19th century",
+        "21st century"
+      ],
+      "difficulty": "medium",
+      "questionType": "MULTIPLE_CHOICE"
+    }
+  ]
+}

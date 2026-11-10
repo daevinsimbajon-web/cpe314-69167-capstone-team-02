@@ -1,36 +1,53 @@
-
 package com.triviagame.players;
 
 import com.triviagame.db.PlayerDao;
-import javafx.collections.FXCollections;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.Parent;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
+import com.triviagame.db.ScoreDao;
+import com.triviagame.home.Ui;
 
 import java.sql.SQLException;
 
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.geometry.Pos;
+import javafx.scene.Parent;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextInputDialog;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
+
 public class Players {
 
-    private final VBox root = new VBox(22);
-
-    private final String cardColor = "#1B1D30";
-    private final String purple = "#8B5CF6";
+    private final VBox root = new VBox();
 
     private final PlayerDao playerDao = new PlayerDao();
+    private final ScoreDao scoreDao = new ScoreDao();
+
     private final TableView<PlayerDao.PlayerRecord> table =
             new TableView<>();
 
-    private final Label totalPlayers = new Label("0");
+    private final Label totalPlayers =
+            Ui.label("Total: 0 players", "card-note");
 
     public Players() {
-        root.setPadding(new Insets(40));
-        root.setStyle("-fx-background-color: #10111F;");
+        root.getStyleClass().add("screen");
 
-        createHeader();
-        createPlayerCard();
+        VBox card = createPlayerCard();
+        VBox.setVgrow(card, Priority.ALWAYS);
+
+        root.getChildren().addAll(
+                Ui.label("Players", "title"),
+                Ui.label("Manage your registered trivia players.",
+                        "subtitle"),
+                card
+        );
+
         loadPlayers();
     }
 
@@ -38,94 +55,55 @@ public class Players {
         return root;
     }
 
-    private void createHeader() {
-        Label title = new Label("Players");
-        title.setTextFill(Color.WHITE);
-        title.setStyle("-fx-font-size: 30px; -fx-font-weight: bold;");
+    private VBox createPlayerCard() {
+        VBox card = new VBox();
+        card.getStyleClass().add("card");
 
-        Label subtitle = new Label(
-                "Manage your registered trivia players."
-        );
-        subtitle.setTextFill(Color.web("#A0A1B5"));
-
-        root.getChildren().addAll(title, subtitle);
-    }
-
-    private void createPlayerCard() {
-        VBox card = new VBox(18);
-        card.setPadding(new Insets(25));
-        card.setStyle(
-                "-fx-background-color: " + cardColor +
-                "; -fx-background-radius: 16;"
+        VBox heading = new VBox(5,
+                Ui.label("Registered Players", "card-title"),
+                totalPlayers
         );
 
-        HBox header = new HBox(15);
+        Button addButton = Ui.button(
+                "+ Add Player",
+                "primary-button",
+                event -> showAddPlayerDialog()
+        );
+
+        HBox header = new HBox(15, heading, Ui.spacer(), addButton);
         header.setAlignment(Pos.CENTER_LEFT);
-
-        VBox heading = new VBox(5);
-
-        Label sectionTitle = new Label("Registered Players");
-        sectionTitle.setTextFill(Color.WHITE);
-        sectionTitle.setStyle(
-                "-fx-font-size: 19px; -fx-font-weight: bold;"
-        );
-
-        totalPlayers.setTextFill(Color.web("#A78BFA"));
-        totalPlayers.setStyle("-fx-font-size: 13px;");
-
-        heading.getChildren().addAll(sectionTitle, totalPlayers);
-
-        Button addButton = new Button("+ Add Player");
-        addButton.setStyle(
-                "-fx-background-color: " + purple +
-                "; -fx-text-fill: white;" +
-                "-fx-background-radius: 9;" +
-                "-fx-padding: 11 18;" +
-                "-fx-font-weight: bold;"
-        );
-        addButton.setOnAction(event -> showAddPlayerDialog());
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        header.getChildren().addAll(heading, spacer, addButton);
 
         TableColumn<PlayerDao.PlayerRecord, Number> idColumn =
                 new TableColumn<>("ID");
         idColumn.setCellValueFactory(data ->
-                new javafx.beans.property.SimpleIntegerProperty(
-                        data.getValue().id()
-                )
+                new SimpleIntegerProperty(data.getValue().id())
         );
 
         TableColumn<PlayerDao.PlayerRecord, String> nameColumn =
                 new TableColumn<>("Player Name");
         nameColumn.setCellValueFactory(data ->
-                new javafx.beans.property.SimpleStringProperty(
-                        data.getValue().name()
-                )
+                new SimpleStringProperty(data.getValue().name())
         );
 
         idColumn.setPrefWidth(100);
         nameColumn.setPrefWidth(500);
 
-        table.getColumns().addAll(idColumn, nameColumn);
+        table.getColumns().add(idColumn);
+        table.getColumns().add(nameColumn);
         table.setColumnResizePolicy(
                 TableView.CONSTRAINED_RESIZE_POLICY
         );
         table.setPlaceholder(new Label("No players registered yet."));
+        VBox.setVgrow(table, Priority.ALWAYS);
 
-        Button deleteButton = new Button("Delete Selected Player");
-        deleteButton.setStyle(
-                "-fx-background-color: #3B2432;" +
-                "-fx-text-fill: #FCA5A5;" +
-                "-fx-background-radius: 8;" +
-                "-fx-padding: 10 16;"
+        Button deleteButton = Ui.button(
+                "Delete Selected Player",
+                "danger-button",
+                event -> deleteSelectedPlayer()
         );
-        deleteButton.setOnAction(event -> deleteSelectedPlayer());
 
         card.getChildren().addAll(header, table, deleteButton);
-        root.getChildren().add(card);
+        return card;
     }
 
     private void loadPlayers() {
@@ -141,7 +119,7 @@ public class Players {
             );
 
         } catch (SQLException e) {
-            showError("Unable to load players: " + e.getMessage());
+            Ui.error("Unable to load players: " + e.getMessage());
         }
     }
 
@@ -154,7 +132,7 @@ public class Players {
 
         dialog.showAndWait().ifPresent(name -> {
             if (name.isBlank()) {
-                showError("Player name cannot be empty.");
+                Ui.warning("Player name cannot be empty.");
                 return;
             }
 
@@ -162,7 +140,7 @@ public class Players {
                 playerDao.addPlayer(name.trim());
                 loadPlayers();
             } catch (SQLException e) {
-                showError("Unable to add player: " + e.getMessage());
+                Ui.error("Unable to add player: " + e.getMessage());
             }
         });
     }
@@ -172,7 +150,22 @@ public class Players {
                 table.getSelectionModel().getSelectedItem();
 
         if (selected == null) {
-            showError("Please select a player first.");
+            Ui.warning("Please select a player first.");
+            return;
+        }
+
+        // A player with saved scores cannot be deleted (foreign key).
+        // Say so in plain words instead of showing a SQL error.
+        try {
+            if (!scoreDao.getScoresByPlayer(selected.id()).isEmpty()) {
+                Ui.warning(
+                        selected.name() + " has saved game scores, "
+                        + "so this player cannot be deleted."
+                );
+                return;
+            }
+        } catch (SQLException e) {
+            Ui.error("Unable to check scores: " + e.getMessage());
             return;
         }
 
@@ -189,19 +182,11 @@ public class Players {
                     playerDao.deletePlayer(selected.id());
                     loadPlayers();
                 } catch (SQLException e) {
-                    showError(
+                    Ui.error(
                             "Unable to delete player: " + e.getMessage()
                     );
                 }
             }
         });
-    }
-
-    private void showError(String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Players");
-        alert.setHeaderText("Something went wrong");
-        alert.setContentText(message);
-        alert.showAndWait();
     }
 }
