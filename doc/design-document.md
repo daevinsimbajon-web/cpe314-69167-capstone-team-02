@@ -13,7 +13,7 @@
 | **Members:** | **John Daevin S. Simbajon** - (Team Lead + Integrator/DevOps)<br>**Clarence Philip A. Elegino** - (Core OOP/Logic Developer)<br>**Justine B. Cuizon** - (Database Admin + Data Developer + API)<br>**Joshua Neil G. Malaya** - (UI/UX Designer + JavaFX Developer)<br>**Gebrielle P. Mirasol** - (Analytics + QA) |
 | **Instructor:** | Richyll Son |
 | **Term:** | First Semester, S.Y. 2026-2027 |
-| **Document Version / Date:** | V0.3 - 11/05/26 |
+| **Document Version / Date:** | V0.4 - 11/12/26 |
 
 ---
 
@@ -30,31 +30,33 @@
 ### Table 2: Revision History
 
 ## Revision History
-*Update this table each week as your team adds or revises sections of this document.*
 
 | Version | Date | Authors | Changes |
 | :--- | :--- | :--- | :--- |
-| **0.1** | 10/24/26 - 10/26/26 | Justine Cuizon, Clarence Philip Elegino, Joshua Malaya, Gebrielle Mirasol, John Daevin Simbajon | Initial draft — Week 8 sections (Section 1 to 2). Removing Unnecessary Instruction. Generating the Table of Contents. |
-| **0.2** | 10/28/26 | John Daevin Simbajon | Week 9 sections added. |
-| **0.3** | 11/05/26<br>11/06/26 | Gebrielle Mirasol<br>John Daevin Simbajon | Week 10 sections added (Sections 5 and 6). Sections 1, 2, 3 and 4 revised to match the implemented code: real package and class names, real database schema, JSON score import instead of CSV, corrected team roles table. <br> Revised One-Paragraph Pitch |
+| **0.1** | 10/24/26 - 10/26/26 | Justine Cuizon, Clarence Philip Elegino, Joshua Malaya, Gebrielle Mirasol, John Daevin Simbajon | Initial draft. <br> Section 1 to 2 added. <br> Removing Unnecessary Instruction. Generating the Table of Contents. |
+| **0.2** | 10/28/26 | John Daevin Simbajon | Section's 3 and 4 added. |
+| **0.3** | 11/05/26<br>11/06/26 | Gebrielle Mirasol<br>John Daevin Simbajon | Sections 5 and 6 added. <br> Sections 1, 2, 3 and 4 revised to match the implemented code: real package and class names, real database schema, JSON score import instead of CSV, corrected team roles table. <br> Revised One-Paragraph Pitch |
+| **0.4** | 11/12/26 | John Daevin S. Simbajon<br> Clarence Philip A. Elegino | Revised ER sketches |
+
 | **1.0** | *Pending* | Group 2 | Final compilation and polish — Week 11. |
 
 ---
 
 ## 1. Introduction & Project Overview
 
-**Trivia & Quiz Game Night Manager** is a Java desktop application that helps friends, classmates, and community groups organize and run trivia nights. Players enter their names, choose a category, and answer questions fetched live from the Open Trivia Database, with an "undo last answer" option for mistakes. Every player, game session, and score is saved in a local SQLite database, and past score history can be imported from CSV files. The app then analyzes the saved results and shows average score per category, most-missed questions, and score trends over time as labeled bar and line charts.
+**Trivia & Quiz Game Night Manager** is a Java desktop application, built with JavaFX and SQLite, that helps friends, classmates, and community groups run trivia nights. A host adds players and starts a timed, turn-based round-robin game, and each player answers multiple-choice or true/false questions with an option to undo the last answer. Questions come from a local offline question bank that can be extended by downloading more from the Open Trivia Database, filtered by difficulty and question type, or by importing a JSON file. Every player, game session, answer, and score is saved in the database, and past scores can be exported to and imported from JSON without creating duplicates. The app then analyzes the saved results and shows accuracy by category and points per game as labeled bar and line charts.
 
 - **Theme:** Custom idea (an entertainment and social-gaming tool for trivia nights).
 - **Problem solved:** Quiz hosts usually keep score on paper or in scattered spreadsheets, so results are easy to lose and hard to compare from one night to the next.
 - **Key value proposition:** One app that fetches questions, scores each player, stores the history, and turns it into clear charts, so groups can see who is improving and which categories are hardest.
+- **Planned:** user accounts with host and player roles, so each player can sign in and see their own scores.
 
 ---
 
 ## 2. Preliminary ER Sketch & Team Roles
 
 ### Preliminary ER Sketch
-*(Figure 1: Entities, Key Attributes and Relationships — Week 8 proposal, superseded by Figure 3 in Section 4)*
+*(Figure 1: Entities, key attributes and relationships — preliminary sketch from version 0.1, 10/26/26, superseded by Figure 3 in Section 4)*
 
 ![image alt](https://github.com/daevinsimbajon-web/cpe314-69167-capstone-team-02/blob/cdc334694aeffbb4527c06db8782033d53fabc6e/doc/images/Screenshot%202026-11-10%20102146.png)
 
