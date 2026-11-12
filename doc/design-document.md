@@ -58,7 +58,7 @@
 ### Preliminary ER Sketch
 *(Figure 1: Entities, key attributes and relationships — preliminary sketch from version 0.1, 10/26/26, superseded by Figure 3 in Section 4)*
 
-![image alt](https://github.com/daevinsimbajon-web/cpe314-69167-capstone-team-02/blob/cdc334694aeffbb4527c06db8782033d53fabc6e/doc/images/Screenshot%202026-11-10%20102146.png)
+![image alt](https://github.com/daevinsimbajon-web/cpe314-69167-capstone-team-02/blob/7985c96258e843cb21330bd2ff06a9864802865e/doc/images/Preliminary%20Sketch.png)
 
 ### Table 3: Team members and primary roles
 | Member | Primary Role |
