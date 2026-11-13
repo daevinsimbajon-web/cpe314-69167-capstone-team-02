@@ -426,11 +426,12 @@ The application performs potentially slow HTTP requests and JSON imports on back
 
 ### Table 8: Background Operations
 
-| Operation | Implementation | Background Processing | UI Update |
+| Operation | Started from | Background processing | UI update |
 | :--- | :--- | :--- | :--- |
-| Import historical scores | ScoreJsonImporter and ImportScreen | CompletableFuture using a single-thread executor | Platform.runLater |
-| Download trivia questions | FetchQuestionsTask and M2GameScreen | JavaFX Task on a daemon worker thread | setOnSucceeded and setOnFailed |
-| Import local trivia questions | JsonImportTask and M2GameScreen | JavaFX Task on a daemon worker thread | setOnSucceeded and setOnFailed |
+| Download trivia questions | `Home` and `M2GameScreen` | `FetchQuestionsTask` (JavaFX `Task`) on a daemon thread | `setOnSucceeded`, `setOnFailed`, `setOnCancelled` |
+| Import local trivia questions | `M2GameScreen` | `JsonImportTask` (JavaFX `Task`) on a daemon thread | `setOnSucceeded`, `setOnFailed` |
+| Import historical scores | `ImportScreen` | `ScoreJsonImporter.importAsync` (`CompletableFuture` on a single-thread executor) | `whenComplete` + `Platform.runLater` |
+| Export historical scores | `ImportScreen` | `Task` calling `ScoreJsonExporter` on a daemon thread | `setOnSucceeded`, `setOnFailed` |
 
 ### API Download Process
 
@@ -446,8 +447,8 @@ Downloaded questions remain available for offline gameplay.
 
 ### JSON Question Import Process
 
-1. The user selects a local JSON file.
-2. M2GameScreen creates JsonImportTask.
+1. The user requests more questions on the Home dashboard or in M2GameScreen
+2. MThe screen starts FetchQuestionsTask, passing the amount, and from Home also the difficulty and type.
 3. QuestionParser reads and validates the questions.
 4. QuestionBankService saves new questions to SQLite.
 5. The JavaFX interface displays the import result.
@@ -460,21 +461,22 @@ ImportScreen receives completion results through whenComplete and Platform.runLa
 
 This allows large JSON score imports to run without blocking the JavaFX application thread.
 
+Exporting scores runs ScoreJsonExporter in a JavaFX Task on a daemon thread, so writing a large file does not freeze the window.
+
+
 ### Thread Safety and UI Responsiveness
 
-Network requests and database imports run outside the JavaFX application thread.
+Network requests, JSON imports and exports run outside the JavaFX application thread. Controls are updated only on the application thread, through `Task` handlers or `Platform.runLater`.
 
-JavaFX controls are updated on the application thread through JavaFX Task handlers or Platform.runLater.
+While a task runs, its buttons are disabled and re-enabled when it finishes: the download controls on `Home`, the fetch and import buttons in `M2GameScreen`, and the choose, import and export buttons in `ImportScreen`. This also prevents two downloads from running at once.
 
-The corresponding import buttons are disabled while question import tasks are running and re-enabled after completion.
-
-The API download and question JSON import functions currently belong to M2GameScreen, which is separate from the main Home navigation.
+All worker threads are daemon threads, so they do not keep the application open after the window closes.
 
 ### Verification
 
-The application should be tested to confirm that background imports do not freeze the interface.
-
-Tests should also verify that errors are reported and previously stored questions remain accessible after a failed API request.
+- Unit tests cover `QuestionParser` and the score import (duplicate and invalid entries), and `GameEngineDatabaseTest` and `ScoreJsonImporterTest` check the database side.
+- Manual check: <what you did, e.g. started a 50-question download and confirmed the window stayed responsive and the buttons were disabled until it finished>.
+- Manual check: <e.g. turned off the network, started a download, and confirmed the error message appeared and the stored questions were still available>.
 
 ## 7. Data Mining & Visualization Design
 
@@ -492,6 +494,7 @@ The following database tables are used:
 * `players` — stores player information.
 * `categories` — identifies the category of each question.
 * `game_sessions` — identifies individual game sessions.
+* `questions`— links each score to its category.
 
 The application uses SQL operations such as `COUNT()`, `SUM()`, `AVG()`, and `GROUP BY` to calculate performance statistics.
 
@@ -508,6 +511,8 @@ For example, if players answer 8 out of 10 Science questions correctly:
 Accuracy = (8 / 10) × 100 = 80%
 
 The result is calculated using the actual saved answers rather than hard-coded values.
+
+Each saved answer is joined to its question to find the category, so the category is stored in one place only.
 
 #### Points per Game
 
