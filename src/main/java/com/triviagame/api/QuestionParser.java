@@ -1,164 +1,210 @@
-package com.triviagame.api;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+package com.triviagame.api;
 
 import java.io.IOException;
 import java.net.URLDecoder;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public final class QuestionParser {
 
     private static final ObjectMapper JSON =
             new ObjectMapper();
 
-    public List<BankQuestion> parse(String jsonText)
-            throws IOException {
-        return parse(jsonText, false);
+    private static final Pattern ENTITY =
+            Pattern.compile(
+                    "&(#(?:[xX][0-9a-fA-F]+|[0-9]+)"
+                    + "|[A-Za-z][A-Za-z0-9]+);"
+            );
+
+    private static final Pattern PERCENT =
+            Pattern.compile("%[0-9a-fA-F]{2}");
+
+    public List<BankQuestion> parse(
+            String input) throws IOException {
+
+        return parse(input, false);
     }
 
     public List<BankQuestion> parse(
-            String jsonText, boolean url3986)
-            throws IOException {
+            String input,
+            boolean url3986) throws IOException {
 
-        JsonNode root = JSON.readTree(jsonText);
+        JsonNode root = JSON.readTree(input);
 
         if (root == null) {
-            throw new IOException("Empty JSON document");
+            throw new IOException("Empty JSON document.");
         }
 
-        JsonNode items;
+        JsonNode questions;
 
         if (root.isArray()) {
-            items = root;
+            questions = root;
+
         } else if (root.isObject()) {
 
-            if (root.has("response_code") &&
-                    root.get("response_code").asInt(-1) != 0) {
+            if (root.has("response_code")
+                    && root.get("response_code").asInt(-1) != 0) {
+
                 throw new IOException(
-                    "OpenTDB response_code="
-                    + root.get("response_code").asInt()
-                    + " (no questions, invalid parameters, or rate limit)"
+                        "OpenTDB response_code="
+                        + root.get("response_code").asInt()
+                        + " (no matching questions, "
+                        + "invalid filters or rate limit)"
                 );
             }
 
-            items = root.has("results")
+            questions = root.has("results")
                     ? root.get("results")
                     : root.get("questions");
 
         } else {
             throw new IOException(
-                "JSON root must be an object or array"
+                    "Expected a JSON object or array."
             );
         }
 
-        if (items == null || !items.isArray()) {
+        if (questions == null || !questions.isArray()) {
             throw new IOException(
-                "Expected a JSON array named results or questions"
+                    "Expected an array named results or questions."
             );
         }
 
-        boolean encoded = url3986 ||
-                (root.isObject()
+        boolean encoded =
+                url3986
+                || (root.isObject()
                 && root.has("response_code")
-                && hasPercentEncodedQuestion(items));
+                && looksPercentEncoded(questions));
 
-        List<BankQuestion> parsed = new ArrayList<>();
+        List<BankQuestion> output =
+                new ArrayList<>();
 
         int index = 0;
 
-        for (JsonNode item : items) {
+        for (JsonNode item : questions) {
             index++;
 
             try {
-                String category = string(
-                    item, encoded, "category"
+                String category = text(
+                        item, encoded, "category"
                 );
 
-                String text = string(
-                    item, encoded, "question", "text"
+                String question = text(
+                        item, encoded, "question", "text"
                 );
 
-                String answer = string(
-                    item, encoded, "correct_answer", "correctAnswer"
+                String correct = text(
+                        item, encoded,
+                        "correct_answer", "correctAnswer"
                 );
 
-                String difficulty = string(
-                    item, encoded, "difficulty"
+                String difficulty = text(
+                        item, encoded, "difficulty"
                 );
 
-                String typeRaw = string(
-                    item, false,
-                    "type", "question_type", "questionType"
+                String rawType = text(
+                        item, false,
+                        "type", "question_type", "questionType"
                 );
 
-                String type = switch (typeRaw.toLowerCase()) {
-                    case "multiple", "multiple_choice"
-                        -> "MULTIPLE_CHOICE";
+                String type = switch (
+                        rawType.toLowerCase(Locale.ROOT)
+                ) {
+                    case "multiple", "multiple_choice" ->
+                            "MULTIPLE_CHOICE";
 
-                    case "boolean", "true_false"
-                        -> "TRUE_FALSE";
+                    case "boolean", "true_false" ->
+                            "TRUE_FALSE";
 
                     default -> throw new IllegalArgumentException(
-                        "Unknown question type: " + typeRaw
+                            "Unknown question type: " + rawType
                     );
                 };
 
-                JsonNode incorrect = field(
-                    item, "incorrect_answers", "incorrectAnswers"
+                JsonNode wrongArray = field(
+                        item,
+                        "incorrect_answers",
+                        "incorrectAnswers"
                 );
 
-                if (incorrect == null || !incorrect.isArray()) {
+                if (wrongArray == null
+                        || !wrongArray.isArray()) {
                     throw new IllegalArgumentException(
-                        "incorrect_answers must be an array"
+                            "incorrect_answers must be an array."
                     );
                 }
 
-                List<String> distractors = new ArrayList<>();
+                List<String> wrong =
+                        new ArrayList<>();
 
-                for (JsonNode value : incorrect) {
-                    if (!value.isTextual()) {
+                for (JsonNode answer : wrongArray) {
+                    if (!answer.isTextual()) {
                         throw new IllegalArgumentException(
-                            "Answer must be text"
+                                "Answer must be text."
                         );
                     }
-                    distractors.add(
-                        decode(value.asText(), encoded)
+
+                    wrong.add(
+                            decode(
+                                    answer.asText(),
+                                    encoded
+                            )
                     );
                 }
 
-                parsed.add(new BankQuestion(
-                    category,
-                    text,
-                    answer,
-                    distractors,
-                    difficulty,
-                    type
-                ));
+                output.add(
+                        new BankQuestion(
+                                category,
+                                question,
+                                correct,
+                                wrong,
+                                difficulty,
+                                type,
+                                externalId(item)
+                        )
+                );
 
             } catch (IllegalArgumentException ex) {
                 throw new IOException(
-                    "Invalid question at JSON index "
-                    + index + ": " + ex.getMessage(), ex
+                        "Invalid question at index "
+                        + index + ": " + ex.getMessage(),
+                        ex
                 );
             }
         }
 
-        return List.copyOf(parsed);
+        return List.copyOf(output);
+    }
+
+    private static String externalId(JsonNode item) {
+        JsonNode id = field(item, "external_id", "externalId", "id");
+        if (id == null) {
+            return null;
+        }
+        if (!id.isTextual() && !id.isIntegralNumber()) {
+            throw new IllegalArgumentException("External ID must be text or an integer.");
+        }
+        return id.asText();
     }
 
     private static JsonNode field(
-            JsonNode item, String... alternatives) {
+            JsonNode item,
+            String... keys) {
 
         if (item == null || !item.isObject()) {
             return null;
         }
 
-        for (String key : alternatives) {
+        for (String key : keys) {
             if (item.hasNonNull(key)) {
                 return item.get(key);
             }
@@ -167,101 +213,211 @@ public final class QuestionParser {
         return null;
     }
 
-    private static String string(
-            JsonNode item, boolean encoded, String... keys) {
+    private static String text(
+            JsonNode item,
+            boolean encoded,
+            String... keys) {
 
-        JsonNode value = field(item, keys);
+        JsonNode node = field(item, keys);
 
-        if (value == null || !value.isTextual()) {
+        if (node == null || !node.isTextual()) {
             throw new IllegalArgumentException(
-                "Missing text field: " + keys[0]
+                    "Missing field: " + keys[0]
             );
         }
 
-        return decode(value.asText(), encoded);
+        return decode(
+                node.asText(),
+                encoded
+        );
     }
 
-    private static boolean hasPercentEncodedQuestion(
+    private static boolean looksPercentEncoded(
             JsonNode items) {
 
         for (JsonNode item : items) {
-            JsonNode text = field(item, "question", "text");
+            JsonNode question = field(
+                    item,
+                    "question", "text"
+            );
 
-            return text != null
-                && text.isTextual()
-                && Pattern.compile("%[0-9A-Fa-f]{2}")
-                    .matcher(text.asText())
-                    .find();
+            if (question != null
+                    && question.isTextual()
+                    && PERCENT.matcher(
+                            question.asText()
+                    ).find()) {
+                return true;
+            }
         }
 
         return false;
     }
 
-    private static final Pattern HTML_ENTITY =
-            Pattern.compile(
-                "&(?:amp|quot|apos|lt|gt|#(?:[0-9]+|[xX][0-9a-fA-F]+));"
-            );
-
     private static String decode(
-            String value, boolean encoded) {
+            String value,
+            boolean encoded) {
+
+        if (value == null) {
+            return "";
+        }
 
         if (encoded) {
             try {
-                return URLDecoder.decode(
-                    value, StandardCharsets.UTF_8
+                value = URLDecoder.decode(
+                        value,
+                        StandardCharsets.UTF_8
                 );
+
             } catch (IllegalArgumentException ex) {
                 throw new IllegalArgumentException(
-                    "Invalid percent-encoded OpenTDB text", ex
+                        "Invalid percent encoding.",
+                        ex
                 );
             }
         }
 
-        Matcher matcher = HTML_ENTITY.matcher(value);
-        StringBuilder decoded = new StringBuilder();
+        return repairMojibake(
+                decodeHtml(value)
+        );
+    }
 
-        while (matcher.find()) {
-            String entity = matcher.group();
+    public static String displayText(
+            String text) {
 
-            String replacement = switch (entity) {
-                case "&amp;" -> "&";
-                case "&quot;" -> "\"";
-                case "&apos;" -> "'";
-                case "&lt;" -> "<";
-                case "&gt;" -> ">";
-
-                default -> {
-                    try {
-                        String numeric = entity.substring(
-                            2, entity.length() - 1
-                        );
-
-                        int codePoint =
-                            numeric.startsWith("x")
-                            || numeric.startsWith("X")
-                            ? Integer.parseInt(
-                                numeric.substring(1), 16
-                            )
-                            : Integer.parseInt(numeric);
-
-                        yield Character.isValidCodePoint(codePoint)
-                            ? new String(Character.toChars(codePoint))
-                            : entity;
-
-                    } catch (IllegalArgumentException ex) {
-                        yield entity;
-                    }
-                }
-            };
-
-            matcher.appendReplacement(
-                decoded,
-                Matcher.quoteReplacement(replacement)
-            );
+        if (text == null) {
+            return "";
         }
 
-        matcher.appendTail(decoded);
+        if (PERCENT.matcher(text).find()) {
+            try {
+                text = URLDecoder.decode(
+                        text,
+                        StandardCharsets.UTF_8
+                );
+            } catch (IllegalArgumentException ignored) {
+                // Keep the original text.
+            }
+        }
 
-        return decoded.toString();
+        return repairMojibake(
+                decodeHtml(text)
+        );
+    }
+
+    private static String repairMojibake(
+            String value) {
+
+        if (!(value.contains("Ã")
+                || value.contains("Â")
+                || value.contains("â€"))) {
+            return value;
+        }
+
+        try {
+            return new String(
+                    value.getBytes(
+                            Charset.forName("windows-1252")
+                    ),
+                    StandardCharsets.UTF_8
+            );
+        } catch (Exception ignored) {
+            return value;
+        }
+    }
+
+    private static String decodeHtml(
+            String source) {
+
+        String result = source;
+
+        for (int pass = 0; pass < 2; pass++) {
+            Matcher matcher =
+                    ENTITY.matcher(result);
+
+            StringBuffer buffer =
+                    new StringBuffer();
+
+            while (matcher.find()) {
+                String replacement = entityValue(
+                        matcher.group(1)
+                );
+
+                matcher.appendReplacement(
+                        buffer,
+                        Matcher.quoteReplacement(
+                                replacement == null
+                                        ? matcher.group()
+                                        : replacement
+                        )
+                );
+            }
+
+            matcher.appendTail(buffer);
+            result = buffer.toString();
+        }
+
+        return Normalizer.normalize(
+                result,
+                Normalizer.Form.NFC
+        );
+    }
+
+    private static String entityValue(
+            String key) {
+
+        if (key.startsWith("#")) {
+            try {
+                boolean hex =
+                        key.length() > 2
+                        && (key.charAt(1) == 'x'
+                        || key.charAt(1) == 'X');
+
+                int point = Integer.parseInt(
+                        key.substring(hex ? 2 : 1),
+                        hex ? 16 : 10
+                );
+
+                return Character.isValidCodePoint(point)
+                        ? new String(
+                                Character.toChars(point)
+                        )
+                        : null;
+
+            } catch (IllegalArgumentException e) {
+                return null;
+            }
+        }
+
+        // Entity names are case-sensitive (e.g. Eacute and eacute).
+        return switch (key) {
+            case "amp", "AMP" -> "&";
+            case "quot", "QUOT" -> "\"";
+            case "apos" -> "'";
+            case "rsquo" -> "\u2019";
+            case "lsquo" -> "\u2018";
+            case "ldquo" -> "\u201c";
+            case "rdquo" -> "\u201d";
+            case "lt", "LT" -> "<";
+            case "gt", "GT" -> ">";
+            case "nbsp" -> " ";
+            case "ndash" -> "–";
+            case "mdash" -> "—";
+            case "hellip" -> "…";
+            case "eacute" -> "é";
+            case "Eacute" -> "É";
+            case "egrave" -> "è";
+            case "Egrave" -> "È";
+            case "ouml" -> "ö";
+            case "Ouml" -> "Ö";
+            case "uuml" -> "ü";
+            case "Uuml" -> "Ü";
+            case "auml" -> "ä";
+            case "Auml" -> "Ä";
+            case "ntilde" -> "ñ";
+            case "Ntilde" -> "Ñ";
+            case "copy" -> "©";
+            case "reg" -> "®";
+            default -> null;
+        };
     }
 }
