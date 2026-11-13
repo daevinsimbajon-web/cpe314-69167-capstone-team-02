@@ -131,6 +131,19 @@
 .nav-button-active:hover {
     -fx-background-color: -accent;
 }
+.exit-button {
+    -fx-background-color: -bad-bg;
+    -fx-text-fill: -bad;
+    -fx-font-size: 14px;
+    -fx-background-radius: 10;
+    -fx-padding: 14 15 14 15;
+    -fx-alignment: center-left;
+    -fx-cursor: hand;
+}
+
+.exit-button:hover {
+    -fx-background-color: #4A2A3B;
+}
 
 .primary-button {
     -fx-background-color: -accent;
@@ -391,4 +404,35 @@
 
 .default-color0.chart-legend-item-symbol {
     -fx-background-color: -accent;
+}
+/* ---------- Confirmation Dialog ---------- */
+
+.dialog-pane {
+    -fx-background-color: #1B1D30;
+}
+
+.dialog-pane .header-panel {
+    -fx-background-color: #17182A;
+}
+
+.dialog-pane .header-panel .label {
+    -fx-text-fill: white;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+.dialog-pane .content.label {
+    -fx-text-fill: #E8E5FF;
+    -fx-font-size: 13px;
+}
+
+.dialog-pane .button {
+    -fx-background-color: #232540;
+    -fx-text-fill: white;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+}
+
+.dialog-pane .button:default {
+    -fx-background-color: #8B5CF6;
 }
