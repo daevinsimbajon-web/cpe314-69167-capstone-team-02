@@ -156,15 +156,16 @@ JUnit 5 tests cover game logic, database access, recursion, question parsing, an
 | :--- | :--- | :--- | :--- |
 | **categories $\rightarrow$ categories** | 1:M | `categories.parent_id` | A category has many subcategories (`NULL` = top level) |
 | **categories $\rightarrow$ questions** | 1:M | `questions.category_id` | A category contains many questions; each question has exactly one category |
-| **questions $\rightarrow$ scores** | 1:M | `scores.question_id` | A score’s category is found through its question |
+| **questions $\rightarrow$ scores** | 1:M | `scores.question_id` | A question can be answered in many score rows; a score's category is found through its question |
 | **players $\rightarrow$ scores** | 1:M | `scores.player_id` | A player has many score rows |
 | **game_sessions $\rightarrow$ scores** | 1:M | `scores.session_id` | A session has many score rows |
-| **players $\leftrightarrow$ game_sessions** | M:N | Resolved by `scores` | A player joins many sessions, and a session has many players |
-|**game_sessions → session_players**|1:M|session_players.session_id||
-|**players → session_players**|1:M|session_players.player_id||
-|**game_sessions → timed_answers**|1:M|timed_answers.session_id||
-|**players → timed_answers**|1:M|timed_answers.player_id||
-|**questions → timed_answers**|1:M|timed_answers.question_id||
+| **players $\leftrightarrow$ game_sessions** | M:N | Resolved by `session_players` | A player joins many sessions, and a session has many players |
+| **game_sessions $\rightarrow$ session_players** | 1:M | `session_players.session_id` | A session lists all of its players |
+| **players $\rightarrow$ session_players** | 1:M | `session_players.player_id` | A player appears in every session they join, with a turn order |
+| **game_sessions $\rightarrow$ timed_answers** | 1:M | `timed_answers.session_id` | A session has many timed answers |
+| **players $\rightarrow$ timed_answers** | 1:M | `timed_answers.player_id` | A player has one timing record for each question they answer |
+| **questions $\rightarrow$ timed_answers** | 1:M | `timed_answers.question_id` | A question can be timed for many players and sessions |
+| **question_bank_imports** | none | none | A standalone log of question imports; it has no foreign keys |
 
 ---
 
