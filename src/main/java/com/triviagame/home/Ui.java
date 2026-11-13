@@ -8,6 +8,8 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 
 /**
  * Small helpers shared by every screen, so each screen stays short
@@ -52,6 +54,39 @@ public final class Ui {
         show(Alert.AlertType.WARNING, "Please check", message);
     }
 
+        // Asks a yes/no question. Returns true only if the user picks the
+    // confirm button; closing the dialog counts as "no".
+    public static boolean confirm(
+            String header,
+            String message,
+            String confirmText,
+            String cancelText
+    ) {
+        ButtonType yes = new ButtonType(
+                confirmText,
+                ButtonBar.ButtonData.OK_DONE
+        );
+
+        ButtonType no = new ButtonType(
+                cancelText,
+                ButtonBar.ButtonData.CANCEL_CLOSE
+        );
+
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION, message, yes, no);
+
+        alert.setTitle("Trivia Night");
+        alert.setHeaderText(header);
+
+        // Apply the application's dark theme to the dialog.
+        var stylesheet = Ui.class.getResource("/style.css");
+
+        if (stylesheet != null) {
+            alert.getDialogPane().getStylesheets()
+                    .add(stylesheet.toExternalForm());
+        }
+
+        return alert.showAndWait().orElse(no) == yes;
+    }
     private static void show(
             Alert.AlertType type,
             String header,
