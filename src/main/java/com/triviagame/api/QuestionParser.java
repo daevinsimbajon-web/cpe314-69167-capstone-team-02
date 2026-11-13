@@ -168,7 +168,8 @@ public final class QuestionParser {
                                 correct,
                                 wrong,
                                 difficulty,
-                                type
+                                type,
+                                externalId(item)
                         )
                 );
 
@@ -182,6 +183,17 @@ public final class QuestionParser {
         }
 
         return List.copyOf(output);
+    }
+
+    private static String externalId(JsonNode item) {
+        JsonNode id = field(item, "external_id", "externalId", "id");
+        if (id == null) {
+            return null;
+        }
+        if (!id.isTextual() && !id.isIntegralNumber()) {
+            throw new IllegalArgumentException("External ID must be text or an integer.");
+        }
+        return id.asText();
     }
 
     private static JsonNode field(
@@ -376,25 +388,33 @@ public final class QuestionParser {
             }
         }
 
-        return switch (
-                key.toLowerCase(Locale.ROOT)
-        ) {
-            case "amp" -> "&";
-            case "quot" -> "\"";
-            case "apos", "rsquo", "lsquo" -> "'";
-            case "ldquo", "rdquo" -> "\"";
-            case "lt" -> "<";
-            case "gt" -> ">";
+        // Entity names are case-sensitive (e.g. Eacute and eacute).
+        return switch (key) {
+            case "amp", "AMP" -> "&";
+            case "quot", "QUOT" -> "\"";
+            case "apos" -> "'";
+            case "rsquo" -> "\u2019";
+            case "lsquo" -> "\u2018";
+            case "ldquo" -> "\u201c";
+            case "rdquo" -> "\u201d";
+            case "lt", "LT" -> "<";
+            case "gt", "GT" -> ">";
             case "nbsp" -> " ";
             case "ndash" -> "–";
             case "mdash" -> "—";
             case "hellip" -> "…";
             case "eacute" -> "é";
+            case "Eacute" -> "É";
             case "egrave" -> "è";
+            case "Egrave" -> "È";
             case "ouml" -> "ö";
+            case "Ouml" -> "Ö";
             case "uuml" -> "ü";
+            case "Uuml" -> "Ü";
             case "auml" -> "ä";
+            case "Auml" -> "Ä";
             case "ntilde" -> "ñ";
+            case "Ntilde" -> "Ñ";
             case "copy" -> "©";
             case "reg" -> "®";
             default -> null;

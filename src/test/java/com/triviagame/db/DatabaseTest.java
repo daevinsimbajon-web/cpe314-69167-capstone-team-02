@@ -35,7 +35,7 @@ public class DatabaseTest {
     void testDatabaseFileCreated() {
 
         assertTrue(
-            Files.exists(Path.of("data", "trivia.db"))
+            Files.exists(Path.of(System.getProperty("trivia.database.path", "data/trivia.db")))
         );
     }
 

@@ -12,16 +12,16 @@ import java.sql.Statement;
  * Existing scores, game sessions, players and questions are preserved.
  */
 public final class Database {
- private static final String DB_URL = "jdbc:sqlite:data/trivia.db";
  private Database() {
  }
  public static Connection getConnection() throws SQLException {
+ Path databasePath = Path.of(System.getProperty("trivia.database.path", "data/trivia.db"));
  try {
- Files.createDirectories(Path.of("data"));
+ Files.createDirectories(databasePath.toAbsolutePath().getParent());
  } catch (IOException exception) {
  throw new SQLException("Cannot create database directory", exception);
  }
- Connection connection = DriverManager.getConnection(DB_URL);
+ Connection connection = DriverManager.getConnection("jdbc:sqlite:" + databasePath);
  try (Statement statement = connection.createStatement()) {
  statement.execute("PRAGMA foreign_keys = ON");
  statement.execute("PRAGMA busy_timeout = 5000");
@@ -32,8 +32,15 @@ public final class Database {
  return connection;
  }
  public static void initializeSchema() throws SQLException {
- try (Connection connection = getConnection();
- Statement statement = connection.createStatement()) {
+ try (Connection connection = getConnection()) {
+ initializeSchema(connection);
+ }
+ }
+ // Also allows migration checks against isolated databases.
+ static void initializeSchema(Connection connection) throws SQLException {
+ try (Statement statement = connection.createStatement()) {
+ statement.execute("BEGIN IMMEDIATE");
+ try {
  statement.executeUpdate("""
  CREATE TABLE IF NOT EXISTS categories (
  id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -62,6 +69,8 @@ public final class Database {
  incorrect_answers TEXT NOT NULL,
  difficulty TEXT NOT NULL,
  question_type TEXT NOT NULL DEFAULT 'MULTIPLE_CHOICE',
+ created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+ external_id TEXT,
  category_id INTEGER NOT NULL,
  FOREIGN KEY (category_id) REFERENCES categories(id)
  )
@@ -73,6 +82,7 @@ public final class Database {
  DEFAULT 'MULTIPLE_CHOICE'
  """);
  }
+ migrateQuestions(connection);
  statement.executeUpdate("""
  CREATE TABLE IF NOT EXISTS scores (
  id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -140,6 +150,49 @@ public final class Database {
  UPDATE scores
  SET score_sync_id = lower(hex(randomblob(16)))
  WHERE id = NEW.id;
+ END
+ """);
+ statement.execute("COMMIT");
+ } catch (SQLException | RuntimeException exception) {
+ try {
+ statement.execute("ROLLBACK");
+ } catch (SQLException rollbackFailure) {
+ exception.addSuppressed(rollbackFailure);
+ }
+ throw exception;
+ }
+ }
+ }
+ private static void migrateQuestions(Connection connection) throws SQLException {
+ try (Statement statement = connection.createStatement()) {
+ // SQLite cannot ADD COLUMN with a CURRENT_TIMESTAMP default on populated tables.
+ if (!hasColumn(connection, "questions", "created_at")) {
+ statement.executeUpdate("ALTER TABLE questions ADD COLUMN created_at TEXT");
+ }
+ if (!hasColumn(connection, "questions", "external_id")) {
+ statement.executeUpdate("ALTER TABLE questions ADD COLUMN external_id TEXT");
+ }
+ statement.executeUpdate("""
+ UPDATE questions SET created_at = CURRENT_TIMESTAMP
+ WHERE created_at IS NULL OR trim(created_at) = ''
+ """);
+ // Preserve every legacy row and relationship. Only the oldest row retains a
+ // conflicting import ID; other copies remain available with an unknown ID.
+ statement.executeUpdate("""
+ UPDATE questions SET external_id = NULL
+ WHERE external_id = '' OR id NOT IN (
+ SELECT MIN(id) FROM questions WHERE external_id IS NOT NULL GROUP BY external_id
+ ) AND external_id IS NOT NULL
+ """);
+ statement.executeUpdate("""
+ CREATE UNIQUE INDEX IF NOT EXISTS ux_questions_external_id ON questions(external_id)
+ """);
+ statement.executeUpdate("""
+ CREATE TRIGGER IF NOT EXISTS trg_question_created_at
+ AFTER INSERT ON questions
+ WHEN NEW.created_at IS NULL OR trim(NEW.created_at) = ''
+ BEGIN
+ UPDATE questions SET created_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
  END
  """);
  }
