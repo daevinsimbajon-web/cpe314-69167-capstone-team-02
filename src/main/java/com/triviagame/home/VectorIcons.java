@@ -17,6 +17,7 @@ public final class VectorIcons {
  case "refresh" -> "M20 11a8 8 0 0 0-14-5L3 9 M3 3v6h6 M4 13a8 8 0 0 0 14 5l3-3 M15 15h6v6";
  case "trash" -> "M3 6h18 M8 6V4h8v2 M6 6l1 15h10l1-15 M10 10v7 M14 10v7";
  case "check" -> "M4 12l5 5L20 6";
+ case "exit" -> "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9";
  default -> "M12 3v18 M3 12h18";
  };
  SVGPath shape = new SVGPath();
