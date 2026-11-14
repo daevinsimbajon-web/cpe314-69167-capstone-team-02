@@ -23,6 +23,19 @@ public final class OpenTdbClient {
     private final QuestionParser parser =
             new QuestionParser();
 
+    private final URI endpoint;
+    private final Duration requestTimeout;
+
+    public OpenTdbClient() {
+        this(URI.create("https://opentdb.com/api.php"), Duration.ofSeconds(25));
+    }
+
+    // Package-private so tests can use a local service and a short timeout.
+    OpenTdbClient(URI endpoint, Duration requestTimeout) {
+        this.endpoint = java.util.Objects.requireNonNull(endpoint);
+        this.requestTimeout = java.util.Objects.requireNonNull(requestTimeout);
+    }
+
     public List<BankQuestion> fetchQuestions(int amount)
             throws IOException, InterruptedException {
 
@@ -60,27 +73,27 @@ public final class OpenTdbClient {
             );
         }
 
-        StringBuilder endpoint = new StringBuilder(
-                "https://opentdb.com/api.php?amount="
+        StringBuilder requestUrl = new StringBuilder(
+                endpoint.toString() + "?amount="
                 + amount
                 + "&encode=url3986"
         );
 
         if (!difficulty.equals("any")) {
-            endpoint.append("&difficulty=")
+            requestUrl.append("&difficulty=")
                     .append(difficulty);
         }
 
         if (!type.equals("any")) {
-            endpoint.append("&type=")
+            requestUrl.append("&type=")
                     .append(type);
         }
 
         HttpRequest request =
                 HttpRequest.newBuilder(
-                        URI.create(endpoint.toString())
+                        URI.create(requestUrl.toString())
                 )
-                .timeout(Duration.ofSeconds(25))
+                .timeout(requestTimeout)
                 .header("Accept", "application/json")
                 .GET()
                 .build();
