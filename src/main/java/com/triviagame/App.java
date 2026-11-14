@@ -4,6 +4,7 @@ import com.triviagame.db.Database;
 import com.triviagame.db.SampleQuestionSeeder;
 import com.triviagame.home.Home;
 import com.triviagame.home.Ui;
+import com.triviagame.tasks.BackgroundTaskRunner;
 
 import java.net.URL;
 
@@ -47,10 +48,10 @@ public class App extends Application {
 
     @Override
     public void stop() {
-        // Stops the background import thread.
         if (home != null) {
             home.shutdown();
         }
+        BackgroundTaskRunner.shutdown();
     }
 
     public static void main(String[] args) {
