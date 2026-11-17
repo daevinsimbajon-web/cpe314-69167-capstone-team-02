@@ -2,3 +2,19 @@
 /data/
 data/*.db
 build.log
+
+# Independent online application and local development tools
+online/**/target/
+online/**/node_modules/
+online/**/dist/
+online/**/coverage/
+online/**/test-results/
+online/**/playwright-report/
+online/.tools/
+online/exports/
+online/.env
+online/**/.env
+online/**/.env.local
+online/**/.env.*.local
+online/**/.env.*
+!online/**/.env.example
