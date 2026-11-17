@@ -20,6 +20,7 @@ public class AnalyticsDao {
 
     // Total points earned by one player
     public record PlayerTotal(
+            int playerId,
             String playerName,
             long totalPoints
     ) {
@@ -27,6 +28,7 @@ public class AnalyticsDao {
 
     // Average points per answer for one player
     public record PlayerAverage(
+            int playerId,
             String playerName,
             double averagePoints
     ) {
@@ -41,6 +43,7 @@ public class AnalyticsDao {
 
     // The category one player answers best (by accuracy)
     public record BestCategory(
+            int playerId,
             String playerName,
             String categoryName,
             int totalAnswers,
@@ -71,7 +74,8 @@ public class AnalyticsDao {
                    ROUND(100.0 * SUM(s.is_correct)
                          / COUNT(s.id), 2) AS accuracy_pct
             FROM categories c
-            JOIN scores s ON s.category_id = c.id
+            JOIN questions q ON q.category_id = c.id
+            JOIN scores s ON s.question_id = q.id
             GROUP BY c.id, c.name
             ORDER BY accuracy_pct DESC, c.name ASC
             """;
@@ -109,7 +113,7 @@ public class AnalyticsDao {
         List<PlayerTotal> results = new ArrayList<>();
 
         String sql = """
-            SELECT p.name,
+            SELECT p.id, p.name,
                    SUM(s.points) AS total_points
             FROM players p
             JOIN scores s ON s.player_id = p.id
@@ -130,6 +134,7 @@ public class AnalyticsDao {
 
                 while (result.next()) {
                     results.add(new PlayerTotal(
+                            result.getInt("id"),
                             result.getString("name"),
                             result.getLong("total_points")
                     ));
@@ -147,7 +152,7 @@ public class AnalyticsDao {
         List<PlayerAverage> results = new ArrayList<>();
 
         String sql = """
-            SELECT p.name,
+            SELECT p.id, p.name,
                    AVG(s.points) AS avg_points
             FROM players p
             JOIN scores s ON s.player_id = p.id
@@ -164,6 +169,7 @@ public class AnalyticsDao {
 
             while (result.next()) {
                 results.add(new PlayerAverage(
+                        result.getInt("id"),
                         result.getString("name"),
                         result.getDouble("avg_points")
                 ));
@@ -237,7 +243,8 @@ public class AnalyticsDao {
                              / COUNT(s.id) AS accuracy
                 FROM players p
                 JOIN scores s ON s.player_id = p.id
-                JOIN categories c ON c.id = s.category_id
+                JOIN questions q ON q.id = s.question_id
+                JOIN categories c ON c.id = q.category_id
                 GROUP BY p.id, c.id, c.name
             ),
             ranked AS (
@@ -250,7 +257,7 @@ public class AnalyticsDao {
                        ) AS rank_in_player
                 FROM stats
             )
-            SELECT player_name, category_name, total_answers,
+            SELECT player_id, player_name, category_name, total_answers,
                    correct_answers, ROUND(accuracy, 2) AS accuracy_pct
             FROM ranked
             WHERE rank_in_player = 1
@@ -266,6 +273,7 @@ public class AnalyticsDao {
 
             while (result.next()) {
                 results.add(new BestCategory(
+                        result.getInt("player_id"),
                         result.getString("player_name"),
                         result.getString("category_name"),
                         result.getInt("total_answers"),

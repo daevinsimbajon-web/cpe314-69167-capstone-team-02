@@ -1,0 +1,81 @@
+{
+    "version":  "2.0.0",
+    "tasks":  [
+                  {
+                      "label":  "Quiz Night: frontend build",
+                      "type":  "shell",
+                      "command":  "powershell",
+                      "args":  [
+                                   "-NoProfile",
+                                   "-Command",
+                                   ". ./online/scripts/Use-PortableNode.ps1\nPush-Location ./online/frontend\ntry { npm run build } finally { Pop-Location }"
+                               ],
+                      "isBackground":  false,
+                      "problemMatcher":  [
+                                             "$tsc"
+                                         ],
+                      "group":  "build"
+                  },
+                  {
+                      "label":  "Quiz Night: desktop package",
+                      "type":  "shell",
+                      "command":  "mvn",
+                      "args":  [
+                                   "package"
+                               ],
+                      "isBackground":  false,
+                      "problemMatcher":  [
+
+                                         ],
+                      "group":  "build"
+                  },
+                  {
+                      "label":  "Quiz Night: frontend dev",
+                      "type":  "shell",
+                      "command":  "powershell",
+                      "args":  [
+                                   "-NoProfile",
+                                   "-Command",
+                                   ". ./online/scripts/Use-PortableNode.ps1\nPush-Location ./online/frontend\ntry { npm run dev } finally { Pop-Location }"
+                               ],
+                      "isBackground":  true,
+                      "problemMatcher":  [
+
+                                         ],
+                      "group":  "none"
+                  },
+                  {
+                      "label":  "Quiz Night: backend package",
+                      "type":  "shell",
+                      "command":  "mvn",
+                      "args":  [
+                                   "-f",
+                                   "online/backend/pom.xml",
+                                   "package"
+                               ],
+                      "isBackground":  false,
+                      "problemMatcher":  [
+
+                                         ],
+                      "group":  "build"
+                  },
+                  {
+                      "label":  "Quiz Night: backend dev",
+                      "type":  "process",
+                      "command":  "powershell",
+                      "args":  [
+                                   "-NoProfile",
+                                   "-File",
+                                   "${workspaceFolder}/online/scripts/Start-Backend.ps1"
+                               ],
+                      "isBackground":  true,
+                      "problemMatcher":  [
+
+                                         ],
+                      "presentation":  {
+                                           "reveal":  "always",
+                                           "panel":  "dedicated"
+                                       }
+                  }
+              ]
+}

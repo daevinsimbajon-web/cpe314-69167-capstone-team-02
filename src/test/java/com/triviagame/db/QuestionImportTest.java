@@ -2,6 +2,7 @@ package com.triviagame.db;
 
 import com.triviagame.api.BankQuestion;
 import com.triviagame.api.QuestionParser;
+import com.triviagame.service.QuestionBankService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

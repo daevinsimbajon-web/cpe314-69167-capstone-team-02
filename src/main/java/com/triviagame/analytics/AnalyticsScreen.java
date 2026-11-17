@@ -2,10 +2,14 @@ package com.triviagame.analytics;
 
 import com.triviagame.db.AnalyticsDao;
 import com.triviagame.db.PlayerDao;
+import com.triviagame.service.AnalyticsService;
 import com.triviagame.home.Ui;
 
-import java.sql.SQLException;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.concurrent.Task;
 
 import javafx.collections.FXCollections;
 import javafx.geometry.Pos;
@@ -31,8 +35,12 @@ public class AnalyticsScreen {
 
     private final VBox root = new VBox();
 
-    private final AnalyticsDao analyticsDao = new AnalyticsDao();
-    private final PlayerDao playerDao = new PlayerDao();
+    private final AnalyticsService analytics = new AnalyticsService();
+    private final ExecutorService workers;
+    private long requestVersion;
+    private boolean updatingSelection;
+    private List<AnalyticsDao.BestCategory> bestCategories = List.of();
+    private final Label bestCategory = Ui.label("", "muted");
 
     // Bar chart: accuracy per category
     private final CategoryAxis accuracyX = new CategoryAxis();
@@ -57,7 +65,8 @@ public class AnalyticsScreen {
     private final ComboBox<PlayerDao.PlayerRecord> playerBox =
             new ComboBox<>();
 
-    public AnalyticsScreen() {
+    public AnalyticsScreen(ExecutorService workers) {
+        this.workers = workers;
         root.getStyleClass().add("screen");
 
         setUpCharts();
@@ -93,6 +102,7 @@ public class AnalyticsScreen {
 
         VBox sessionCard = new VBox(
                 sessionHeader,
+                bestCategory,
                 sessionChart,
                 sessionEmpty
         );
@@ -123,7 +133,7 @@ public class AnalyticsScreen {
         accuracyChart.setPrefHeight(420);
         VBox.setVgrow(accuracyChart, Priority.ALWAYS);
 
-        sessionChart.setTitle("Points earned in each game");
+        sessionChart.setTitle("Points and average across games");
         sessionX.setLabel("Game (date played)");
         sessionY.setLabel("Points");
         sessionChart.setLegendVisible(true);
@@ -149,52 +159,35 @@ public class AnalyticsScreen {
         );
 
         playerBox.valueProperty().addListener(
-                (observable, oldValue, newValue) -> loadSessions()
+                (observable, oldValue, newValue) -> { if (!updatingSelection) loadSessions(); }
         );
     }
 
     // Re-read everything from the database
     private void refresh() {
-        try {
-            PlayerDao.PlayerRecord previous = playerBox.getValue();
-
-            List<PlayerDao.PlayerRecord> players =
-                    playerDao.getAllPlayers();
-
-            playerBox.setItems(
-                    FXCollections.observableArrayList(players)
-            );
-
-            // Keep the same player selected after a refresh
-            PlayerDao.PlayerRecord toSelect = null;
-
-            if (previous != null) {
-                for (PlayerDao.PlayerRecord player : players) {
-                    if (player.id() == previous.id()) {
-                        toSelect = player;
-                    }
-                }
-            }
-
-            if (toSelect != null) {
-                playerBox.getSelectionModel().select(toSelect);
-            } else if (!players.isEmpty()) {
-                playerBox.getSelectionModel().selectFirst();
-            }
-
-            loadAccuracy();
-            loadSessions();
-
-        } catch (SQLException e) {
-            Ui.error("Unable to load analytics: " + e.getMessage());
-        }
+        var previous = playerBox.getValue();
+        Integer selectedId = previous == null ? null : previous.id();
+        long version = ++requestVersion;
+        Task<AnalyticsService.Snapshot> task = new Task<>() {
+            @Override protected AnalyticsService.Snapshot call() throws Exception { return analytics.load(selectedId); }
+        };
+        task.setOnSucceeded(event -> {
+            if (version != requestVersion) return;
+            var snapshot = task.getValue();
+            bestCategories = snapshot.bestCategories();
+            updatingSelection = true;
+            try {
+                playerBox.setItems(FXCollections.observableArrayList(snapshot.players()));
+                playerBox.getSelectionModel().select(snapshot.selected());
+            } finally { updatingSelection = false; }
+            showAccuracy(snapshot.accuracy());
+            showSessions(snapshot.selected(), snapshot.sessions());
+        });
+        task.setOnFailed(event -> showError(version, task.getException()));
+        workers.execute(task);
     }
 
-    private void loadAccuracy() {
-        try {
-            List<AnalyticsDao.CategoryAccuracy> rows =
-                    analyticsDao.getAccuracyByCategory();
-
+    private void showAccuracy(List<AnalyticsDao.CategoryAccuracy> rows) {
             XYChart.Series<String, Number> series =
                     new XYChart.Series<>();
             series.setName("Accuracy %");
@@ -213,31 +206,39 @@ public class AnalyticsScreen {
 
             setShown(accuracyEmpty, rows.isEmpty());
 
-        } catch (SQLException e) {
-            Ui.error("Unable to load accuracy chart: " + e.getMessage());
-        }
     }
 
     private void loadSessions() {
         PlayerDao.PlayerRecord player = playerBox.getValue();
 
-        sessionChart.getData().clear();
-
+        long version = ++requestVersion;
         if (player == null) {
-            setShown(sessionEmpty, true);
+            showSessions(null, List.of());
             return;
         }
+        Task<List<AnalyticsDao.SessionPoints>> task = new Task<>() {
+            @Override protected List<AnalyticsDao.SessionPoints> call() throws Exception { return analytics.sessions(player.id()); }
+        };
+        task.setOnSucceeded(event -> { if (version == requestVersion) showSessions(player, task.getValue()); });
+        task.setOnFailed(event -> showError(version, task.getException()));
+        workers.execute(task);
+    }
 
-        try {
-            List<AnalyticsDao.SessionPoints> rows =
-                    analyticsDao.getPointsPerSession(player.id());
-
+    private void showSessions(PlayerDao.PlayerRecord player, List<AnalyticsDao.SessionPoints> rows) {
+            sessionChart.getData().clear();
+            if (player == null) { bestCategory.setText(""); setShown(sessionEmpty, true); return; }
+            var best = bestCategories.stream().filter(item -> item.playerId() == player.id()).findFirst();
+            bestCategory.setText(best.map(item -> "Best category: " + item.categoryName()).orElse("Best category: no answers yet"));
             XYChart.Series<String, Number> series =
                     new XYChart.Series<>();
             series.setName(player.name());
+            XYChart.Series<String, Number> average = new XYChart.Series<>();
+            average.setName("Average so far");
+            long total = 0;
 
             for (int i = 0; i < rows.size(); i++) {
                 AnalyticsDao.SessionPoints row = rows.get(i);
+                total += row.points();
 
                 String played = row.playedAt() == null
                         ? ""
@@ -252,15 +253,21 @@ public class AnalyticsScreen {
                                 row.points()
                         )
                 );
+                average.getData().add(new XYChart.Data<>(
+                        "Game " + (i + 1) + " (" + played + ")", (double) total / (i + 1)));
             }
 
             sessionChart.getData().add(series);
+            sessionChart.getData().add(average);
 
             setShown(sessionEmpty, rows.isEmpty());
 
-        } catch (SQLException e) {
-            Ui.error("Unable to load points chart: " + e.getMessage());
-        }
+    }
+
+    private void showError(long version, Throwable error) {
+        if (version != requestVersion) return;
+        Logger.getLogger(AnalyticsScreen.class.getName()).log(Level.WARNING, "Analytics query failed", error);
+        Ui.error("Unable to load analytics. Please try again.");
     }
 
     // Show or hide the "no data" message completely

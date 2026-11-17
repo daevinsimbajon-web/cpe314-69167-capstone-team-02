@@ -13,7 +13,7 @@
 | **Members:** | **John Daevin S. Simbajon** - (Team Lead + Integrator/DevOps)<br>**Clarence Philip A. Elegino** - (Core OOP/Logic Developer)<br>**Justine B. Cuizon** - (Database Admin + Data Developer + API)<br>**Joshua Neil G. Malaya** - (UI/UX Designer + JavaFX Developer)<br>**Gebrielle P. Mirasol** - (Analytics + QA) |
 | **Instructor:** | Richyll Son |
 | **Term:** | First Semester, S.Y. 2026-2027 |
-| **Document Version / Date:** | V0.4 - 11/12/26 |
+| **Document Version / Date:** | V0.4 - 11/14/26 |
 
 ---
 
@@ -26,7 +26,7 @@
 - [5. API Integration Design](#5-api-integration-design)
 - [6. Concurrency Design](#6-concurrency-design)
 
----
+----
 ### Table 2: Revision History
 
 ## Revision History
@@ -36,11 +36,11 @@
 | **0.1** | 10/24/26 - 10/26/26 | Justine Cuizon, Clarence Philip Elegino, Joshua Malaya, Gebrielle Mirasol, John Daevin Simbajon | Initial draft. <br> Section 1 to 2 added. <br> Removing Unnecessary Instruction. Generating the Table of Contents. |
 | **0.2** | 10/28/26 | John Daevin Simbajon | Section's 3 and 4 added. |
 | **0.3** | 11/05/26<br>11/06/26 | Gebrielle Mirasol<br>John Daevin Simbajon | Sections 5 and 6 added. <br> Sections 1, 2, 3 and 4 revised to match the implemented code: real package and class names, real database schema, JSON score import instead of CSV, corrected team roles table. <br> Revised One-Paragraph Pitch |
-| **0.4** | 11/12/26 | John Daevin S. Simbajon<br> Clarence Philip A. Elegino | Revised ER sketches |
+| **0.4** | 11/12/26<br>11/13/26<br>11/14/26 | John Daevin S. Simbajon<br> Clarence Philip A. Elegino | Revised ER sketches, Section 1 pitch, database schema and Table 5 (Section 4), API request and response (Section 5), background operations (Section 6) and tables used for analytics (Section 7). Section 8,9 and appendix added.  |
 
 | **1.0** | *Pending* | Group 2 | Final compilation and polish — Week 11. |
 
----
+----
 
 ## 1. Introduction & Project Overview
 
@@ -576,3 +576,123 @@ The design separates the data-processing layer from the presentation layer.
 `AnalyticsDao` handles database queries and calculations, while `AnalyticsScreen` handles chart rendering and user interaction.
 
 This separation follows the Single Responsibility Principle and allows the visualization interface to be modified without rewriting the SQL analysis logic
+# 8. Testing Summary
+
+The project is tested with JUnit 5 (`junit-jupiter` 5.11.4) and run through Maven. The suite has 16 test classes and 116 test methods in `src/test/java`. The tests cover the question classes, the game engine, the SQLite data access layer, the question parser, the question and score imports, and the analytics queries. Table 11 lists every test class with an edge case that it checks.
+
+```bash
+mvn test
+```
+
+**Table 11: JUnit test classes and key edge cases**
+
+| Test class | Tests | What it covers | Edge cases checked |
+| :--- | :--- | :--- | :--- |
+| `GameEngineTest` | 19 | Scoring for multiple-choice and true/false questions, question queue order, undo, polymorphism, recursive category | Submitting on an empty queue returns `false`; loading a `null` list throws; blank and `null` answers score zero |
+| `GameEngineDatabaseTest` | 7 | Saving every answer to the database; undo deletes the saved score | Answering after the last question saves nothing; a question without a database ID is rejected; practice games never touch the database |
+| `MultipleChoiceQuestionTest` | 10 | Answer checking by text or by position; the list of choices | Out-of-range positions are wrong; `null` and blank input are wrong; the choices list cannot be modified |
+| `TrueFalseQuestionTest` | 7 | True/false answer checking; fixed choices | A `null` correct answer never matches; invalid input is wrong |
+| `CategoryTest` | 5 | In-memory category tree: find at any depth, collect all questions | A missing category returns `null`; an empty category returns an empty list |
+| `PlayerSetupTest` | 3 | Validation of a player's name and seconds per question | An empty name and invalid seconds are rejected |
+| `DatabaseTest` | 4 | Connection, database file creation, table creation, player insert and select | The database file is created on the first connection |
+| `CategoryDaoTest` | 4 | Insert, select and subcategories | An invalid category name and a nonexistent category |
+| `PlayerDaoTest` | 2 | Insert, select and delete a player | An empty player name is rejected |
+| `QuestionDaoTest` | 3 | Question create, read, update and delete | An invalid question and a nonexistent question ID |
+| `ScoreDaoTest` | 4 | Score create, read, update and delete | Invalid input is rejected; foreign-key protection blocks scores that reference missing rows |
+| `QuestionParserTest` | 12 | Parsing OpenTDB responses and the question-bank file; URL and HTML decoding | Rate-limit and no-results response codes are rejected; an unknown question type; a broken answer list; double-encoded text |
+| `QuestionImportTest` | 8 | Saving imported questions, duplicate handling, database migration | Duplicates inside one batch are counted once; concurrent imports create no duplicates; an SQL error rolls back the whole import |
+| `ScoreJsonImporterTest` | 10 | Score JSON import, player reuse, asynchronous import | An empty array, malformed JSON, a top-level value that is not an array, a wrong field type, a missing file and a `null` file; invalid entries are skipped |
+| `AnalyticsDaoTest` | 9 | Accuracy by category, top players, average points, points per session | A category without scores is omitted; an invalid top-players limit; a player without scores; an invalid player ID |
+| `AnalyticsInsightsTest` | 9 | Best category per player, average points, games played | Ties go to the category with more answers; a full tie goes to the first name; a player with only wrong answers; answers from one session count as one game |
+| **Total** | **116** | | |
+
+The counts in Table 11 are test methods. One test in `QuestionParserTest` is parameterized and runs once for each HTML entity case, so the number of executed cases that Maven reports is slightly higher.
+
+**Not yet covered.** There are no automated tests for `OpenTdbClient` (request URL, timeouts, HTTP status), for `FetchQuestionsTask` and `JsonImportTask`, for `RoundRobinGame`, or for the JavaFX screens. These gaps are listed in `KNOWN_ISSUES.md`. The planned tests use a fake HTTP response for the client and run each background task directly.
+
+---
+
+# 9. Individual Contributions
+
+Each member's work can be checked in the git history of the repository <https://github.com/daevinsimbajon-web/cpe314-69167-capstone-team-02>. Table 12 gives the commit counts as of 14 November 2026, and Table 13 lists what each member built, the files where their code remains, and example commits.
+
+```bash
+git shortlog -sn --no-merges project/milestone-2
+git log --author="<name>" --oneline project/milestone-2
+git blame <file>
+```
+
+**Table 12: Team members, roles and commit counts **
+
+| Member | Role | Git author name | Commits |
+| :--- | :--- | :--- | :--- |
+| John Daevin S. Simbajon | Team Lead + Integrator/DevOps | `daevinsimbajon-web`; `John Daevin S. Simbajon` | 36 | 
+| Clarence Philip A. Elegino | Core OOP/Logic Developer | `philipelegino` | 46 | 
+| Justine B. Cuizon | Database Admin + Data Developer + API | `Justine Cuizon` | 30 | 
+| Joshua Neil G. Malaya | UI/UX Designer + JavaFX Developer | `jmalaya7231-lgtm` | 30 |
+| Gebrielle P. Mirasol | Analytics + QA | `gebriellemirasol` | 15 | 
+
+**Table 13: What each member built or owned**
+
+| Member | Built or owned | Main files (lines remaining) | Example commits |
+| :--- | :--- | :--- | :--- |
+| John Daevin S. Simbajon | Home dashboard (shared with Joshua), lives tracking in the New Game screen, `countPlayedSessions` in `ScoreDao` and the `ScoreDaoTest` fix. Merged the teammates' branches and owns the design document. | `home/Home.java` (115)<br>`gameplay/NewGameScreen.java` (36)<br>`db/ScoreDao.java` (23)<br>`doc/design-document.md` (255) | `52569e4` Refactor Home to use JavaFX<br>`860fbec` countPlayedSessions and ScoreDaoTest fix<br>`6fa80a5` Lives tracking in NewGameScreen |
+| Clarence Philip A. Elegino | The question class hierarchy, the category tree, `GameEngine` (question queue, undo stack, scoring), `RoundRobinGame` (turn rules) and the console game. Wrote the unit tests for these classes and uploaded the design-document figures. | `gameplay/GameEngine.java` (162)<br>`m2/RoundRobinGame.java` (203)<br>`category/Category.java` (55)<br>`questions/MultipleChoiceQuestion.java` (68), `Question.java` (50), `TrueFalseQuestion.java` (31)<br>`Main.java` (166)<br>`GameEngineTest` (357), `CategoryTest` (116), `MultipleChoiceQuestionTest` (149), `TrueFalseQuestionTest` (96) | `156d205`, `18a888d`, `bcc6f78` Question and category tests<br>`3124ac5` GameEngine<br>`5b4b05e` Create RoundRobinGame |
+| Justine B. Cuizon | The SQLite schema and all DAOs, the offline question bank, the OpenTDB client and parser, the background tasks, JSON export and the duplicate-safe sync IDs, and the multiplayer game screen. Wrote the tests for the database, the parser and the question import. | `db/Database.java` (215), `QuestionDao` (372), `ScoreDao` (345), `SessionPlayerDao` (250), `TimedAnswerDao` (174), `CategoryDao` (271), `PlayerDao` (150), `QuestionBankService` (253)<br>`api/OpenTdbClient.java` (121), `QuestionParser.java` (423)<br>`tasks/FetchQuestionsTask.java` (66), `JsonImportTask.java` (42)<br>`db/ScoreJsonExporter.java` (151), `ScoreJsonImporter.java` (463)<br>`m2/M2GameScreen.java` (876) | `6fc3bdc` Offline question bank and API filters<br>`706a5bd` Duplicate-safe JSON sync<br>`3253c2e` Reuse existing players in multiplayer sessions<br>`785578b` Question import and HTML decoding |
+| Joshua Neil G. Malaya | The JavaFX screens: new game, players, results, analytics charts, score import and export, and the home dashboard, plus the shared UI helpers, icons and stylesheet. | `gameplay/NewGameScreen.java` (497)<br>`analytics/AnalyticsScreen.java` (271)<br>`importer/ImportScreen.java` (201)<br>`players/Players.java` (192)<br>`home/Home.java` (155)<br>`results/Results.java` (122)<br>`home/Ui.java` (66), `App.java` (59), `VectorIcons.java` (43) | `23e098f` Implement AnalyticsScreen<br>`9fbcbe8` Implement ImportScreen<br>`70ac878` Integrate multiplayer and API into Home<br>`d357f69` Redesign dashboard and add question filters |
+| Gebrielle P. Mirasol | The analytics queries (`AnalyticsDao`), the first version of the score JSON importer, the sample score data and its generator, and the analytics, importer and game-engine database tests. Wrote the first drafts of design-document Sections 5 and 6. | `db/AnalyticsDao.java` (315)<br>`db/ScoreJsonImporter.java` (117)<br>`tools/generate_sample_scores.py` (63)<br>`AnalyticsDaoTest` (427), `AnalyticsInsightsTest` (303), `ScoreJsonImporterTest` (521), `GameEngineDatabaseTest` (209) | `5f24369` AnalyticsDao and AnalyticsDaoTest<br>`5722e44` AnalyticsInsightsTest<br>`4225434` GameEngineDatabaseTest<br>`c45aa39` sample_scores_2000 |
+
+---
+
+# Appendix
+
+## A. Public API: Open Trivia Database (OpenTDB)
+
+* **Website:** <https://opentdb.com>
+* **API documentation:** <https://opentdb.com/api_config.php>
+* **License:** All data provided by the API is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License (CC BY-SA 4.0). The questions downloaded by the application come from OpenTDB.
+* **Limits:** The API allows at most 50 questions per request and one request per IP address every 5 seconds.
+
+**Table 14: OpenTDB response codes**
+
+| `response_code` | Meaning | How the application treats it |
+| :--- | :--- | :--- |
+| `0` | Success | The questions are parsed and saved |
+| `1` | No results: not enough questions for the query | Reported as an error; stored questions are unchanged |
+| `2` | Invalid parameter | Reported as an error |
+| `3` | Session token not found | Reported as an error (the application does not use session tokens) |
+| `4` | Session token empty | Reported as an error (the application does not use session tokens) |
+| `5` | Rate limit: one request per IP address every 5 seconds | Reported as an error; the user can try again later |
+
+`QuestionParser` accepts only response code `0`, as described in Section 5. The request encoding is `url3986` (RFC 3986), which the parser decodes.
+
+## B. Technologies and versions
+
+**Table 15: Libraries and tools (from `pom.xml`)**
+
+| Component | Version | Used for |
+| :--- | :--- | :--- |
+| Java (JDK) | 17 (release level) | Language and runtime |
+| JavaFX (`javafx-controls`) | 21.0.6 | User interface and charts |
+| SQLite JDBC (`sqlite-jdbc`) | 3.46.1.0 | Local database access |
+| Jackson (`jackson-databind`) | 2.17.2 | JSON parsing and export |
+| JUnit Jupiter | 5.11.4 | Automated tests |
+| Maven Surefire plugin | 3.2.5 | Runs the tests |
+| JavaFX Maven plugin | 0.0.8 | Starts the application (`mvn javafx:run`) |
+
+## C. Build and run
+
+The application needs JDK 17 and Maven. The SQLite database file is created at `data/trivia.db` on first start.
+
+```bash
+mvn compile        # build
+mvn test           # run the automated tests
+mvn javafx:run     # start the application (com.triviagame.App)
+```
+
+## D. Supplementary material in the repository
+
+* **Sample data:** `sample-data/sample_scores_2000.json` holds 2,000 sample score records, and `sample_scores_change_demo.json` is a second sample file. Both use the score export format that the Import screen reads.
+* **Generator:** `tools/generate_sample_scores.py` creates the sample score files.
+* **Question bank:** `src/main/resources/example_question_bank.json` is an example of the question-bank file that the application can import.
+* **Known issues:** `KNOWN_ISSUES.md` in the repository root lists the problems that remain and maps each requirement to the code that implements it.

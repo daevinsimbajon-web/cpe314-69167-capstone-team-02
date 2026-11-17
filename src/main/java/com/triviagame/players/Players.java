@@ -1,10 +1,14 @@
 package com.triviagame.players;
 
 import com.triviagame.db.PlayerDao;
-import com.triviagame.db.ScoreDao;
+import com.triviagame.service.PlayerService;
 import com.triviagame.home.Ui;
 
-import java.sql.SQLException;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.concurrent.Task;
 
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -26,8 +30,9 @@ public class Players {
 
     private final VBox root = new VBox();
 
-    private final PlayerDao playerDao = new PlayerDao();
-    private final ScoreDao scoreDao = new ScoreDao();
+    private final PlayerService service = new PlayerService();
+    private final ExecutorService workers;
+    private boolean busy;
 
     private final TableView<PlayerDao.PlayerRecord> table =
             new TableView<>();
@@ -35,7 +40,8 @@ public class Players {
     private final Label totalPlayers =
             Ui.label("Total: 0 players", "card-note");
 
-    public Players() {
+    public Players(ExecutorService workers) {
+        this.workers = workers;
         root.getStyleClass().add("screen");
 
         VBox card = createPlayerCard();
@@ -107,20 +113,23 @@ public class Players {
     }
 
     private void loadPlayers() {
-        try {
-            var players = playerDao.getAllPlayers();
-
+        if (busy) return;
+        busy = true;
+        Task<List<PlayerDao.PlayerRecord>> task = new Task<>() {
+            @Override protected List<PlayerDao.PlayerRecord> call() throws Exception { return service.all(); }
+        };
+        task.setOnSucceeded(event -> {
+            busy = false;
+            var players = task.getValue();
             table.setItems(
                     FXCollections.observableArrayList(players)
             );
-
             totalPlayers.setText(
                     "Total: " + players.size() + " players"
             );
-
-        } catch (SQLException e) {
-            Ui.error("Unable to load players: " + e.getMessage());
-        }
+        });
+        task.setOnFailed(event -> failure("Unable to load players.", task.getException()));
+        workers.execute(task);
     }
 
     private void showAddPlayerDialog() {
@@ -136,12 +145,14 @@ public class Players {
                 return;
             }
 
-            try {
-                playerDao.addPlayer(name.trim());
-                loadPlayers();
-            } catch (SQLException e) {
-                Ui.error("Unable to add player: " + e.getMessage());
-            }
+            if (busy) return;
+            busy = true;
+            Task<Void> task = new Task<>() {
+                @Override protected Void call() throws Exception { service.add(name.trim()); return null; }
+            };
+            task.setOnSucceeded(event -> { busy = false; loadPlayers(); });
+            task.setOnFailed(event -> failure("Unable to add player.", task.getException()));
+            workers.execute(task);
         });
     }
 
@@ -154,21 +165,6 @@ public class Players {
             return;
         }
 
-        // A player with saved scores cannot be deleted (foreign key).
-        // Say so in plain words instead of showing a SQL error.
-        try {
-            if (!scoreDao.getScoresByPlayer(selected.id()).isEmpty()) {
-                Ui.warning(
-                        selected.name() + " has saved game scores, "
-                        + "so this player cannot be deleted."
-                );
-                return;
-            }
-        } catch (SQLException e) {
-            Ui.error("Unable to check scores: " + e.getMessage());
-            return;
-        }
-
         Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
         confirmation.setTitle("Delete Player");
         confirmation.setHeaderText("Delete " + selected.name() + "?");
@@ -178,15 +174,25 @@ public class Players {
 
         confirmation.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
-                try {
-                    playerDao.deletePlayer(selected.id());
-                    loadPlayers();
-                } catch (SQLException e) {
-                    Ui.error(
-                            "Unable to delete player: " + e.getMessage()
-                    );
-                }
+                if (busy) return;
+                busy = true;
+                Task<Boolean> task = new Task<>() {
+                    @Override protected Boolean call() throws Exception { return service.deleteIfUnscored(selected.id()); }
+                };
+                task.setOnSucceeded(event -> {
+                    busy = false;
+                    if (!task.getValue()) Ui.warning(selected.name() + " has saved game scores, so this player cannot be deleted.");
+                    else loadPlayers();
+                });
+                task.setOnFailed(event -> failure("Unable to delete player.", task.getException()));
+                workers.execute(task);
             }
         });
+    }
+
+    private void failure(String message, Throwable error) {
+        busy = false;
+        Logger.getLogger(Players.class.getName()).log(Level.WARNING, message, error);
+        Ui.error(message + " Please try again.");
     }
 }

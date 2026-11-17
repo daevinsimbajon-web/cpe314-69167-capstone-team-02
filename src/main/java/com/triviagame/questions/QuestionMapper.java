@@ -15,6 +15,20 @@ public final class QuestionMapper {
     private QuestionMapper() {
     }
 
+    /** Applies the first recognized category in the question's ancestry. */
+    public static Question toQuestion(QuestionRecord record, List<String> ancestry) {
+        Question question = toQuestion(record);
+        if (ancestry == null) return question;
+        for (String category : ancestry) {
+            if (category == null) continue;
+            String normalized = category.strip().toLowerCase(java.util.Locale.ROOT);
+            if (normalized.startsWith("science")) return new ScienceQuestion(question);
+            if (normalized.startsWith("history")) return new HistoryQuestion(question);
+            if (normalized.startsWith("entertainment")) return new EntertainmentQuestion(question);
+        }
+        return question;
+    }
+
     public static Question toQuestion(
             QuestionRecord record) {
 
