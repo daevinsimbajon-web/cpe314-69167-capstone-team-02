@@ -1,0 +1,71 @@
+server:
+  port: 8080
+  address: ${BACKEND_ADDRESS:127.0.0.1}
+  forward-headers-strategy: native
+  tomcat:
+    remoteip:
+      internal-proxies: '127\.0\.0\.1|0:0:0:0:0:0:0:1|::1'
+      protocol-header: X-Forwarded-Proto
+      host-header: X-Forwarded-Host
+      port-header: X-Forwarded-Port
+      remote-ip-header: X-Forwarded-For
+  servlet:
+    session:
+      timeout: 8h
+spring:
+  mail:
+    host: ${SMTP_HOST:smtp.gmail.com}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USERNAME:}
+    password: ${SMTP_PASSWORD:}
+    default-encoding: UTF-8
+    properties:
+      "[mail.smtp.auth]": ${SMTP_AUTH_ENABLED:true}
+      "[mail.smtp.starttls.enable]": ${SMTP_STARTTLS_ENABLED:true}
+      "[mail.smtp.starttls.required]": ${SMTP_STARTTLS_ENABLED:true}
+      "[mail.smtp.ssl.checkserveridentity]": true
+      "[mail.smtp.connectiontimeout]": 5000
+      "[mail.smtp.timeout]": 5000
+      "[mail.smtp.writetimeout]": 5000
+      "[mail.debug]": false
+  application:
+    name: quiz-night-online
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/quiznight}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    hikari:
+      maximum-pool-size: 10
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+  session:
+    jdbc:
+      initialize-schema: never
+      cleanup-cron: "0 */5 * * * *"
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+  servlet:
+    multipart:
+      max-file-size: 1MB
+      max-request-size: 1MB
+app:
+  otp-secret: ${OTP_HMAC_SECRET:}
+  mail:
+    provider: ${EMAIL_PROVIDER:mailjet}
+    mailjet:
+      api-key: ${MAILJET_API_KEY:}
+      secret-key: ${MAILJET_SECRET_KEY:}
+      from-email: ${MAILJET_FROM_EMAIL:}
+      from-name: ${MAILJET_FROM_NAME:Hootly}
+    from-address: ${SMTP_FROM_ADDRESS:}
+    from-name: ${SMTP_FROM_NAME:Hootly}
+  allowed-origins: ${ALLOWED_ORIGINS:http://localhost:5173}
+  public-url: ${FRONTEND_URL:http://localhost:5173}
+  cookie-secure: ${COOKIE_SECURE:false}
+  login-attempts: 10
+  scheduler-enabled: true
