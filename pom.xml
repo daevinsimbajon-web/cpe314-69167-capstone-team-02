@@ -70,6 +70,9 @@
                 <version>3.2.5</version>
                 <configuration>
                     <useModulePath>false</useModulePath>
+                    <systemPropertyVariables>
+                        <trivia.database.path>${project.build.directory}/test-trivia.db</trivia.database.path>
+                    </systemPropertyVariables>
                 </configuration>
             </plugin>
 

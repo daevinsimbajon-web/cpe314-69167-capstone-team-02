@@ -9,6 +9,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -28,24 +32,25 @@ public final class QuestionBankService {
     }
 
     public void initializeBank() throws SQLException {
+        synchronized (QuestionBankService.class) {
+            Database.initializeSchema();
 
-        Database.initializeSchema();
+            // Preserve the existing offline question bank.
+            SampleQuestionSeeder.seed();
 
-        // Offline fallback: existing 15 sample questions
-        SampleQuestionSeeder.seed();
-
-        try (
-            Connection c = Database.getConnection();
-            Statement st = c.createStatement()
-        ) {
-            st.executeUpdate("""
-                CREATE TABLE IF NOT EXISTS question_bank_imports (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    source TEXT NOT NULL,
-                    inserted_count INTEGER NOT NULL,
-                    imported_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-                )
-                """);
+            try (
+                Connection c = Database.getConnection();
+                Statement st = c.createStatement()
+            ) {
+                st.executeUpdate("""
+                    CREATE TABLE IF NOT EXISTS question_bank_imports (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        source TEXT NOT NULL,
+                        inserted_count INTEGER NOT NULL,
+                        imported_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                    )
+                    """);
+            }
         }
     }
 
@@ -71,8 +76,6 @@ public final class QuestionBankService {
             List<BankQuestion> input,
             String source) throws SQLException {
 
-        initializeBank();
-
         if (input == null || input.isEmpty()) {
             throw new IllegalArgumentException(
                 "No questions to import"
@@ -85,31 +88,59 @@ public final class QuestionBankService {
             );
         }
 
-        CategoryDao categoryDao = new CategoryDao();
+        initializeBank();
+        try (Connection connection = Database.getConnection();
+             Statement transaction = connection.createStatement()) {
+            // Acquire the write lock before reading categories or duplicate keys.
+            // Competing imports see the committed result before making decisions.
+            transaction.execute("BEGIN IMMEDIATE");
+            try {
+                ImportReport report = importQuestions(connection, input, source);
+                transaction.execute("COMMIT");
+                return report;
+            } catch (SQLException | RuntimeException exception) {
+                try {
+                    transaction.execute("ROLLBACK");
+                } catch (SQLException rollbackFailure) {
+                    exception.addSuppressed(rollbackFailure);
+                }
+                throw exception;
+            }
+        }
+    }
+
+    private ImportReport importQuestions(Connection connection, List<BankQuestion> input,
+            String source) throws SQLException {
         QuestionDao questionDao = new QuestionDao();
 
         Map<String, Integer> categoryIds =
                 new HashMap<>();
 
-        for (var category : categoryDao.getAllCategories()) {
-            categoryIds.put(
-                normalize(category.name()),
-                category.id()
-            );
+        try (Statement statement = connection.createStatement();
+             ResultSet result = statement.executeQuery("SELECT id, name FROM categories ORDER BY id")) {
+            while (result.next()) {
+                categoryIds.put(normalize(result.getString("name")), result.getInt("id"));
+            }
         }
 
         Set<String> questionKeys = new HashSet<>();
 
-        for (var question : questionDao.getAllQuestions()) {
-            questionKeys.add(
-                question.categoryId()
-                + "|" + normalize(question.text())
-            );
+        Set<String> externalIds = new HashSet<>();
+        try (Statement statement = connection.createStatement();
+             ResultSet result = statement.executeQuery("SELECT category_id, text, external_id FROM questions")) {
+            while (result.next()) {
+                questionKeys.add(result.getInt("category_id") + "|" + normalize(result.getString("text")));
+                externalIds.add(result.getString("external_id"));
+            }
         }
 
         int inserted = 0;
 
         for (BankQuestion q : input) {
+            String externalId = externalId(source, q);
+            if (externalIds.contains(externalId)) {
+                continue;
+            }
 
             String categoryKey = normalize(q.category());
 
@@ -117,7 +148,16 @@ public final class QuestionBankService {
                     categoryIds.get(categoryKey);
 
             if (categoryId == null) {
-                categoryId = categoryDao.addCategory(q.category());
+                try (PreparedStatement statement = connection.prepareStatement(
+                        "INSERT INTO categories (name) VALUES (?)")) {
+                    statement.setString(1, q.category());
+                    statement.executeUpdate();
+                }
+                try (Statement statement = connection.createStatement();
+                     ResultSet result = statement.executeQuery("SELECT last_insert_rowid()")) {
+                    result.next();
+                    categoryId = result.getInt(1);
+                }
                 categoryIds.put(categoryKey, categoryId);
             }
 
@@ -135,14 +175,17 @@ public final class QuestionBankService {
                         );
 
                 questionDao.addQuestion(
+                    connection,
                     q.text(),
                     q.correctAnswer(),
                     wrongAnswers,
                     q.difficulty(),
                     categoryId,
-                    q.questionType()
+                    q.questionType(),
+                    externalId
                 );
 
+                externalIds.add(externalId);
                 inserted++;
 
             } catch (JsonProcessingException e) {
@@ -153,8 +196,7 @@ public final class QuestionBankService {
         }
 
         try (
-            Connection c = Database.getConnection();
-            PreparedStatement ps = c.prepareStatement(
+            PreparedStatement ps = connection.prepareStatement(
                 "INSERT INTO question_bank_imports "
                 + "(source, inserted_count) VALUES (?, ?)"
             )
@@ -183,6 +225,24 @@ public final class QuestionBankService {
 
     public int count() throws SQLException {
         return new QuestionDao().getAllQuestions().size();
+    }
+
+    static String externalId(String source, BankQuestion question) {
+        // Length prefixes prevent ambiguous concatenations. Provider IDs are
+        // namespaced by source; OpenTDB falls back to category + normalized text.
+        String identity = question.externalId() == null
+                ? "text:" + part(normalize(question.category())) + part(normalize(question.text()))
+                : "id:" + part(question.externalId());
+        try {
+            return "sha256:" + HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
+                    .digest((part(normalize(source)) + identity).getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("SHA-256 is unavailable", exception);
+        }
+    }
+
+    private static String part(String value) {
+        return value.length() + ":" + value;
     }
 
     private static String normalize(String value) {

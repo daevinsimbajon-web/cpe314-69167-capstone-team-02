@@ -10,9 +10,16 @@ public record BankQuestion(
         String correctAnswer,
         List<String> incorrectAnswers,
         String difficulty,
-        String questionType) {
+        String questionType,
+        String externalId) {
+
+    public BankQuestion(String category, String text, String correctAnswer,
+            List<String> incorrectAnswers, String difficulty, String questionType) {
+        this(category, text, correctAnswer, incorrectAnswers, difficulty, questionType, null);
+    }
 
     public BankQuestion {
+        externalId = externalId == null || externalId.isBlank() ? null : externalId.trim();
         category = required(category, "category");
         text = required(text, "question text");
         correctAnswer = required(correctAnswer, "correct answer");
