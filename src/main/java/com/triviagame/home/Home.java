@@ -1,21 +1,21 @@
 package com.triviagame.home;
 
 import com.triviagame.analytics.AnalyticsScreen;
-import com.triviagame.db.CategoryDao;
-import com.triviagame.db.PlayerDao;
-import com.triviagame.db.QuestionDao;
 import com.triviagame.service.QuestionBankService;
-import com.triviagame.db.ScoreDao;
 import com.triviagame.db.ScoreJsonImporter;
+import com.triviagame.service.DashboardService;
 import com.triviagame.gameplay.NewGameScreen;
 import com.triviagame.importer.ImportScreen;
 import com.triviagame.players.Players;
 import com.triviagame.results.Results;
 import com.triviagame.tasks.FetchQuestionsTask;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.concurrent.Task;
 
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -30,21 +30,22 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 public class Home implements Navigator {
-    @FunctionalInterface
-    private interface SqlCount { int get() throws SQLException; }
-
     private final BorderPane root = new BorderPane();
+    private final ExecutorService workers;
+    private final DashboardService dashboard = new DashboardService();
+    private long countsVersion;
     private final List<Button> navButtons = new ArrayList<>();
     private Button dashboardButton, playersButton, newGameButton;
     private Button resultsButton, analyticsButton, importButton;
     private Button fetchButton;
     private Spinner<Integer> amountSpinner;
     private ComboBox<String> difficultyBox, typeBox;
-    private Label questionsCount, categoriesCount, fetchStatus;
+    private Label questionsCount, categoriesCount, playersCount, gamesCount, fetchStatus;
     private FetchQuestionsTask activeFetch;
     private ScoreJsonImporter importer;
 
-    public Home(Stage stage) {
+    public Home(Stage stage, ExecutorService workers) {
+        this.workers = workers;
         root.getStyleClass().add("app-root");
         root.setLeft(createSidebar());
         openDashboard();
@@ -54,7 +55,6 @@ public class Home implements Navigator {
 
     public void shutdown() {
         if (activeFetch != null && !activeFetch.isDone()) activeFetch.cancel();
-        if (importer != null) importer.close();
     }
 
     @Override
@@ -63,13 +63,13 @@ public class Home implements Navigator {
     @Override
     public void openNewGame() {
         activate(newGameButton);
-        show(new NewGameScreen(this).getView());
+        show(new NewGameScreen(this, workers).getView());
     }
 
     @Override
     public void openResults() {
         activate(resultsButton);
-        show(new Results().getView());
+        show(new Results(workers).getView());
     }
 
     private void openDashboard() {
@@ -79,18 +79,18 @@ public class Home implements Navigator {
 
     private void openPlayers() {
         activate(playersButton);
-        show(new Players().getView());
+        show(new Players(workers).getView());
     }
 
     private void openAnalytics() {
         activate(analyticsButton);
-        show(new AnalyticsScreen().getView());
+        show(new AnalyticsScreen(workers).getView());
     }
 
     private void openImport() {
         activate(importButton);
         if (importer == null) importer = new ScoreJsonImporter();
-        show(new ImportScreen(importer).getView());
+        show(new ImportScreen(importer, workers).getView());
     }
 
     private VBox createSidebar() {
@@ -134,16 +134,14 @@ public class Home implements Navigator {
         VBox content = new VBox();
         content.getStyleClass().add("screen");
 
-        questionsCount = Ui.label(count(() -> new QuestionDao()
-                .getAllQuestions().size()), "stat-value");
-        categoriesCount = Ui.label(count(() -> new CategoryDao()
-                .getAllCategories().size()), "stat-value");
+        questionsCount = Ui.label("…", "stat-value");
+        categoriesCount = Ui.label("…", "stat-value");
+        playersCount = Ui.label("…", "stat-value");
+        gamesCount = Ui.label("…", "stat-value");
 
         HBox statistics = new HBox(20,
-                stat("TOTAL PLAYERS", Ui.label(count(() -> new PlayerDao()
-                        .getAllPlayers().size()), "stat-value"), "Registered players"),
-                stat("GAMES PLAYED", Ui.label(count(() -> new ScoreDao()
-                        .countPlayedSessions()), "stat-value"), "Completed sessions"),
+                stat("TOTAL PLAYERS", playersCount, "Registered players"),
+                stat("GAMES PLAYED", gamesCount, "Completed sessions"),
                 stat("QUESTIONS", questionsCount, "Available questions"),
                 stat("CATEGORIES", categoriesCount, "Available categories")
         );
@@ -203,6 +201,7 @@ public class Home implements Navigator {
                 Ui.label("Welcome back! Here's your trivia overview.", "subtitle"),
                 statistics, bank, quickStart
         );
+        refreshCounts();
         return content;
     }
 
@@ -226,13 +225,12 @@ public class Home implements Navigator {
             fetchStatus.setText("Added " + report.inserted()
                     + " new questions. " + report.duplicates()
                     + " were already in your collection.");
-            questionsCount.setText(count(() -> new QuestionDao()
-                    .getAllQuestions().size()));
-            categoriesCount.setText(count(() -> new CategoryDao()
-                    .getAllCategories().size()));
+            refreshCounts();
         });
         task.setOnFailed(event -> {
             setDownloading(false);
+            Logger.getLogger(Home.class.getName()).log(
+                    Level.WARNING, "Question download failed", task.getException());
             fetchStatus.setText("Couldn't find questions for this selection. "
                     + "Try other filters or check your connection.");
         });
@@ -240,9 +238,7 @@ public class Home implements Navigator {
             setDownloading(false);
             fetchStatus.setText("Download cancelled.");
         });
-        Thread worker = new Thread(task, "trivia-online-questions");
-        worker.setDaemon(true);
-        worker.start();
+        workers.execute(task);
     }
 
     private void setDownloading(boolean working) {
@@ -263,8 +259,24 @@ public class Home implements Navigator {
         return box;
     }
 
-    private String count(SqlCount query) {
-        try { return String.valueOf(query.get()); }
-        catch (SQLException e) { return "?"; }
+    private void refreshCounts() {
+        long version = ++countsVersion;
+        Task<DashboardService.Counts> task = new Task<>() {
+            @Override protected DashboardService.Counts call() throws Exception { return dashboard.counts(); }
+        };
+        task.setOnSucceeded(event -> {
+            if (version != countsVersion) return;
+            var counts = task.getValue();
+            playersCount.setText(String.valueOf(counts.players()));
+            gamesCount.setText(String.valueOf(counts.games()));
+            questionsCount.setText(String.valueOf(counts.questions()));
+            categoriesCount.setText(String.valueOf(counts.categories()));
+        });
+        task.setOnFailed(event -> {
+            if (version != countsVersion) return;
+            Logger.getLogger(Home.class.getName()).log(Level.WARNING, "Dashboard count failed", task.getException());
+            playersCount.setText("?"); gamesCount.setText("?"); questionsCount.setText("?"); categoriesCount.setText("?");
+        });
+        workers.execute(task);
     }
 }

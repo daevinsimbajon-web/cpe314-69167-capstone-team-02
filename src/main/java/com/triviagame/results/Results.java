@@ -1,13 +1,13 @@
 package com.triviagame.results;
 
-import com.triviagame.db.AnalyticsDao;
 import com.triviagame.home.Ui;
+import com.triviagame.service.LeaderboardService;
 
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.concurrent.Task;
 
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleLongProperty;
@@ -39,11 +39,14 @@ public class Results {
     }
 
     private final VBox root = new VBox();
-    private final AnalyticsDao analyticsDao = new AnalyticsDao();
+    private final LeaderboardService service = new LeaderboardService();
+    private final ExecutorService workers;
+    private long requestVersion;
     private final TableView<Row> table = new TableView<>();
     private final Label summary = Ui.label("", "card-note");
 
-    public Results() {
+    public Results(ExecutorService workers) {
+        this.workers = workers;
         root.getStyleClass().add("screen");
 
         VBox card = createCard();
@@ -122,48 +125,21 @@ public class Results {
 
     // Reads the database again every time, so new games show up
     private void loadLeaderboard() {
-        try {
-            List<AnalyticsDao.PlayerTotal> totals =
-                    analyticsDao.getTopPlayers(100);
-
-            Map<String, Double> averages = new HashMap<>();
-
-            for (AnalyticsDao.PlayerAverage average
-                    : analyticsDao.getAveragePointsPerPlayer()) {
-
-                averages.putIfAbsent(
-                        average.playerName(),
-                        average.averagePoints()
-                );
-            }
-
-            List<Row> rows = new ArrayList<>();
-            int rank = 0;
-            long previousTotal = -1;
-
-            for (int i = 0; i < totals.size(); i++) {
-                AnalyticsDao.PlayerTotal total = totals.get(i);
-
-                // Players with the same points share a rank
-                if (total.totalPoints() != previousTotal) {
-                    rank = i + 1;
-                    previousTotal = total.totalPoints();
-                }
-
-                rows.add(new Row(
-                        rank,
-                        total.playerName(),
-                        total.totalPoints(),
-                        averages.getOrDefault(total.playerName(), 0.0)
-                ));
-            }
-
+        long version = ++requestVersion;
+        Task<List<LeaderboardService.Entry>> task = new Task<>() {
+            @Override protected List<LeaderboardService.Entry> call() throws Exception { return service.leaderboard(); }
+        };
+        task.setOnSucceeded(event -> {
+            if (version != requestVersion) return;
+            var rows = task.getValue().stream().map(row -> new Row(row.rank(), row.player(), row.points(), row.average())).toList();
             table.setItems(FXCollections.observableArrayList(rows));
-
             summary.setText(rows.size() + " players ranked");
-
-        } catch (SQLException e) {
-            Ui.error("Unable to load results: " + e.getMessage());
-        }
+        });
+        task.setOnFailed(event -> {
+            if (version != requestVersion) return;
+            Logger.getLogger(Results.class.getName()).log(Level.WARNING, "Leaderboard query failed", task.getException());
+            Ui.error("Unable to load results. Please try again.");
+        });
+        workers.execute(task);
     }
 }

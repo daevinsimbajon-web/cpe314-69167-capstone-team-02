@@ -15,14 +15,14 @@ public class GameEngine {
             new ArrayDeque<>();
 
     private final Deque<AnswerHistory> history =
-            new ArrayDeque<>();;
+            new ArrayDeque<>();
 
     private final ScoreDao scoreDao;
-    
+
     private int score = 0;
     private int total = 0;
     private final int playerId;
-private final int sessionId;
+    private final int sessionId;
 
     private record AnswerHistory(
             Question question,
@@ -60,7 +60,7 @@ private final int sessionId;
                 "Question list cannot be null"
             );
         }
-        
+
         questions.clear();
         history.clear();
 
@@ -79,6 +79,16 @@ private final int sessionId;
 
     public boolean submitAnswer(String answer)
             throws SQLException {
+        return submitAnswer(answer, 0);
+    }
+
+    /** Score a corrected answer at a reduced rate after prior incorrect attempts. */
+    public boolean submitAnswer(String answer, int priorIncorrectAttempts)
+            throws SQLException {
+
+        if (priorIncorrectAttempts < 0) {
+            throw new IllegalArgumentException("Attempt count cannot be negative");
+        }
 
         if (questions.isEmpty()) {
             return false;
@@ -89,7 +99,9 @@ private final int sessionId;
         boolean correct = question.checkAnswer(answer);
 
         // Runtime polymorphism
-        int points = correct ? question.getPoints() : 0;
+        int[] multipliers = {10, 7, 4, 2};
+        int multiplier = multipliers[Math.min(priorIncorrectAttempts, multipliers.length - 1)];
+        int points = correct ? Math.max(1, question.getPoints() * multiplier / 10) : 0;
 
         int savedScoreId = 0;
 
@@ -119,7 +131,7 @@ private final int sessionId;
         history.push(new AnswerHistory(
                 question, score, savedScoreId
         ));
-    
+
         score += points;
 
         return correct;
@@ -146,9 +158,9 @@ private final int sessionId;
                 );
             }
         }
-        
+
         history.pop();
-        
+
         questions.addFirst(previous.question());
 
         score = previous.previousScore();
@@ -163,7 +175,7 @@ private final int sessionId;
     public int getTotal() {
         return total;
     }
- 
+
     public int getRemaining() {
         return questions.size();
     }

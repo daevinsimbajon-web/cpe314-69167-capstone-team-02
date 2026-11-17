@@ -12,6 +12,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class CategoryDao {
+    public int countCategories() throws SQLException {
+        try (Connection connection = Database.getConnection();
+             PreparedStatement statement = connection.prepareStatement("SELECT COUNT(*) FROM categories");
+             ResultSet result = statement.executeQuery()) {return result.next()?result.getInt(1):0;}
+    }
 
     // Represents a category record from SQLite
     public record CategoryRecord(
@@ -228,44 +233,44 @@ public class CategoryDao {
         );
     }
     public List<QuestionDao.QuestionRecord>
-    		getQuestionsRecursively(int categoryId)
-    		throws SQLException {
+            getQuestionsRecursively(int categoryId)
+            throws SQLException {
 
-    	List<QuestionDao.QuestionRecord> questions =
-    			new ArrayList<>();
+        List<QuestionDao.QuestionRecord> questions =
+                new ArrayList<>();
 
-    	collectQuestions(
-    		categoryId, questions, new HashSet<>()
-    	);
+        collectQuestions(
+            categoryId, questions, new HashSet<>()
+        );
 
-    	return questions;
+        return questions;
     }
 
     private void collectQuestions(
-    	int categoryId,
-    	List<QuestionDao.QuestionRecord> questions,
-    	Set<Integer> visited
+        int categoryId,
+        List<QuestionDao.QuestionRecord> questions,
+        Set<Integer> visited
     ) throws SQLException {
 
-    	// Prevent repeatedly visiting the same category.
-		if (!visited.add(categoryId)) {
-		    return;
-		}
-		
-		QuestionDao questionDao = new QuestionDao();
-		
-		// Get questions directly under this category.
-		questions.addAll(
-		    questionDao.getQuestionsByCategory(categoryId)
-		);
-	
-		// Recursively search every child category.
-		for (CategoryRecord child :
-		        getSubcategories(categoryId)) {
-		
-		    collectQuestions(
-		        child.id(), questions, visited
-		    );
-		}
+        // Prevent repeatedly visiting the same category.
+        if (!visited.add(categoryId)) {
+            return;
+        }
+
+        QuestionDao questionDao = new QuestionDao();
+
+        // Get questions directly under this category.
+        questions.addAll(
+            questionDao.getQuestionsByCategory(categoryId)
+        );
+
+        // Recursively search every child category.
+        for (CategoryRecord child :
+                getSubcategories(categoryId)) {
+
+            collectQuestions(
+                child.id(), questions, visited
+            );
+        }
     }
 }
