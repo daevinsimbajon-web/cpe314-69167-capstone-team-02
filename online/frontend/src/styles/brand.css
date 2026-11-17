@@ -1,0 +1,20 @@
+.hootly-logo{display:inline-flex;align-items:center;flex-shrink:0;line-height:1}
+.hootly-logo-full{width:155px;height:55px;object-fit:contain}.hootly-logo-icon{width:42px;height:42px;object-fit:contain}
+.hootly-wordmark{font:800 32px/1 var(--font-display);letter-spacing:-1.6px;color:var(--color-text)}.hootly-wordmark>span{color:var(--color-lavender)}
+.hootly-logo-light .hootly-wordmark{color:#171d39}
+.hootly-mascot{aspect-ratio:1;position:relative;pointer-events:none;user-select:none}
+
+
+.hootly-loading-dots{position:absolute;bottom:0;display:flex;gap:6px}.hootly-loading-dots>i{width:5px;height:5px;border-radius:50%;background:var(--color-lavender);animation:hootly-thought 1.6s ease-in-out infinite}.hootly-loading-dots>i:nth-child(2){animation-delay:.18s}.hootly-loading-dots>i:nth-child(3){animation-delay:.36s}
+
+.mascot-scene{display:grid;justify-items:center;gap:8px}.mascot-scene-caption{font-size:11px;text-align:center;max-width:28ch;margin:0;color:var(--color-lavender)}
+.page-mascot-heading{display:flex;justify-content:space-between;align-items:center;gap:20px}.page-mascot-heading>.hootly-mascot{width:72px!important}
+.auth-owl-stage .mascot-scene{z-index:1}.auth-mobile-owl .hootly-mascot{width:72px!important}
+.hootly-mascot[data-quiet=true] *{animation:none!important;transition:none!important}
+@keyframes hootly-breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.012)}}
+@keyframes hootly-thought{0%,70%,100%{opacity:.3}35%{opacity:1}}
+@keyframes hootly-ring{from{transform:scale(.8);opacity:.75}to{transform:scale(1.25);opacity:0}}
+@media(max-width:760px){.hootly-compact-mobile .hootly-logo-full{width:42px;height:42px}.hootly-logo-full{width:137px;height:46px}.landing-nav{gap:16px}.page-mascot-heading{gap:8px}.page-mascot-heading>.hootly-mascot{width:55px!important}}
+@media(min-width:761px){.sidebar .hootly-logo-icon{display:none}}
+@media(prefers-reduced-motion:reduce){.hootly-mascot *{animation:none!important;transition:none!important}}
+.hootly-mascot>.hootly-character{width:100%!important;max-width:100%;height:auto}
