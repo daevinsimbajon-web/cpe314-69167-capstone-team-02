@@ -1,4 +1,5 @@
 package com.triviagame.gameplay;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,6 +25,7 @@ import com.triviagame.home.VectorIcons;
 import com.triviagame.questions.Question;
 
 import javafx.animation.KeyFrame;
+import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
@@ -41,6 +43,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
+
 public final class NewGameScreen {
  private record CategoryChoice(int id, String name) {
  @Override public String toString() { return name; }
