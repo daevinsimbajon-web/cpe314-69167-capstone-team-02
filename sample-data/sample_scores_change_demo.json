@@ -1,0 +1,4202 @@
+gi[
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What is the largest living mammal?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "What is the name of Harry Potter's school?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first person to walk on the Moon?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the largest living mammal?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "What is the name of Harry Potter's school?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the largest living mammal?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first person to walk on the Moon?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the largest living mammal?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "What is the name of Harry Potter's school?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "Which planet is known as the Red Planet?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "What is the name of Harry Potter's school?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first person to walk on the Moon?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which video game character eats dots in a maze?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What is the largest living mammal?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "Which planet is known as the Red Planet?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which video game character eats dots in a maze?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first person to walk on the Moon?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the largest living mammal?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "What is the name of Harry Potter's school?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "Which planet is known as the Red Planet?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "Which planet is known as the Red Planet?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What is the largest living mammal?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first person to walk on the Moon?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first person to walk on the Moon?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "Which planet is known as the Red Planet?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What is the largest living mammal?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which video game character eats dots in a maze?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first person to walk on the Moon?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "Which planet is known as the Red Planet?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which video game character eats dots in a maze?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "Which planet is known as the Red Planet?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the largest living mammal?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the largest living mammal?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "What is the name of Harry Potter's school?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which video game character eats dots in a maze?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the largest living mammal?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "What is the name of Harry Potter's school?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "What is the name of Harry Potter's school?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "Which planet is known as the Red Planet?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "What is the name of Harry Potter's school?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "What is the name of Harry Potter's school?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first person to walk on the Moon?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What is the largest living mammal?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the largest living mammal?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first person to walk on the Moon?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first person to walk on the Moon?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the largest living mammal?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which video game character eats dots in a maze?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the largest living mammal?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first person to walk on the Moon?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "Which planet is known as the Red Planet?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What is the largest living mammal?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first person to walk on the Moon?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which video game character eats dots in a maze?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which video game character eats dots in a maze?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which video game character eats dots in a maze?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which video game character eats dots in a maze?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "Which planet is known as the Red Planet?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the largest living mammal?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "Which planet is known as the Red Planet?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which video game character eats dots in a maze?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "Which planet is known as the Red Planet?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first person to walk on the Moon?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "Which planet is known as the Red Planet?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first person to walk on the Moon?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first person to walk on the Moon?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first person to walk on the Moon?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "What is the name of Harry Potter's school?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "What is the name of Harry Potter's school?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which video game character eats dots in a maze?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "Which planet is known as the Red Planet?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the largest living mammal?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "Which planet is known as the Red Planet?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which video game character eats dots in a maze?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first person to walk on the Moon?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "Which planet is known as the Red Planet?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "Which planet is known as the Red Planet?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which video game character eats dots in a maze?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "What is the name of Harry Potter's school?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What is the largest living mammal?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the largest living mammal?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the largest living mammal?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "What is the name of Harry Potter's school?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What is the largest living mammal?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "What is the name of Harry Potter's school?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "Which planet is known as the Red Planet?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "What is the name of Harry Potter's school?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "What is the name of Harry Potter's school?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "Which planet is known as the Red Planet?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "Which planet is known as the Red Planet?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "What is the name of Harry Potter's school?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which video game character eats dots in a maze?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "Which planet is known as the Red Planet?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "What is the name of Harry Potter's school?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "Which planet is known as the Red Planet?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which video game character eats dots in a maze?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "Which planet is known as the Red Planet?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "What is the name of Harry Potter's school?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first person to walk on the Moon?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "Which planet is known as the Red Planet?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "What is the name of Harry Potter's school?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What is the largest living mammal?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first person to walk on the Moon?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which video game character eats dots in a maze?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "What is the name of Harry Potter's school?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "Which planet is known as the Red Planet?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first person to walk on the Moon?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first person to walk on the Moon?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first person to walk on the Moon?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What is the largest living mammal?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "What is the name of Harry Potter's school?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which video game character eats dots in a maze?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first person to walk on the Moon?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first person to walk on the Moon?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the largest living mammal?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What is the largest living mammal?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first person to walk on the Moon?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first person to walk on the Moon?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first person to walk on the Moon?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What is the largest living mammal?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "What is the name of Harry Potter's school?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "Which planet is known as the Red Planet?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "Which planet is known as the Red Planet?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "What is the name of Harry Potter's school?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first person to walk on the Moon?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which video game character eats dots in a maze?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "Which planet is known as the Red Planet?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "What is the name of Harry Potter's school?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first person to walk on the Moon?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What is the largest living mammal?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which video game character eats dots in a maze?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first person to walk on the Moon?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first person to walk on the Moon?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first person to walk on the Moon?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "What is the name of Harry Potter's school?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the largest living mammal?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "What is the name of Harry Potter's school?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "Which planet is known as the Red Planet?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "Which planet is known as the Red Planet?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first person to walk on the Moon?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the largest living mammal?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "Which planet is known as the Red Planet?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first person to walk on the Moon?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the largest living mammal?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which video game character eats dots in a maze?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the largest living mammal?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the largest living mammal?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which video game character eats dots in a maze?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "What is the name of Harry Potter's school?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "Which planet is known as the Red Planet?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which video game character eats dots in a maze?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "Which planet is known as the Red Planet?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which Marvel hero carries a vibranium shield?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "Which planet is known as the Red Planet?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "What is the name of Harry Potter's school?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the largest living mammal?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "Which planet is known as the Red Planet?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which video game character eats dots in a maze?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which animated movie features Elsa and Anna?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first person to walk on the Moon?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "What is the largest living mammal?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "What is the name of Harry Potter's school?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "In what year did the EDSA People Power Revolution happen?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What force pulls objects toward Earth?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Science",
+  "questionText": "Which planet is known as the Red Planet?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What gas do plants absorb during photosynthesis?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Which video game character eats dots in a maze?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "In what year was the Magna Carta sealed?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "Entertainment",
+  "questionText": "Which video game character eats dots in a maze?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "Science",
+  "questionText": "What is the chemical formula for water?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Which ancient civilization built the pyramids at Giza?",
+  "isCorrect": true,
+  "points": 10
+ },
+ {
+  "player": "Ana",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ana",
+  "category": "Entertainment",
+  "questionText": "Who played Harry Potter in the film series?",
+  "isCorrect": false,
+  "points": 0
+ },
+ {
+  "player": "Ella",
+  "category": "History",
+  "questionText": "Who was the first President of the Philippines?",
+  "isCorrect": true,
+  "points": 10
+ }
+]

@@ -1,0 +1,394 @@
+/* ============================================================
+   Trivia Night Manager - every color and style lives here.
+   Change a color once in .root and the whole app follows.
+   ============================================================ */
+
+.root {
+    -bg: #10111F;
+    -sidebar: #17182A;
+    -card: #1B1D30;
+    -card-alt: #232540;
+    -accent: #8B5CF6;
+    -accent-hover: #7C3AED;
+    -accent-soft: #A78BFA;
+    -text: #FFFFFF;
+    -muted: #A0A1B5;
+    -dim: #85869B;
+    -good: #34D399;
+    -good-bg: #12362B;
+    -bad: #FCA5A5;
+    -bad-bg: #3B2432;
+    -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Default text color. More specific rules below override it. */
+.label {
+    -fx-text-fill: -text;
+}
+
+/* ---------- Layout ---------- */
+
+.app-root {
+    -fx-background-color: -bg;
+}
+
+.sidebar {
+    -fx-background-color: -sidebar;
+    -fx-padding: 35 20 30 20;
+    -fx-spacing: 12;
+}
+
+.screen {
+    -fx-background-color: -bg;
+    -fx-padding: 40;
+    -fx-spacing: 22;
+}
+
+.card {
+    -fx-background-color: -card;
+    -fx-background-radius: 16;
+    -fx-padding: 25;
+    -fx-spacing: 16;
+}
+
+.stat-card {
+    -fx-padding: 22;
+    -fx-spacing: 12;
+}
+
+/* ---------- Text ---------- */
+
+.logo {
+    -fx-font-size: 21px;
+    -fx-font-weight: bold;
+}
+
+.menu-label {
+    -fx-text-fill: -dim;
+    -fx-font-size: 11px;
+}
+
+.title {
+    -fx-font-size: 30px;
+    -fx-font-weight: bold;
+}
+
+.subtitle {
+    -fx-text-fill: -muted;
+    -fx-font-size: 14px;
+}
+
+.card-title {
+    -fx-font-size: 19px;
+    -fx-font-weight: bold;
+}
+
+.card-note {
+    -fx-text-fill: -accent-soft;
+    -fx-font-size: 13px;
+}
+
+.field-label {
+    -fx-text-fill: -muted;
+    -fx-font-size: 12px;
+}
+
+.stat-title {
+    -fx-text-fill: -muted;
+    -fx-font-size: 11px;
+}
+
+.stat-value {
+    -fx-font-size: 30px;
+    -fx-font-weight: bold;
+}
+
+.stat-desc {
+    -fx-text-fill: -dim;
+}
+
+.muted {
+    -fx-text-fill: -muted;
+}
+
+/* ---------- Buttons ---------- */
+
+.nav-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: -text;
+    -fx-font-size: 14px;
+    -fx-background-radius: 10;
+    -fx-padding: 14 15 14 15;
+    -fx-alignment: center-left;
+    -fx-cursor: hand;
+}
+
+.nav-button:hover {
+    -fx-background-color: -card-alt;
+}
+
+.nav-button-active,
+.nav-button-active:hover {
+    -fx-background-color: -accent;
+}
+
+.primary-button {
+    -fx-background-color: -accent;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 9;
+    -fx-padding: 11 20 11 20;
+    -fx-cursor: hand;
+}
+
+.primary-button:hover {
+    -fx-background-color: -accent-hover;
+}
+
+.primary-button:disabled {
+    -fx-opacity: 0.45;
+}
+
+.secondary-button {
+    -fx-background-color: -card-alt;
+    -fx-text-fill: -text;
+    -fx-background-radius: 9;
+    -fx-padding: 11 20 11 20;
+    -fx-cursor: hand;
+}
+
+.secondary-button:hover {
+    -fx-background-color: #2D2F52;
+}
+
+.danger-button {
+    -fx-background-color: -bad-bg;
+    -fx-text-fill: -bad;
+    -fx-background-radius: 8;
+    -fx-padding: 10 16 10 16;
+    -fx-cursor: hand;
+}
+
+/* ---------- Game screen ---------- */
+
+.question-text {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+}
+
+.choice-button {
+    -fx-background-color: -card-alt;
+    -fx-text-fill: -text;
+    -fx-font-size: 16px;
+    -fx-background-radius: 12;
+    -fx-padding: 16 20 16 20;
+    -fx-alignment: center-left;
+    -fx-cursor: hand;
+}
+
+.choice-button:hover {
+    -fx-background-color: #2D2F52;
+}
+
+.choice-button:disabled {
+    -fx-opacity: 1;
+    -fx-cursor: default;
+}
+
+.choice-correct,
+.choice-correct:hover,
+.choice-correct:disabled {
+    -fx-background-color: -good-bg;
+    -fx-text-fill: -good;
+    -fx-border-color: -good;
+    -fx-border-radius: 12;
+}
+
+.choice-wrong,
+.choice-wrong:hover,
+.choice-wrong:disabled {
+    -fx-background-color: -bad-bg;
+    -fx-text-fill: -bad;
+    -fx-border-color: -bad;
+    -fx-border-radius: 12;
+}
+
+.feedback-correct {
+    -fx-text-fill: -good;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+.feedback-wrong {
+    -fx-text-fill: -bad;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+.feedback-info {
+    -fx-text-fill: -muted;
+    -fx-font-size: 14px;
+}
+
+.progress-bar > .track {
+    -fx-background-color: -card-alt;
+    -fx-background-radius: 6;
+}
+
+.progress-bar > .bar {
+    -fx-background-color: -accent;
+    -fx-background-radius: 6;
+    -fx-padding: 4;
+}
+
+/* ---------- Inputs ---------- */
+
+.text-field {
+    -fx-background-color: -card-alt;
+    -fx-text-fill: -text;
+    -fx-background-radius: 8;
+}
+
+.text-area {
+    -fx-control-inner-background: #232540;
+    -fx-text-fill: white;
+    -fx-background-radius: 8;
+}
+
+.text-area .content {
+    -fx-background-color: #232540;
+}
+
+.combo-box-base,
+.combo-box {
+    -fx-background-color: -card-alt;
+    -fx-background-radius: 8;
+    -fx-padding: 2 4 2 4;
+}
+
+.combo-box .list-cell {
+    -fx-text-fill: -text;
+    -fx-background-color: transparent;
+}
+
+.combo-box .arrow-button .arrow {
+    -fx-background-color: -muted;
+}
+
+/* Popups open in their own window, so they use plain hex colors. */
+.combo-box-popup .list-view {
+    -fx-background-color: #232540;
+}
+
+.combo-box-popup .list-cell {
+    -fx-text-fill: white;
+    -fx-background-color: #232540;
+    -fx-padding: 8 12 8 12;
+}
+
+.combo-box-popup .list-cell:filled:hover,
+.combo-box-popup .list-cell:filled:selected {
+    -fx-background-color: #8B5CF6;
+}
+
+.spinner .text-field {
+    -fx-background-color: -card-alt;
+    -fx-text-fill: -text;
+}
+
+.spinner .increment-arrow-button,
+.spinner .decrement-arrow-button {
+    -fx-background-color: -card-alt;
+}
+
+.spinner .increment-arrow-button .increment-arrow,
+.spinner .decrement-arrow-button .decrement-arrow {
+    -fx-background-color: -muted;
+}
+
+/* ---------- Tables ---------- */
+
+.table-view {
+    -fx-background-color: transparent;
+    -fx-control-inner-background: #1B1D30;
+    -fx-control-inner-background-alt: #1F2138;
+    -fx-table-cell-border-color: transparent;
+    -fx-padding: 0;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: -card-alt;
+}
+
+.table-view .column-header,
+.table-view .filler {
+    -fx-background-color: -card-alt;
+    -fx-border-color: transparent;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: -muted;
+    -fx-font-weight: bold;
+}
+
+.table-row-cell:selected {
+    -fx-background-color: -accent;
+}
+
+.table-cell {
+    -fx-text-fill: -text;
+    -fx-border-color: transparent;
+}
+
+.table-row-cell:selected .table-cell {
+    -fx-text-fill: white;
+}
+
+/* ---------- Charts ---------- */
+
+.chart {
+    -fx-background-color: transparent;
+}
+
+.chart-title {
+    -fx-text-fill: -text;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+.chart-plot-background {
+    -fx-background-color: transparent;
+}
+
+.chart-vertical-grid-lines,
+.chart-horizontal-grid-lines {
+    -fx-stroke: #2A2C48;
+}
+
+.axis {
+    -fx-tick-label-fill: -muted;
+}
+
+.axis-label {
+    -fx-text-fill: -muted;
+}
+
+.chart-legend {
+    -fx-background-color: transparent;
+}
+
+.default-color0.chart-bar {
+    -fx-bar-fill: -accent;
+}
+
+.default-color0.chart-series-line {
+    -fx-stroke: -accent-soft;
+}
+
+.default-color0.chart-line-symbol {
+    -fx-background-color: -accent-soft, -card;
+}
+
+.default-color0.chart-legend-item-symbol {
+    -fx-background-color: -accent;
+}

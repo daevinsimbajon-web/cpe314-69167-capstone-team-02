@@ -39,6 +39,25 @@ public class AnalyticsDao {
     ) {
     }
 
+    // The category one player answers best (by accuracy)
+    public record BestCategory(
+            String playerName,
+            String categoryName,
+            int totalAnswers,
+            int correctAnswers,
+            double accuracyPercent
+    ) {
+    }
+
+    // Average points a player earns in one game (one session),
+    // taken over every player-game that has saved answers
+    public record GameAverage(
+            int games,
+            double averagePoints,
+            long bestGamePoints
+    ) {
+    }
+
     // SELECT: Accuracy per category (categories without scores are omitted)
     public List<CategoryAccuracy> getAccuracyByCategory()
             throws SQLException {
@@ -196,5 +215,101 @@ public class AnalyticsDao {
         }
 
         return results;
+    }
+
+    // SELECT: The best category for every player.
+    // Best = highest accuracy; ties go to the category with more
+    // answers, then to the name that comes first alphabetically.
+    // Players without scores are omitted.
+    public List<BestCategory> getBestCategoryPerPlayer()
+            throws SQLException {
+
+        List<BestCategory> results = new ArrayList<>();
+
+        String sql = """
+            WITH stats AS (
+                SELECT p.id AS player_id,
+                       p.name AS player_name,
+                       c.name AS category_name,
+                       COUNT(s.id) AS total_answers,
+                       SUM(s.is_correct) AS correct_answers,
+                       100.0 * SUM(s.is_correct)
+                             / COUNT(s.id) AS accuracy
+                FROM players p
+                JOIN scores s ON s.player_id = p.id
+                JOIN categories c ON c.id = s.category_id
+                GROUP BY p.id, c.id, c.name
+            ),
+            ranked AS (
+                SELECT *,
+                       ROW_NUMBER() OVER (
+                           PARTITION BY player_id
+                           ORDER BY accuracy DESC,
+                                    total_answers DESC,
+                                    category_name ASC
+                       ) AS rank_in_player
+                FROM stats
+            )
+            SELECT player_name, category_name, total_answers,
+                   correct_answers, ROUND(accuracy, 2) AS accuracy_pct
+            FROM ranked
+            WHERE rank_in_player = 1
+            ORDER BY accuracy_pct DESC, player_name ASC, player_id ASC
+            """;
+
+        try (Connection connection =
+                     Database.getConnection();
+             PreparedStatement statement =
+                     connection.prepareStatement(sql);
+             ResultSet result =
+                     statement.executeQuery()) {
+
+            while (result.next()) {
+                results.add(new BestCategory(
+                        result.getString("player_name"),
+                        result.getString("category_name"),
+                        result.getInt("total_answers"),
+                        result.getInt("correct_answers"),
+                        result.getDouble("accuracy_pct")
+                ));
+            }
+        }
+
+        return results;
+    }
+
+    // SELECT: Average points per game. A "game" is one player in one
+    // session. With no saved answers: 0 games, average 0.
+    public GameAverage getAveragePointsPerGame()
+            throws SQLException {
+
+        String sql = """
+            SELECT COUNT(*) AS games,
+                   AVG(game_points) AS average_points,
+                   MAX(game_points) AS best_points
+            FROM (
+                SELECT SUM(points) AS game_points
+                FROM scores
+                GROUP BY session_id, player_id
+            )
+            """;
+
+        try (Connection connection =
+                     Database.getConnection();
+             PreparedStatement statement =
+                     connection.prepareStatement(sql);
+             ResultSet result =
+                     statement.executeQuery()) {
+
+            if (!result.next()) {
+                return new GameAverage(0, 0.0, 0);
+            }
+
+            return new GameAverage(
+                    result.getInt("games"),
+                    result.getDouble("average_points"),
+                    result.getLong("best_points")
+            );
+        }
     }
 }

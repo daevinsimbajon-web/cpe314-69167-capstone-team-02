@@ -1,267 +1,270 @@
 package com.triviagame.home;
 
-import com.triviagame.players.Players;
-import java.sql.SQLException;
+import com.triviagame.analytics.AnalyticsScreen;
+import com.triviagame.db.CategoryDao;
 import com.triviagame.db.PlayerDao;
 import com.triviagame.db.QuestionDao;
-import com.triviagame.db.CategoryDao;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
+import com.triviagame.db.QuestionBankService;
+import com.triviagame.db.ScoreDao;
+import com.triviagame.db.ScoreJsonImporter;
+import com.triviagame.gameplay.NewGameScreen;
+import com.triviagame.importer.ImportScreen;
+import com.triviagame.players.Players;
+import com.triviagame.results.Results;
+import com.triviagame.tasks.FetchQuestionsTask;
+
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.Spinner;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
+import javafx.stage.Stage;
 
-public class Home {
-
-    private int getPlayerCount() {
-        try {
-            return new PlayerDao().getAllPlayers().size();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return 0;
-        }
-    }
-
-    private int getQuestionCount() {
-        try {
-            return new QuestionDao().getAllQuestions().size();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return 0;
-        }
-    }
-
-    private int getCategoryCount() {
-        try {
-            return new CategoryDao().getAllCategories().size();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return 0;
-        }
-    }
+public class Home implements Navigator {
+    @FunctionalInterface
+    private interface SqlCount { int get() throws SQLException; }
 
     private final BorderPane root = new BorderPane();
+    private final List<Button> navButtons = new ArrayList<>();
+    private Button dashboardButton, playersButton, newGameButton;
+    private Button resultsButton, analyticsButton, importButton;
+    private Button fetchButton;
+    private Spinner<Integer> amountSpinner;
+    private ComboBox<String> difficultyBox, typeBox;
+    private Label questionsCount, categoriesCount, fetchStatus;
+    private FetchQuestionsTask activeFetch;
+    private ScoreJsonImporter importer;
 
-    private final String background = "#10111F";
-    private final String card = "#1B1D30";
-    private final String purple = "#8B5CF6";
-
-    public Home(javafx.stage.Stage stage) {
-        root.setStyle("-fx-background-color: " + background + ";");
-
+    public Home(Stage stage) {
+        root.getStyleClass().add("app-root");
         root.setLeft(createSidebar());
-        root.setCenter(createDashboard());
+        openDashboard();
     }
 
-    public Parent getView() {
-        return root;
+    public Parent getView() { return root; }
+
+    public void shutdown() {
+        if (activeFetch != null && !activeFetch.isDone()) activeFetch.cancel();
+        if (importer != null) importer.close();
     }
 
-    // One place that swaps the center area of the window.
-    // Every button calls this instead of touching root directly.
-    private void showScreen(Node screen) {
-        root.setCenter(screen);
+    @Override
+    public void show(Node screen) { root.setCenter(screen); }
+
+    @Override
+    public void openNewGame() {
+        activate(newGameButton);
+        show(new NewGameScreen(this).getView());
     }
 
-    // Temporary screen so the buttons do something visible.
-    // Replace the calls to this with the real screens later.
-    private VBox createPlaceholder(String title, String message) {
-        VBox content = new VBox(25);
-        content.setPadding(new Insets(40));
-
-        Label heading = new Label(title);
-        heading.setTextFill(Color.WHITE);
-        heading.setStyle(
-            "-fx-font-size: 30px; -fx-font-weight: bold;"
-        );
-
-        Label subtitle = new Label(message);
-        subtitle.setTextFill(Color.web("#A0A1B5"));
-
-        content.getChildren().addAll(heading, subtitle);
-        return content;
+    @Override
+    public void openResults() {
+        activate(resultsButton);
+        show(new Results().getView());
     }
 
-    private void openNewGame() {
-        showScreen(createPlaceholder(
-            "New Game",
-            "Game setup screen coming soon."
-        ));
+    private void openDashboard() {
+        activate(dashboardButton);
+        show(makeDashboard());
     }
 
-    private void openResults() {
-        showScreen(createPlaceholder(
-            "Results",
-            "Results and score history coming soon."
-        ));
+    private void openPlayers() {
+        activate(playersButton);
+        show(new Players().getView());
+    }
+
+    private void openAnalytics() {
+        activate(analyticsButton);
+        show(new AnalyticsScreen().getView());
+    }
+
+    private void openImport() {
+        activate(importButton);
+        if (importer == null) importer = new ScoreJsonImporter();
+        show(new ImportScreen(importer).getView());
     }
 
     private VBox createSidebar() {
-        VBox sidebar = new VBox(25);
-        sidebar.setPadding(new Insets(35, 20, 30, 20));
+        VBox sidebar = new VBox();
+        sidebar.getStyleClass().add("sidebar");
         sidebar.setPrefWidth(240);
-        sidebar.setStyle(
-            "-fx-background-color: #17182A;"
-        );
-
-        Label logo = new Label("✦ TRIVIA NIGHT");
-        logo.setTextFill(Color.WHITE);
-        logo.setStyle(
-            "-fx-font-size: 21px; -fx-font-weight: bold;"
-        );
-
-        Label menu = new Label("MAIN MENU");
-        menu.setTextFill(Color.web("#85869B"));
-        menu.setStyle("-fx-font-size: 11px;");
-
-        Button dashboard = navButton("⌂   Dashboard", true);
-        Button players = navButton("♙   Players", false);
-        Button game = navButton("▶   New Game", false);
-        Button results = navButton("▤   Results", false);
-
-        dashboard.setOnAction(event ->
-            showScreen(createDashboard())
-        );
-
-        players.setOnAction(event ->
-            showScreen(new Players().getView())
-        );
-
-        // NEW: these two had no handler before
-        game.setOnAction(event -> openNewGame());
-        results.setOnAction(event -> openResults());
 
         sidebar.getChildren().addAll(
-            logo, menu, dashboard, players, game, results
+                Ui.label("TRIVIA NIGHT", "logo"),
+                Ui.label("MAIN MENU", "menu-label")
         );
-
+        dashboardButton = nav("Dashboard", "home", this::openDashboard);
+        playersButton = nav("Players", "users", this::openPlayers);
+        newGameButton = nav("New Game", "play", this::openNewGame);
+        resultsButton = nav("Results", "list", this::openResults);
+        analyticsButton = nav("Analytics", "chart", this::openAnalytics);
+        importButton = nav("Import Scores", "download", this::openImport);
+        sidebar.getChildren().addAll(dashboardButton, playersButton,
+                newGameButton, resultsButton, analyticsButton, importButton);
         return sidebar;
     }
 
-    private Button navButton(String text, boolean active) {
-        Button button = new Button(text);
+    private Button nav(String title, String icon, Runnable action) {
+        Button button = new Button(title);
+        button.setGraphic(VectorIcons.of(icon));
+        button.setGraphicTextGap(14);
         button.setMaxWidth(Double.MAX_VALUE);
-        button.setAlignment(Pos.CENTER_LEFT);
-        button.setPadding(new Insets(14, 15, 14, 15));
-
-        button.setStyle(
-            "-fx-background-color: " +
-            (active ? purple : "transparent") +
-            "; -fx-text-fill: white;" +
-            "-fx-font-size: 14px;" +
-            "-fx-background-radius: 10;"
-        );
-
+        button.getStyleClass().add("nav-button");
+        button.setOnAction(event -> action.run());
+        navButtons.add(button);
         return button;
     }
 
-    private VBox createDashboard() {
-        VBox content = new VBox(25);
-        content.setPadding(new Insets(40));
+    private void activate(Button active) {
+        for (Button button : navButtons)
+            button.getStyleClass().remove("nav-button-active");
+        active.getStyleClass().add("nav-button-active");
+    }
 
-        Label heading = new Label("Dashboard");
-        heading.setTextFill(Color.WHITE);
-        heading.setStyle(
-            "-fx-font-size: 30px; -fx-font-weight: bold;"
-        );
+    private VBox makeDashboard() {
+        VBox content = new VBox();
+        content.getStyleClass().add("screen");
 
-        Label subtitle = new Label(
-            "Welcome back! Here's your trivia overview."
-        );
-        subtitle.setTextFill(Color.web("#A0A1B5"));
+        questionsCount = Ui.label(count(() -> new QuestionDao()
+                .getAllQuestions().size()), "stat-value");
+        categoriesCount = Ui.label(count(() -> new CategoryDao()
+                .getAllCategories().size()), "stat-value");
 
         HBox statistics = new HBox(20,
-            createStatCard("TOTAL PLAYERS",
-                String.valueOf(getPlayerCount()),
-                "Registered players"),
-
-            createStatCard("GAMES PLAYED",
-                "0",
-                "Total sessions"),
-
-            createStatCard("QUESTIONS",
-                String.valueOf(getQuestionCount()),
-                "Available questions"),
-
-            createStatCard("CATEGORIES",
-                String.valueOf(getCategoryCount()),
-                "Available categories")
+                stat("TOTAL PLAYERS", Ui.label(count(() -> new PlayerDao()
+                        .getAllPlayers().size()), "stat-value"), "Registered players"),
+                stat("GAMES PLAYED", Ui.label(count(() -> new ScoreDao()
+                        .countPlayedSessions()), "stat-value"), "Completed sessions"),
+                stat("QUESTIONS", questionsCount, "Available questions"),
+                stat("CATEGORIES", categoriesCount, "Available categories")
         );
 
-        VBox activity = new VBox(12);
-        activity.setPadding(new Insets(25));
-        activity.setStyle(
-            "-fx-background-color: " + card +
-            "; -fx-background-radius: 16;"
+        amountSpinner = new Spinner<>(1, 50, 10);
+        amountSpinner.setPrefWidth(105);
+        amountSpinner.setEditable(false);
+
+        difficultyBox = new ComboBox<>();
+        difficultyBox.getItems().addAll("Any", "Easy", "Medium", "Hard");
+        difficultyBox.getSelectionModel().selectFirst();
+        difficultyBox.setPrefWidth(145);
+
+        typeBox = new ComboBox<>();
+        typeBox.getItems().addAll("Any", "Multiple Choice", "True / False");
+        typeBox.getSelectionModel().selectFirst();
+        typeBox.setPrefWidth(185);
+
+        fetchButton = Ui.button("Get More Questions", "secondary-button",
+                event -> downloadQuestions());
+        fetchButton.setGraphic(VectorIcons.of("download"));
+        fetchButton.setGraphicTextGap(10);
+
+        VBox bank = new VBox(14);
+        bank.getStyleClass().add("card");
+        fetchStatus = Ui.label("Choose the questions you want to add.", "card-note");
+        fetchStatus.setWrapText(true);
+
+        HBox filters = new HBox(12,
+                amountSpinner, difficultyBox, typeBox, fetchButton);
+        filters.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        bank.getChildren().addAll(
+                Ui.label("Question Bank", "card-title"),
+                Ui.label("Find new trivia questions for your next game.", "muted"),
+                Ui.label("Amount                   Difficulty                Type", "field-label"),
+                filters, fetchStatus
         );
 
-        Label activityTitle = new Label("Quick Start");
-        activityTitle.setTextFill(Color.WHITE);
-        activityTitle.setStyle(
-            "-fx-font-size: 20px; -fx-font-weight: bold;"
-        );
+        if (activeFetch != null && !activeFetch.isDone()) {
+            setDownloading(true);
+            fetchStatus.setText("Finding new questions...");
+        }
 
-        Label description = new Label(
-            "Ready to host your next Trivia Night?"
-        );
-        description.setTextFill(Color.web("#A0A1B5"));
-
-        Button start = new Button("Start New Game  →");
-        start.setPadding(new Insets(13, 22, 13, 22));
-        start.setStyle(
-            "-fx-background-color: " + purple +
-            "; -fx-text-fill: white;" +
-            "-fx-font-weight: bold;" +
-            "-fx-background-radius: 9;"
-        );
-
-        // NEW: this button had no handler before
-        start.setOnAction(event -> openNewGame());
-
-        activity.getChildren().addAll(
-            activityTitle, description, start
+        VBox quickStart = new VBox(14);
+        quickStart.getStyleClass().add("card");
+        Button start = Ui.button("Start New Game", "primary-button",
+                event -> openNewGame());
+        start.setGraphic(VectorIcons.of("play"));
+        quickStart.getChildren().addAll(
+                Ui.label("Quick Start", "card-title"),
+                Ui.label("Ready to host your next Trivia Night?", "muted"),
+                start
         );
 
         content.getChildren().addAll(
-            heading, subtitle, statistics, activity
+                Ui.label("Dashboard", "title"),
+                Ui.label("Welcome back! Here's your trivia overview.", "subtitle"),
+                statistics, bank, quickStart
         );
-
         return content;
     }
 
-    private VBox createStatCard(
-        String title, String value, String description
-    ) {
-        VBox box = new VBox(12);
-        box.setPadding(new Insets(22));
+    private void downloadQuestions() {
+        if (activeFetch != null && !activeFetch.isDone()) return;
+        String difficulty = difficultyBox.getValue().toLowerCase(java.util.Locale.ROOT);
+        String type = switch (typeBox.getValue()) {
+            case "Multiple Choice" -> "multiple";
+            case "True / False" -> "boolean";
+            default -> "any";
+        };
+        FetchQuestionsTask task = new FetchQuestionsTask(
+                amountSpinner.getValue(), difficulty, type);
+        activeFetch = task;
+        setDownloading(true);
+        fetchStatus.setText("Finding new questions...");
+
+        task.setOnSucceeded(event -> {
+            setDownloading(false);
+            QuestionBankService.ImportReport report = task.getValue();
+            fetchStatus.setText("Added " + report.inserted()
+                    + " new questions. " + report.duplicates()
+                    + " were already in your collection.");
+            questionsCount.setText(count(() -> new QuestionDao()
+                    .getAllQuestions().size()));
+            categoriesCount.setText(count(() -> new CategoryDao()
+                    .getAllCategories().size()));
+        });
+        task.setOnFailed(event -> {
+            setDownloading(false);
+            fetchStatus.setText("Couldn't find questions for this selection. "
+                    + "Try other filters or check your connection.");
+        });
+        task.setOnCancelled(event -> {
+            setDownloading(false);
+            fetchStatus.setText("Download cancelled.");
+        });
+        Thread worker = new Thread(task, "trivia-online-questions");
+        worker.setDaemon(true);
+        worker.start();
+    }
+
+    private void setDownloading(boolean working) {
+        if (fetchButton != null) fetchButton.setDisable(working);
+        if (amountSpinner != null) amountSpinner.setDisable(working);
+        if (difficultyBox != null) difficultyBox.setDisable(working);
+        if (typeBox != null) typeBox.setDisable(working);
+    }
+
+    private VBox stat(String title, Label number, String description) {
+        VBox box = new VBox();
+        box.getStyleClass().addAll("card", "stat-card");
         box.setPrefWidth(230);
-        box.setStyle(
-            "-fx-background-color: " + card +
-            "; -fx-background-radius: 16;"
-        );
-
-        Label titleLabel = new Label(title);
-        titleLabel.setTextFill(Color.web("#A0A1B5"));
-        titleLabel.setStyle("-fx-font-size: 11px;");
-
-        Label valueLabel = new Label(value);
-        valueLabel.setTextFill(Color.WHITE);
-        valueLabel.setStyle(
-            "-fx-font-size: 30px; -fx-font-weight: bold;"
-        );
-
-        Label descriptionLabel = new Label(description);
-        descriptionLabel.setTextFill(Color.web("#85869B"));
-
-        box.getChildren().addAll(
-            titleLabel, valueLabel, descriptionLabel
-        );
-
+        box.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(box, Priority.ALWAYS);
+        box.getChildren().addAll(Ui.label(title, "stat-title"),
+                number, Ui.label(description, "stat-desc"));
         return box;
+    }
+
+    private String count(SqlCount query) {
+        try { return String.valueOf(query.get()); }
+        catch (SQLException e) { return "?"; }
     }
 }

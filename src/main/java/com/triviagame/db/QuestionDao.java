@@ -18,8 +18,15 @@ public class QuestionDao {
             String incorrectAnswers,
             String difficulty,
             int categoryId,
-            String questionType
+            String questionType,
+            String createdAt,
+            String externalId
     ) {
+        public QuestionRecord(int id, String text, String correctAnswer,
+                String incorrectAnswers, String difficulty, int categoryId, String questionType) {
+            this(id, text, correctAnswer, incorrectAnswers, difficulty, categoryId,
+                    questionType, null, null);
+        }
     }
 
     // INSERT: Save a new trivia question
@@ -50,6 +57,22 @@ public class QuestionDao {
             String questionType
     ) throws SQLException {
 
+        return addQuestion(text, correctAnswer, incorrectAnswers, difficulty,
+                categoryId, questionType, null);
+    }
+
+    public int addQuestion(String text, String correctAnswer, String incorrectAnswers,
+            String difficulty, int categoryId, String questionType, String externalId)
+            throws SQLException {
+        try (Connection connection = Database.getConnection()) {
+            return addQuestion(connection, text, correctAnswer, incorrectAnswers,
+                    difficulty, categoryId, questionType, externalId);
+        }
+    }
+
+    int addQuestion(Connection connection, String text, String correctAnswer,
+            String incorrectAnswers, String difficulty, int categoryId,
+            String questionType, String externalId) throws SQLException {
         validateQuestion(
             text,
             correctAnswer,
@@ -73,14 +96,14 @@ public class QuestionDao {
                 incorrect_answers,
                 difficulty,
                 category_id,
-                question_type
+                question_type,
+                external_id,
+                created_at
             )
-            VALUES (?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
             """;
 
-        try (Connection connection =
-                     Database.getConnection();
-             PreparedStatement statement =
+        try (PreparedStatement statement =
                      connection.prepareStatement(sql)) {
 
             statement.setString(1, text.trim());
@@ -89,6 +112,8 @@ public class QuestionDao {
             statement.setString(4, difficulty.trim());
             statement.setInt(5, categoryId);
             statement.setString(6, questionType);
+            statement.setString(7, externalId == null || externalId.isBlank()
+                    ? null : externalId.trim());
 
             int rows = statement.executeUpdate();
 
@@ -296,7 +321,9 @@ public class QuestionDao {
             result.getString("incorrect_answers"),
             result.getString("difficulty"),
             result.getInt("category_id"),
-            result.getString("question_type")
+            result.getString("question_type"),
+            result.getString("created_at"),
+            result.getString("external_id")
         );
     }
 

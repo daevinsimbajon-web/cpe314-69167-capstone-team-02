@@ -1,13 +1,24 @@
 package com.triviagame.questions;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.triviagame.db.QuestionDao.QuestionRecord;
 
-public class QuestionMapper {
+import java.io.IOException;
+import java.util.List;
 
-    public static Question toQuestion(QuestionRecord record) {
+public final class QuestionMapper {
+
+    private static final ObjectMapper JSON =
+            new ObjectMapper();
+
+    private QuestionMapper() {
+    }
+
+    public static Question toQuestion(
+            QuestionRecord record) {
 
         if ("TRUE_FALSE".equals(record.questionType())) {
-
             return new TrueFalseQuestion(
                 record.id(),
                 record.categoryId(),
@@ -16,20 +27,37 @@ public class QuestionMapper {
             );
         }
 
-        if ("MULTIPLE_CHOICE".equals(record.questionType())) {
+        if ("MULTIPLE_CHOICE".equals(
+                record.questionType())) {
 
-            String[] incorrect =
-                parseAnswers(record.incorrectAnswers());
+            List<String> wrong;
 
-            String[] choices = new String[incorrect.length + 1];
+            try {
+                wrong = JSON.readValue(
+                    record.incorrectAnswers(),
+                    new TypeReference<List<String>>() {}
+                );
+            } catch (IOException e) {
+                throw new IllegalArgumentException(
+                    "Invalid question choices JSON for ID "
+                    + record.id(), e
+                );
+            }
 
-            // Put the correct answer first.
-            // Main will shuffle the choices before displaying.
+            if (wrong == null || wrong.isEmpty()) {
+                throw new IllegalArgumentException(
+                    "No choices for question " + record.id()
+                );
+            }
+
+            String[] choices =
+                    new String[wrong.size() + 1];
+
             choices[0] = record.correctAnswer();
 
-            System.arraycopy(
-                incorrect, 0, choices, 1, incorrect.length
-            );
+            for (int i = 0; i < wrong.size(); i++) {
+                choices[i + 1] = wrong.get(i);
+            }
 
             return new MultipleChoiceQuestion(
                 record.id(),
@@ -41,35 +69,8 @@ public class QuestionMapper {
         }
 
         throw new IllegalArgumentException(
-            "Unsupported question type: " + record.questionType()
+            "Unsupported question type: "
+            + record.questionType()
         );
-    }
-
-    // Parses the simple JSON string array used by the seeder.
-    private static String[] parseAnswers(String json) {
-
-        String content = json.trim();
-
-        if (!content.startsWith("[") || !content.endsWith("]")) {
-            throw new IllegalArgumentException(
-                "Invalid answer array"
-            );
-        }
-
-        content = content.substring(1, content.length() - 1);
-
-        if (content.isBlank()) {
-            return new String[0];
-        }
-
-        String[] answers = content.split("\",\"");
-
-        for (int i = 0; i < answers.length; i++) {
-            answers[i] = answers[i]
-                    .replaceAll("^\\s*\"|\"\\s*$", "")
-                    .trim();
-        }
-
-        return answers;
     }
 }
