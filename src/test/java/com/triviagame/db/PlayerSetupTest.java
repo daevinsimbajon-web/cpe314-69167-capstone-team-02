@@ -1,4 +1,4 @@
-package com.triviagame.m2;
+package com.triviagame.db;
 
 import static org.junit.jupiter.api.Assertions.*;
 
