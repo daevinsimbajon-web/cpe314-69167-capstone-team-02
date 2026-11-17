@@ -4,7 +4,7 @@ import com.triviagame.analytics.AnalyticsScreen;
 import com.triviagame.db.CategoryDao;
 import com.triviagame.db.PlayerDao;
 import com.triviagame.db.QuestionDao;
-import com.triviagame.db.QuestionBankService;
+import com.triviagame.service.QuestionBankService;
 import com.triviagame.db.ScoreDao;
 import com.triviagame.db.ScoreJsonImporter;
 import com.triviagame.gameplay.NewGameScreen;

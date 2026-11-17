@@ -10,9 +10,35 @@ import java.util.Optional;
 
 public class QuestionDao {
 
+    /** Count matching questions, including descendants of a selected category. */
+    public int countMatchingQuestions(int categoryId, String difficulty, String type) throws SQLException {
+        String sql = """
+            WITH RECURSIVE selected(id) AS (
+              SELECT id FROM categories WHERE id=?
+              UNION ALL SELECT c.id FROM categories c JOIN selected s ON c.parent_id=s.id
+            )
+            SELECT COUNT(*) FROM questions q
+            WHERE (?=0 OR q.category_id IN (SELECT id FROM selected))
+              AND (?='any' OR lower(q.difficulty)=?)
+              AND (?='ANY' OR q.question_type=?)
+            """;
+        try (Connection connection = Database.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, categoryId); statement.setInt(2, categoryId);
+            String level = difficulty.toLowerCase(java.util.Locale.ROOT);
+            statement.setString(3, level); statement.setString(4, level);
+            statement.setString(5, type); statement.setString(6, type);
+            try (ResultSet result = statement.executeQuery()) { return result.next() ? result.getInt(1) : 0; }
+        }
+    }
+    public int countQuestions() throws SQLException {
+        try (Connection connection = Database.getConnection();
+             PreparedStatement statement = connection.prepareStatement("SELECT COUNT(*) FROM questions");
+             ResultSet result = statement.executeQuery()) {return result.next()?result.getInt(1):0;}
+    }
+
     // Database representation of a trivia question
     public record QuestionRecord(
-    		int id,
+            int id,
             String text,
             String correctAnswer,
             String incorrectAnswers,
@@ -47,7 +73,7 @@ public class QuestionDao {
             "MULTIPLE_CHOICE"
         );
     }
-    
+
     public int addQuestion(
             String text,
             String correctAnswer,
@@ -70,7 +96,8 @@ public class QuestionDao {
         }
     }
 
-    int addQuestion(Connection connection, String text, String correctAnswer,
+    /** Insert using the caller's transaction, allowing an import to commit atomically. */
+    public int addQuestion(Connection connection, String text, String correctAnswer,
             String incorrectAnswers, String difficulty, int categoryId,
             String questionType, String externalId) throws SQLException {
         validateQuestion(

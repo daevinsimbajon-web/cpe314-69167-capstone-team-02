@@ -1,8 +1,11 @@
-package com.triviagame.db;
+package com.triviagame.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.triviagame.api.BankQuestion;
+import com.triviagame.db.Database;
+import com.triviagame.db.QuestionDao;
+import com.triviagame.db.SampleQuestionSeeder;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -117,7 +120,7 @@ public final class QuestionBankService {
                 new HashMap<>();
 
         try (Statement statement = connection.createStatement();
-             ResultSet result = statement.executeQuery("SELECT id, name FROM categories ORDER BY id")) {
+             ResultSet result = statement.executeQuery("SELECT id, name FROM categories WHERE parent_id IS NULL ORDER BY id")) {
             while (result.next()) {
                 categoryIds.put(normalize(result.getString("name")), result.getInt("id"));
             }
@@ -224,10 +227,10 @@ public final class QuestionBankService {
     }
 
     public int count() throws SQLException {
-        return new QuestionDao().getAllQuestions().size();
+        return new QuestionDao().countQuestions();
     }
 
-    static String externalId(String source, BankQuestion question) {
+    public static String externalId(String source, BankQuestion question) {
         // Length prefixes prevent ambiguous concatenations. Provider IDs are
         // namespaced by source; OpenTDB falls back to category + normalized text.
         String identity = question.externalId() == null
