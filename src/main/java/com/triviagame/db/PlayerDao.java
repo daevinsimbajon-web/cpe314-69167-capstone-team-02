@@ -10,6 +10,11 @@ import java.util.List;
 import java.util.Optional;
 
 public class PlayerDao {
+    public int countPlayers() throws SQLException {
+        try (Connection connection = Database.getConnection();
+             PreparedStatement statement = connection.prepareStatement("SELECT COUNT(*) FROM players");
+             ResultSet result = statement.executeQuery()) {return result.next()?result.getInt(1):0;}
+    }
 
     // Represents a player record from SQLite
     public record PlayerRecord(int id, String name) {
@@ -25,8 +30,8 @@ public class PlayerDao {
         }
 
         String sql = """
-            INSERT INTO players (name)
-            VALUES (?)
+            INSERT INTO players (name, player_sync_id)
+            VALUES (?, lower(hex(randomblob(16))))
             """;
 
         try (Connection connection =

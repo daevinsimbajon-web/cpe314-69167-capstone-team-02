@@ -4,8 +4,8 @@ import com.triviagame.db.ScoreJsonImporter;
 import com.triviagame.home.Ui;
 import java.io.File;
 import java.nio.file.Path;
-import javafx.application.Platform;
 import javafx.concurrent.Task;
+import java.util.concurrent.ExecutorService;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.control.Alert;
@@ -26,6 +26,7 @@ import javafx.stage.FileChooser;
 public final class ImportScreen {
  private final VBox root = new VBox();
  private final ScoreJsonImporter importer;
+ private final ExecutorService workers;
  private final Label fileLabel =
  Ui.label("No import file selected", "muted");
  private final Button chooseButton = Ui.button(
@@ -41,8 +42,9 @@ public final class ImportScreen {
  private final Label status = Ui.label("", "card-note");
  private final TextArea details = new TextArea();
  private Path selected;
- public ImportScreen(ScoreJsonImporter importer) {
+ public ImportScreen(ScoreJsonImporter importer, ExecutorService workers) {
  this.importer = importer;
+ this.workers = workers;
  root.getStyleClass().add("screen");
  importButton.setDisable(true);
  progress.setPrefSize(28, 28);
@@ -128,14 +130,13 @@ public final class ImportScreen {
  setBusy(true);
  status.setText("Importing scores...");
  details.clear();
- importer.importAsync(selected).whenComplete((result, error) ->
- Platform.runLater(() -> {
+ Path file = selected;
+ Task<ScoreJsonImporter.ImportResult> task = new Task<>() {
+ @Override protected ScoreJsonImporter.ImportResult call() { return importer.importFile(file); }
+ };
+ task.setOnSucceeded(event -> {
  setBusy(false);
- if (error != null) {
- status.setText("Import failed.");
- details.setText(String.valueOf(error));
- return;
- }
+ var result = task.getValue();
  int invalid = Math.max(
  0, result.skipped() - result.duplicates());
  status.setText(
@@ -151,7 +152,14 @@ public final class ImportScreen {
  ? summary + "\n\nImport completed."
  : summary + "\n\n"
  + String.join("\n", result.errors()));
- }));
+ });
+ task.setOnFailed(event -> {
+ setBusy(false);
+ status.setText("Import failed.");
+ details.setText("Could not import the selected file. Please check it and try again.");
+ java.util.logging.Logger.getLogger(ImportScreen.class.getName()).log(java.util.logging.Level.WARNING, "Score import failed", task.getException());
+ });
+ workers.execute(task);
  }
  private void runExport() {
  FileChooser picker = chooser();
@@ -187,9 +195,7 @@ public final class ImportScreen {
  ? "Unknown export error"
  : exception.toString());
  });
- Thread worker = new Thread(task, "score-json-exporter");
- worker.setDaemon(true);
- worker.start();
+ workers.execute(task);
  }
  private void setBusy(boolean busy) {
  progress.setVisible(busy);

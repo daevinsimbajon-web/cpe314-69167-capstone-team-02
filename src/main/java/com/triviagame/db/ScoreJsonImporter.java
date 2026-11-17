@@ -11,9 +11,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import com.fasterxml.jackson.core.JsonLocation;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -42,6 +39,7 @@ public final class ScoreJsonImporter implements AutoCloseable {
  }
  private record Entry(
  String player,
+ String playerSyncId,
  String category,
  String questionText,
  boolean correct,
@@ -71,18 +69,6 @@ public final class ScoreJsonImporter implements AutoCloseable {
  private static final int MAX_ERRORS = 100;
  private static final ObjectMapper MAPPER = new ObjectMapper()
  .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
- private final ExecutorService executor =
- Executors.newSingleThreadExecutor(runnable -> {
- Thread thread = new Thread(runnable, "score-json-importer");
- thread.setDaemon(true);
- return thread;
- });
- public CompletableFuture<ImportResult> importAsync(Path file) {
- if (file == null) {
- throw new IllegalArgumentException("File cannot be null");
- }
- return CompletableFuture.supplyAsync(() -> importFile(file), executor);
- }
  public ImportResult importFile(Path file) {
  if (file == null) {
  throw new IllegalArgumentException("File cannot be null");
@@ -144,7 +130,7 @@ public final class ScoreJsonImporter implements AutoCloseable {
  entry.questionText())
  : findOrCreateQuestion(connection, entry);
  int playerId = findOrCreatePlayer(
- connection, entry.player());
+ connection, entry.player(), entry.playerSyncId());
  int sessionId;
  if (entry.synchronizedEntry()) {
  sessionId = findOrCreateSyncedSession(
@@ -206,16 +192,16 @@ public final class ScoreJsonImporter implements AutoCloseable {
  WHERE trim(c.name) = ? COLLATE NOCASE
  AND trim(q.text) = ? COLLATE NOCASE
  ORDER BY q.id ASC
- LIMIT 1
+ LIMIT 2
  """;
  try (PreparedStatement statement = connection.prepareStatement(sql)) {
  statement.setString(1, category.trim());
  statement.setString(2, text.trim());
  try (ResultSet result = statement.executeQuery()) {
  if (result.next()) {
- return new QuestionMatch(
- result.getInt("id"),
- result.getInt("category_id"));
+ QuestionMatch match=new QuestionMatch(result.getInt("id"),result.getInt("category_id"));
+ if(result.next())throw new InvalidEntryException("ambiguous category/question; use an export with a category path");
+ return match;
  }
  }
  }
@@ -328,19 +314,31 @@ public final class ScoreJsonImporter implements AutoCloseable {
  return new QuestionMatch(lastInsertedId(connection), categoryId);
  }
  private static int findOrCreatePlayer(
- Connection connection, String name) throws SQLException {
+ Connection connection, String name, String syncId) throws SQLException, InvalidEntryException {
+ if (syncId != null) {
+ try (PreparedStatement statement = connection.prepareStatement("SELECT id FROM players WHERE player_sync_id = ?")) {
+ statement.setString(1,syncId);
+ try (ResultSet result=statement.executeQuery()){if(result.next())return result.getInt(1);}
+ }
+ try (PreparedStatement statement=connection.prepareStatement("INSERT INTO players(name,player_sync_id) VALUES(?,?)")){
+ statement.setString(1,name);statement.setString(2,syncId);statement.executeUpdate();
+ }
+ return lastInsertedId(connection);
+ }
  try (PreparedStatement statement = connection.prepareStatement(
  "SELECT id FROM players WHERE name = ? COLLATE NOCASE "
- + "ORDER BY id LIMIT 1")) {
+ + "ORDER BY id LIMIT 2")) {
  statement.setString(1, name);
  try (ResultSet result = statement.executeQuery()) {
  if (result.next()) {
- return result.getInt(1);
+ int id=result.getInt(1);
+ if(result.next())throw new InvalidEntryException("ambiguous player name; use an export with playerSyncId");
+ return id;
  }
  }
  }
  try (PreparedStatement statement = connection.prepareStatement(
- "INSERT INTO players(name) VALUES(?)",
+ "INSERT INTO players(name,player_sync_id) VALUES(?,lower(hex(randomblob(16))))",
  Statement.RETURN_GENERATED_KEYS)) {
  statement.setString(1, name);
  statement.executeUpdate();
@@ -390,18 +388,17 @@ public final class ScoreJsonImporter implements AutoCloseable {
  int playerId, QuestionMatch question) throws SQLException {
  String sql = """
  INSERT INTO scores(
- session_id, player_id, category_id, question_id,
+ session_id, player_id, question_id,
  is_correct, points, score_sync_id
- ) VALUES (?, ?, ?, ?, ?, ?, ?)
+ ) VALUES (?, ?, ?, ?, ?, ?)
  """;
  try (PreparedStatement statement = connection.prepareStatement(sql)) {
  statement.setInt(1, sessionId);
  statement.setInt(2, playerId);
- statement.setInt(3, question.categoryId());
- statement.setInt(4, question.id());
- statement.setInt(5, entry.correct() ? 1 : 0);
- statement.setInt(6, entry.points());
- statement.setString(7, entry.scoreSyncId());
+ statement.setInt(3, question.id());
+ statement.setInt(4, entry.correct() ? 1 : 0);
+ statement.setInt(5, entry.points());
+ statement.setString(6, entry.scoreSyncId());
  statement.executeUpdate();
  }
  }
@@ -422,6 +419,8 @@ public final class ScoreJsonImporter implements AutoCloseable {
  throw new InvalidEntryException("entry is not an object");
  }
  String player = requireText(node, "player");
+ String playerSyncId=node.hasNonNull("playerSyncId")?requireText(node,"playerSyncId"):null;
+ if(playerSyncId!=null){if(!playerSyncId.matches("[a-fA-F0-9]{32}"))throw new InvalidEntryException("playerSyncId must contain 32 hexadecimal characters");playerSyncId=playerSyncId.toLowerCase(Locale.ROOT);}
  String category = requireText(node, "category");
  String question = requireText(node, "questionText");
  boolean correct = requireBoolean(node, "isCorrect");
@@ -453,7 +452,7 @@ public final class ScoreJsonImporter implements AutoCloseable {
  }
  }
  QuestionDetails details = parseQuestionDetails(node, category);
- return new Entry(player, category, question,
+ return new Entry(player, playerSyncId, category, question,
  correct, points, scoreId, sessionId, playedAt, details);
  }
  private static QuestionDetails parseQuestionDetails(
@@ -575,6 +574,6 @@ public final class ScoreJsonImporter implements AutoCloseable {
  }
  @Override
  public void close() {
- executor.shutdown();
+ // Retained for compatibility with existing callers; no worker is owned here.
  }
 }

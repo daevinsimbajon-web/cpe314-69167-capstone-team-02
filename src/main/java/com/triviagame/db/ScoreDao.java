@@ -10,6 +10,13 @@ import java.util.List;
 import java.util.Optional;
 
 public class ScoreDao {
+    public boolean hasScoresByPlayer(int playerId) throws SQLException {
+        try (Connection connection = Database.getConnection();
+             PreparedStatement statement = connection.prepareStatement("SELECT 1 FROM scores WHERE player_id=? LIMIT 1")) {
+            statement.setInt(1,playerId);
+            try (ResultSet result=statement.executeQuery()){return result.next();}
+        }
+    }
 
     // Represents a saved score record
     public record ScoreRecord(
@@ -75,12 +82,12 @@ public class ScoreDao {
             INSERT INTO scores (
                 session_id,
                 player_id,
-                category_id,
                 question_id,
                 is_correct,
                 points
             )
-            VALUES (?, ?, ?, ?, ?, ?)
+            SELECT ?, ?, q.id, ?, ? FROM questions q
+            WHERE q.id = ? AND q.category_id = ?
             """;
 
         try (Connection connection =
@@ -90,10 +97,10 @@ public class ScoreDao {
 
             statement.setInt(1, sessionId);
             statement.setInt(2, playerId);
-            statement.setInt(3, categoryId);
-            statement.setInt(4, questionId);
-            statement.setInt(5, isCorrect ? 1 : 0);
-            statement.setInt(6, points);
+            statement.setInt(3, isCorrect ? 1 : 0);
+            statement.setInt(4, points);
+            statement.setInt(5, questionId);
+            statement.setInt(6, categoryId);
 
             int rows = statement.executeUpdate();
 
@@ -112,11 +119,11 @@ public class ScoreDao {
             throws SQLException {
 
         String sql = """
-            SELECT id, session_id, player_id,
-                   category_id, question_id,
-                   is_correct, points
-            FROM scores
-            WHERE id = ?
+            SELECT s.id, s.session_id, s.player_id,
+                   q.category_id, s.question_id,
+                   s.is_correct, s.points
+            FROM scores s JOIN questions q ON q.id=s.question_id
+            WHERE s.id = ?
             """;
 
         try (Connection connection =
@@ -146,12 +153,12 @@ public class ScoreDao {
     ) throws SQLException {
 
         String sql = """
-            SELECT id, session_id, player_id,
-                   category_id, question_id,
-                   is_correct, points
-            FROM scores
-            WHERE player_id = ?
-            ORDER BY id ASC
+            SELECT s.id, s.session_id, s.player_id,
+                   q.category_id, s.question_id,
+                   s.is_correct, s.points
+            FROM scores s JOIN questions q ON q.id=s.question_id
+            WHERE s.player_id = ?
+            ORDER BY s.id ASC
             """;
 
         return getScoreList(sql, playerId);
@@ -163,12 +170,12 @@ public class ScoreDao {
     ) throws SQLException {
 
         String sql = """
-            SELECT id, session_id, player_id,
-                   category_id, question_id,
-                   is_correct, points
-            FROM scores
-            WHERE session_id = ?
-            ORDER BY id ASC
+            SELECT s.id, s.session_id, s.player_id,
+                   q.category_id, s.question_id,
+                   s.is_correct, s.points
+            FROM scores s JOIN questions q ON q.id=s.question_id
+            WHERE s.session_id = ?
+            ORDER BY s.id ASC
             """;
 
         return getScoreList(sql, sessionId);

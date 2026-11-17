@@ -230,9 +230,4 @@ public final class SampleQuestionSeeder {
  return text.strip().replaceAll("\\s+", " ")
  .toLowerCase(Locale.ROOT);
  }
- public static void main(String[] args) throws SQLException {
- System.out.println("Added " + seed() + " new offline questions.");
- System.out.println("Total saved questions: "
- + new QuestionDao().getAllQuestions().size());
- }
 }
