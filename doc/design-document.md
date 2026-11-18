@@ -13,7 +13,7 @@ Table 1. Project information
 | Application | Hootly |
 | Course and section | CPE 314 — Software Design, Section 3A |
 | Team | 02 |
-| Instructor | Richyll Son |
+| Prepared for | Richyll Son |
 | Term | First Semester, S.Y. 2026–2027 |
 | Document version | V1.0 |
 | Date | 18 November 2026 |
@@ -48,13 +48,13 @@ Table 2. Team 02
 
 Table 3. Design document revisions
 
-| Version | Date | Changes and evidence |
+| Version | Date | Changes |
 |---|---|---|
 | V0.1 | 24–26 October 2026 | The original revision table records the project overview and preliminary ER sketch. That history is preserved in `6335ffa`. |
 | V0.2 | 28 October 2026 | The first tracked design document adds the architecture and data model. See `dfc18e6`. |
 | V0.3 | 5–6 November 2026 | The team added API and concurrency design and updated the overview and database notes. See `5f6cb34` and `9fb73cc`. |
 | V0.4 | 12–14 November 2026 | The team revised the ER sketch, setup, data model, and remaining technical sections. See `e84a472`, `c87d4da`, and `6335ffa`. |
-| V1.0 | 18 November 2026 | This submission documents Hootly Online and the retained desktop application. M3 source and the preceding documentation are based on `f64a223`. This revision adds final test evidence and diagrams. |
+| V1.0 | 18 November 2026 | Updated online and desktop architecture, database diagrams, test results, and contribution records. The source history is recorded through `f64a223`. |
 
 ## 1. Introduction and Project Overview
 
@@ -73,7 +73,7 @@ A trivia host needs to prepare questions, manage turns and timing, and collect s
 
 Hootly Online is the main application. It is intended for classmates, friends, and groups running informal quiz sessions. An account can host one room and participate as a player in another. A host creates the room, shares its code, starts play, and monitors progress. Players join with the code and answer independently in new rooms. The host watches and does not earn player points in that flow.
 
-The browser application includes account verification, room play, private quiz management and practice, results, history, and analytics. Instant Quiz depends on OpenTDB and account email depends on the configured mail provider. The retained JavaFX application runs local games and stores them in its own SQLite file. Its course features are identified separately below.
+The browser application includes account verification, room play, private quiz management and practice, results, history, and analytics. Instant Quiz depends on OpenTDB and account email depends on the configured mail provider. The retained JavaFX application runs local games and stores them in its own SQLite file. The sections below describe both applications.
 
 ## 2. ER Sketch and Team Roles
 
@@ -386,7 +386,7 @@ flowchart TB
 
 Figure 11. Server-controlled online question, chance, and results flow.
 
-Automated tests use a controlled clock for deadline and retry behavior. The final demonstration should also check responsiveness during desktop import and room updates across separate devices.
+Automated tests use a controlled clock for deadline and retry behavior. Local import checks confirmed that JavaFX kept updating during a 2,000-record import. Room updates across two physical devices still need testing.
 
 ## 7. Data Mining and Visualization
 
@@ -408,7 +408,7 @@ Table 8. Automated results from 18 November 2026
 | Vitest | 22 | 137 | 0 | 0 |
 | Playwright | 2 | 2 | 0 | 0 |
 
-The Java suites were rerun after the package and exception corrections. The frontend results come from the earlier tests and successful production build on 18 November 2026.
+The Java suites passed after the package and exception-handling changes. Frontend tests and the production build also passed on 18 November 2026.
 
 Table 9. JaCoCo coverage from executed JUnit tests
 
@@ -425,31 +425,31 @@ Table 10. Desktop JUnit test cases by class
 
 | Test class | Passed | Edge case exercised |
 | --- | ---: | --- |
-| `OpenTdbClientTest` | 31 | Rejects Invalid Type Before Sending Request |
-| `OpenTdbContractTest` | 2 | Upstream Aliases And Coerced Field Types Are Not Accepted |
-| `QuestionParserTest` | 32 | Rejects Invalid JSON And Non Text Answers |
-| `CategoryTest` | 5 | Find Category At Any Depth Ignoring Case |
-| `GameControllerTest` | 2 | Insufficient Question Selection Does Not Create A Game Session |
-| `AnalyticsDaoTest` | 9 | Invalid Player ID For Session Points |
-| `AnalyticsInsightsTest` | 9 | Player With Only Wrong Answers |
-| `CategoryDaoTest` | 4 | Invalid Category Name |
-| `DatabaseTest` | 8 | Failed Schema Migration Rolls Back Backfill And Preserves Existing Rows |
-| `PlayerDaoTest` | 2 | Empty Player Name |
-| `PlayerSetupTest` | 3 | Rejects Invalid Seconds |
-| `QuestionDaoTest` | 3 | Invalid Question |
-| `QuestionImportTest` | 8 | Concurrent Imports Do Not Duplicate Questions Or Categories |
-| `ScoreDaoTest` | 4 | Invalid Score Inputs |
-| `ScoreIdentityRoundTripTest` | 1 | Same Name Players Remain Separate In Export And Import |
-| `ScoreJsonImporterTest` | 10 | Import Malformed JSON |
-| `ScoreSchemaMigrationTest` | 4 | Conflicting Score With Timed Answer Aborts Without Breaking Their Link |
-| `GameEngineDatabaseTest` | 7 | Question Without Database ID Is Rejected |
-| `GameEngineTest` | 20 | Wrong Answer Scores Zero And Advances |
-| `GameSessionTimingTest` | 3 | Engine Enforces Deadline And Undo Does Not Extend It |
-| `CategoryQuestionTest` | 2 | Unrecognized Category Keeps The Base Question And Its Scoring |
-| `MultipleChoiceQuestionTest` | 10 | Out Of Range Positions Are Wrong |
-| `TrueFalseQuestionTest` | 7 | Invalid Input Is Wrong |
-| `GameSetupServiceTest` | 1 | Filters Count And Load The Same Questions Across Nested Categories |
-| `FetchQuestionsTaskTest` | 2 | Fetch Failure Is Propagated And Questions Are Not Imported |
+| `OpenTdbClientTest` | 31 | Rejects invalid type before sending request. |
+| `OpenTdbContractTest` | 2 | Upstream aliases and coerced field types are not accepted. |
+| `QuestionParserTest` | 32 | Rejects invalid JSON and non text answers. |
+| `CategoryTest` | 5 | Find category at any depth ignoring case. |
+| `GameControllerTest` | 2 | Insufficient question selection does not create a game session. |
+| `AnalyticsDaoTest` | 9 | Invalid player ID for session points. |
+| `AnalyticsInsightsTest` | 9 | Player with only wrong answers. |
+| `CategoryDaoTest` | 4 | Invalid category name. |
+| `DatabaseTest` | 8 | Failed schema migration rolls back backfill and preserves existing rows. |
+| `PlayerDaoTest` | 2 | Empty player name. |
+| `PlayerSetupTest` | 3 | Rejects invalid seconds. |
+| `QuestionDaoTest` | 3 | Invalid question. |
+| `QuestionImportTest` | 8 | Concurrent imports do not duplicate questions or categories. |
+| `ScoreDaoTest` | 4 | Invalid score inputs. |
+| `ScoreIdentityRoundTripTest` | 1 | Same name players remain separate in export and import. |
+| `ScoreJsonImporterTest` | 10 | Import malformed JSON. |
+| `ScoreSchemaMigrationTest` | 4 | Conflicting score with timed answer aborts without breaking their link. |
+| `GameEngineDatabaseTest` | 7 | Question without database ID is rejected. |
+| `GameEngineTest` | 20 | Wrong answer scores zero and advances. |
+| `GameSessionTimingTest` | 3 | Engine enforces deadline and undo does not extend it. |
+| `CategoryQuestionTest` | 2 | Unrecognized category keeps the base question and its scoring. |
+| `MultipleChoiceQuestionTest` | 10 | Out of range positions are wrong. |
+| `TrueFalseQuestionTest` | 7 | Invalid input is wrong. |
+| `GameSetupServiceTest` | 1 | Filters count and load the same questions across nested categories. |
+| `FetchQuestionsTaskTest` | 2 | Fetch failure is propagated and questions are not imported. |
 
 ### Online backend test classes
 
@@ -457,36 +457,36 @@ Table 11. Backend JUnit test cases by class
 
 | Test class | Passed | Edge case exercised |
 | --- | ---: | --- |
-| `AccountDeletionTest` | 6 | Erases Personal Fields And Credentials And Invalidates Every Device |
-| `SnapshotValidationTest` | 1 | Accepts Actual Timeout And Retry Relationships |
-| `AnalyticsExportTest` | 3 | Historical Unknown Attempt And Timing Fields Stay Unavailable |
-| `AnalyticsTest` | 3 | Finished Statistics Are Private And Exclude Unfinished Games |
-| `AuthenticationTest` | 7 | Rejects Missing CSRF And Invalid Credentials And Unapproved Origins |
-| `AvatarConfigTest` | 3 | Missing Or Invalid Stored Legacy Parameters Use Stable Fallback |
-| `AvatarTest` | 4 | Every Species Persists Without Changing The Palette And Invalid Species Are Rejected |
-| `CategoryTreeTest` | 1 | Traversal Handles Nested Branches Cycles And Missing Roots |
-| `DatabaseTimesTest` | 2 | Rejects Missing And Unsupported Database Values |
-| `DepartureTest` | 2 | Leaving Does Not Invent Timeouts Or Award Wins And Does Not Remove Real Submitted Answers |
-| `EmailSecurityTest` | 10 | Exact Account Recipient And Name Survive Recovery Without Automatic Or Duplicate Mail |
-| `EmailTemplatesTest` | 2 | Templates Escape Names And Contain Accessible Inline Branding |
-| `EmptyBankInstantQuizTest` | 1 | Fresh Provider Questions Create A Stable Room With Zero Bank Records |
-| `ForwardedAuthenticationTest` | 2 | Trusted HTTPS Password Recovery Sets And Clears Secure Purpose Restricted Cookie |
-| `IndependentGameplayTest` | 12 | Concurrent Duplicate Submissions Cannot Award Points Twice |
-| `LoginRateLimiterTest` | 2 | Rate Limit Expires At The Five Minute Boundary |
-| `EmailDeliveryTrackingTest` | 3 | Uncertain Network Failure Is Not Reported As Sent |
-| `MailjetEmailTransportTest` | 4 | Rejects Invalid Responses And Handles Rate Limits Without Retrying |
-| `OpenTriviaTest` | 7 | Malformed Category Caches Cannot Become Official Lists |
-| `PersonalQuizTest` | 7 | Quiz Edits Reorder Safely Reuse Questions And Reject Stale Versions |
-| `PracticeEngineTest` | 2 | Invalid Actions Never Consume Questions Or Alter Score |
-| `PracticeTest` | 2 | Practice Is Private Persistent Idempotent And Never Changes Competitive Statistics |
-| `ProfileEditingTest` | 2 | Concurrent Username Edits Have One Winner And Keep Both Account Identities |
-| `RetryGameTest` | 3 | Concurrent Duplicate Submissions Consume One Chance And Replay Survives Deadline |
-| `RetryScoringTest` | 5 | Optional Retry Settings Default Off And Reject Coercion And Unsupported Values |
-| `RoomGameTest` | 7 | Only Host Can Control Room And Outsiders Cannot Read It |
-| `RoomQuestionSourcesTest` | 5 | Legacy Lobby With Matching Count But Missing First Position Cannot Start |
-| `RoomRemovalTest` | 2 | Voluntary Departure Is Not A Kick And Rejoining Clears The Removal Flag |
-| `StatisticsSharingTest` | 5 | Denial Cooldown And Multiple Connections Are Independent |
-| `WebSocketTest` | 2 | Rejects Outsiders Unauthenticated Sockets And Unapproved Origins |
+| `AccountDeletionTest` | 6 | Erases personal fields and credentials and invalidates every device. |
+| `SnapshotValidationTest` | 1 | Accepts actual timeout and retry relationships. |
+| `AnalyticsExportTest` | 3 | Historical unknown attempt and timing fields stay unavailable. |
+| `AnalyticsTest` | 3 | Finished statistics are private and exclude unfinished games. |
+| `AuthenticationTest` | 7 | Rejects missing CSRF and invalid credentials and unapproved origins. |
+| `AvatarConfigTest` | 3 | Missing or invalid stored legacy parameters use stable fallback. |
+| `AvatarTest` | 4 | Every species persists without changing the palette and invalid species are rejected. |
+| `CategoryTreeTest` | 1 | Traversal handles nested branches cycles and missing roots. |
+| `DatabaseTimesTest` | 2 | Rejects missing and unsupported database values. |
+| `DepartureTest` | 2 | Leaving does not invent timeouts or award wins and does not remove real submitted answers. |
+| `EmailSecurityTest` | 10 | Exact account recipient and name survive recovery without automatic or duplicate mail. |
+| `EmailTemplatesTest` | 2 | Templates escape names and contain accessible inline branding. |
+| `EmptyBankInstantQuizTest` | 1 | Fresh provider questions create a stable room with zero bank records. |
+| `ForwardedAuthenticationTest` | 2 | Trusted HTTPS password recovery sets and clears secure purpose restricted cookie. |
+| `IndependentGameplayTest` | 12 | Concurrent duplicate submissions cannot award points twice. |
+| `LoginRateLimiterTest` | 2 | Rate limit expires at the five minute boundary. |
+| `EmailDeliveryTrackingTest` | 3 | Uncertain network failure is not reported as sent. |
+| `MailjetEmailTransportTest` | 4 | Rejects invalid responses and handles rate limits without retrying. |
+| `OpenTriviaTest` | 7 | Malformed category caches cannot become official lists. |
+| `PersonalQuizTest` | 7 | Quiz edits reorder safely reuse questions and reject stale versions. |
+| `PracticeEngineTest` | 2 | Invalid actions never consume questions or alter score. |
+| `PracticeTest` | 2 | Practice is private persistent idempotent and never changes competitive statistics. |
+| `ProfileEditingTest` | 2 | Concurrent username edits have one winner and keep both account identities. |
+| `RetryGameTest` | 3 | Concurrent duplicate submissions consume one chance and replay survives deadline. |
+| `RetryScoringTest` | 5 | Optional retry settings default off and reject coercion and unsupported values. |
+| `RoomGameTest` | 7 | Only host can control room and outsiders cannot read it. |
+| `RoomQuestionSourcesTest` | 5 | Legacy lobby with matching count but missing first position cannot start. |
+| `RoomRemovalTest` | 2 | Voluntary departure is not a kick and rejoining clears the removal flag. |
+| `StatisticsSharingTest` | 5 | Denial cooldown and multiple connections are independent. |
+| `WebSocketTest` | 2 | Rejects outsiders unauthenticated sockets and unapproved origins. |
 
 ### PostgreSQL integration test classes
 
@@ -494,15 +494,15 @@ Table 12. PostgreSQL JUnit test cases by class
 
 | Test class | Passed | Edge case exercised |
 | --- | ---: | --- |
-| `DeparturePostgresIT` | 2 | Leaving Does Not Invent Timeouts Or Award Wins And Does Not Remove Real Submitted Answers |
-| `EmailSecurityPostgresIT` | 10 | Exact Account Recipient And Name Survive Recovery Without Automatic Or Duplicate Mail |
-| `EmptyBankInstantQuizPostgresIT` | 1 | Fresh Provider Questions Create A Stable Room With Zero Bank Records |
-| `IndependentGameplayPostgresIT` | 12 | Concurrent Duplicate Submissions Cannot Award Points Twice |
-| `InstantQuizPostgresIT` | 7 | Malformed Category Caches Cannot Become Official Lists |
-| `PersonalQuizPostgresIT` | 7 | Quiz Edits Reorder Safely Reuse Questions And Reject Stale Versions |
-| `PostgresIT` | 7 | Only Host Can Control Room And Outsiders Cannot Read It |
-| `PracticePostgresIT` | 2 | Practice Is Private Persistent Idempotent And Never Changes Competitive Statistics |
-| `StatisticsSharingPostgresIT` | 5 | Denial Cooldown And Multiple Connections Are Independent |
+| `DeparturePostgresIT` | 2 | Leaving does not invent timeouts or award wins and does not remove real submitted answers. |
+| `EmailSecurityPostgresIT` | 10 | Exact account recipient and name survive recovery without automatic or duplicate mail. |
+| `EmptyBankInstantQuizPostgresIT` | 1 | Fresh provider questions create a stable room with zero bank records. |
+| `IndependentGameplayPostgresIT` | 12 | Concurrent duplicate submissions cannot award points twice. |
+| `InstantQuizPostgresIT` | 7 | Malformed category caches cannot become official lists. |
+| `PersonalQuizPostgresIT` | 7 | Quiz edits reorder safely reuse questions and reject stale versions. |
+| `PostgresIT` | 7 | Only host can control room and outsiders cannot read it. |
+| `PracticePostgresIT` | 2 | Practice is private persistent idempotent and never changes competitive statistics. |
+| `StatisticsSharingPostgresIT` | 5 | Denial cooldown and multiple connections are independent. |
 
 ## 9. Individual Contributions
 
@@ -536,5 +536,5 @@ Representative source files and commits
 
 - [Original project proposal](proposal.md)
 - [Full database ERDs and key tables](ERD.md)
-- [Professor corrections and requirements map](KNOWN_ISSUES.md)
+- [Requirements and known issues](KNOWN_ISSUES.md)
 - [Testing commands and results](TESTING.md)

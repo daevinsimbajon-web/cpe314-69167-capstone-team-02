@@ -50,11 +50,11 @@ Results from isolated runs on 18 November 2026.
 | Vitest | 22 | 137 | 0 | 0 |
 | Playwright | 2 | 2 | 0 | 0 |
 
-The final Java verification reran the desktop suite after the package moves and the backend suite after the exception cleanup. Frontend results come from the earlier run on the same day. The frontend source has no changes in this follow-up. The production build succeeded with warnings about a bundle larger than 500 kB and a module imported both statically and dynamically.
+The desktop and backend suites passed after the package and exception-handling changes. Frontend tests and the production build passed on the same day. Vite reported a bundle larger than 500 kB and a module imported both statically and dynamically.
 
 JaCoCo measured 50.5% line and 49.9% branch coverage for desktop production Java after the controller and package changes. Backend coverage is recorded in [design document section 8](design-document.md#8-testing-summary), along with one executed edge case per JUnit class.
 
-The SQLite DDL matched a freshly initialized isolated file. The PostgreSQL diagrams use the catalog captured from a PostgreSQL 17 database migrated through V16. The current integration run verified the same migration sources. All 15 Mermaid diagrams rendered in Edge.
+The database diagrams match an initialized SQLite file and a PostgreSQL 17 database migrated through V16. The integration tests passed with the same migrations. All 15 Mermaid diagrams rendered in Edge.
 
 | Area | Examples of coverage |
 |---|---|
@@ -75,9 +75,9 @@ The SQLite DDL matched a freshly initialized isolated file. The PostgreSQL diagr
 - The JavaFX startup and game setup screens rendered at 1280 × 800. The game setup loaded its saved-question count and kept navigation accessible.
 - A separate 2,000-record SQLite import completed in 18.688 seconds while JavaFX processed 670 visible label updates.
 
-### Checks requiring the defense setup
+### Checks to complete
 
 - Complete a room across two physical devices using the public HTTPS forwarding address.
 - Confirm delivery through the configured email provider using an approved recipient with access to the inbox.
-- Recheck JavaFX layout and responsiveness on the defense display.
-- Rehearse the demonstration and review each member’s contribution. [Individual contributions](design-document.md#9-individual-contributions)
+- Check JavaFX layout and responsiveness on the presentation display.
+- Test the complete demonstration flow and review each member’s contribution. [Individual contributions](design-document.md#9-individual-contributions)

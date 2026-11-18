@@ -1,10 +1,10 @@
 # Hootly Requirements and Known Issues
 
-This document maps the nine technical requirements and the 34 corrections in the Week 11 review to the current code. A completed implementation may still need to be demonstrated. See [Testing](TESTING.md) for results and the manual checks.
+The tables below list the technical requirements, review items, and known issues. Each row includes its current status and source files. Test results and outstanding checks are listed in [Testing](TESTING.md).
 
 In the tables, desktop Java paths are relative to `src/main/java/com/triviagame/` or `src/test/java/com/triviagame/`. Online Java paths are relative to `online/backend/src/main/java/com/triviagame/online/` or its matching test package. Other paths are relative to the repository root.
 
-## Nine Mandatory Technical Requirements
+## Technical Requirements
 
 | No. | Requirement | Implementation | Status | Reference |
 |---:|---|---|---|---|
@@ -18,7 +18,7 @@ In the tables, desktop Java paths are relative to `src/main/java/com/triviagame/
 | 8 | Data mining from stored records | Desktop queries aggregate saved scores by category, player, and session. Online analytics use saved answers and completed games. | Completed | Desktop `dao/AnalyticsDao.java`, `dao/AnalyticsInsightsTest.java`. Online `analytics/AnalyticsRepository.java`, `AnalyticsExportTest.java`. |
 | 9 | Labeled charts | The desktop and online dashboards display category and score charts with labels. | Completed | Desktop `ui/analytics/AnalyticsScreen.java`, online `online/frontend/src/analytics/Charts.tsx` and `online/frontend/src/test/analytics-overview.test.tsx`. |
 
-## Professor Corrections
+## Review Checklist
 
 | No. | Requirement | Implementation | Status | Reference |
 |---:|---|---|---|---|
@@ -41,14 +41,14 @@ In the tables, desktop Java paths are relative to `src/main/java/com/triviagame/
 | 17 | Use revision numbers and dates | The dated V1.0 title page and the restored revision table cite the branch history. | Completed | [Revision history](design-document.md#revision-history) |
 | 18 | Describe each OpenTDB parameter correctly | The documentation lists amount, encoding, category, difficulty, and type and explains when filters are omitted. | Completed | Desktop `api/OpenTdbClient.java`, [Design document, Section 5](design-document.md#5-api-integration-design) |
 | 19 | Document the places that start background work | Section 6 identifies the desktop tasks, room scheduler and WebSockets, and online import and email workers. | Completed | [Design document, Section 6](design-document.md#6-concurrency-design), desktop `App.java`, `ui/home/Home.java`, `ui/importer/ImportScreen.java` |
-| 20 | Complete concurrency verification | A 2,000-record SQLite import completed with 670 JavaFX updates in 18.688 seconds. Automated timing and background tests passed. The physical two-device demonstration remains pending. | Partially Completed | Desktop `tasks/FetchQuestionsTaskTest.java`, `gameplay/GameSessionTimingTest.java`, [manual checks](TESTING.md#manual-verification) |
+| 20 | Complete concurrency verification | A 2,000-record SQLite import completed with 670 JavaFX updates in 18.688 seconds. Automated timing and background tests passed. Play across two physical devices still needs testing. | Partially Completed | Desktop `tasks/FetchQuestionsTaskTest.java`, `gameplay/GameSessionTimingTest.java`, [manual checks](TESTING.md#manual-verification) |
 | 21 | Log technical errors and give clear user messages | Desktop imports log technical failures. Online JSON, crypto, template, database, and mail handling uses specific exception types. Mail logs use safe identifiers and error categories. | Completed | Desktop `dao/ScoreJsonImporter.java`, `ui/importer/ImportScreen.java`. Online `bank/PersonalQuizzes.java`, `analytics/StatisticsImportJobs.java`, `analytics/ExportSigning.java`, `auth/AccountCodeSecrets.java` |
 | 22 | Remove the reported semicolon and tab problems | The deque declarations use one semicolon, and the two reported DAO files use spaces. | Completed | Desktop `gameplay/GameEngine.java`, `dao/CategoryDao.java`, `dao/QuestionDao.java` |
 | 23 | Apply Java coding standards | Production desktop files and the affected online services use consistent formatting. Broad Exception catches were removed. Some methods exceed the 50-line limit, including IndependentGame.view and SnapshotValidation.read. Further method extraction remains. | Partially Completed | Desktop `ui/gameplay/NewGameScreen.java`, `ui/gameplay/SetupPlayerCell.java`, `gameplay/GameSession.java`. Online `rooms/IndependentGame.java` |
 | 24 | Use API DTOs, a mapper, result types, and a saved fixture | The OpenTDB path parses a typed response, then maps and decodes each question. The contract test reads a saved response. | Completed | Desktop `dto/opentdb/`, `api/OpenTdbQuestionMapper.java`, `api/OpenTdbResult.java`, `api/OpenTdbContractTest.java`, `src/test/resources/opentdb/live-response-2026-11-17.json` |
 | 25 | Describe a user-based design and authorization | Online users have accounts and per-room roles. The application uses BCrypt and checks ownership and permissions. The two-device demonstration remains. | Partially Completed | Online `auth/AuthController.java`, `auth/SecurityConfiguration.java`, `rooms/RoomService.java`, `AuthenticationTest.java` |
-| 26 | Answer the four design questions | The answers are recorded below. Team members must explain them during the defense. | Partially Completed | [Design questions](#design-questions-from-the-professor) |
-| 27 | Explain individual contributions | The design document reports each member’s Git totals and representative source files and commits. The oral explanations are pending. | Partially Completed | [Design document, Section 9](design-document.md#9-individual-contributions) |
+| 26 | Answer the four design questions | The design decisions are explained below. A team walkthrough is still needed. | Partially Completed | [Design questions](#design-decisions) |
+| 27 | Explain individual contributions | Section 9 lists each member’s commits and source files. Each member still needs to prepare a walkthrough of their work. | Partially Completed | [Design document, Section 9](design-document.md#9-individual-contributions) |
 | 28 | Explain the host and player relationship | The design describes the online host and player roles and the separate local desktop workflow. | Completed | [Design document, Section 1](design-document.md#1-introduction-and-project-overview), online `rooms/RoomService.java` |
 | 29 | Explain outages, insufficient results, and encoded text | The design describes cached categories, provider failures, the result count requirement, and the decoding step. | Completed | [Design document, Section 5](design-document.md#5-api-integration-design), desktop `api/OpenTdbQuestionMapper.java`, online `OpenTriviaTest.java` |
 | 30 | Explain category uniqueness and duplicate player names | SQLite prevents duplicate sibling category names. PostgreSQL personal category names are unique per owner. Duplicate player display names remain distinct by ID. | Completed | [ERDs](ERD.md), desktop `dao/Database.java`, `dao/CategoryDaoTest.java`, `dao/ScoreIdentityRoundTripTest.java` |
@@ -74,17 +74,17 @@ In the tables, desktop Java paths are relative to `src/main/java/com/triviagame/
 
 | No. | Requirement | Implementation | Status | Reference |
 |---:|---|---|---|---|
-| 1 | Match the remaining package and Java style details | The controller and package changes are complete. Remaining method-size cleanup is listed in correction 23. | Partially Completed | Desktop `controller/` and `dao/`. Online `rooms/IndependentGame.java` |
+| 1 | Match the remaining package and Java style details | The controller and package changes are complete. Methods that need shortening are listed in review item 23. | Partially Completed | Desktop `controller/` and `dao/`. Online `rooms/IndependentGame.java` |
 | 2 | Preserve online category uniqueness | The database enforces unique normalized names per owner. It prevents sibling duplicates, including across separate branches. Allowing reuse in different branches would require replacing the existing unique constraint. | Completed | Online `bank/PersonalQuizzes.java`, V7 migration, [ERDs](ERD.md#quizzes-and-question-sources) |
 | 3 | Handle older lobbies with incomplete snapshots | The service rejects missing question rows or invalid positions before opening a session. The host can create a new room. Retained complete snapshots and historical results remain usable. | Completed | Online `rooms/RoomDataRepository.java`, `rooms/RoomService.java`, `RoomQuestionSourcesTest.java` |
-| 4 | Verify desktop layout and responsiveness on the defense display | The JavaFX startup and game setup were checked at 1280 × 800. A 2,000-record import kept the UI updating. Other display sizes remain to be checked. | Partially Completed | Week 11 review §7, [manual checks](TESTING.md#manual-verification) |
+| 4 | Check desktop layout on the presentation display | The JavaFX startup and game setup were checked at 1280 × 800. A 2,000-record import kept the UI updating. Other display sizes remain to be checked. | Partially Completed | Week 11 review §7, [manual checks](TESTING.md#manual-verification) |
 | 5 | Verify public room play and real email delivery | The local build passed the two-account room and SMTP capture checks. Public HTTPS gameplay on two devices and delivery to an approved inbox still need verification. | Pending | [Manual checks](TESTING.md#manual-verification) |
-| 6 | Match the official final document and defense format | The current documents follow the available review. Obtain the standalone design and defense templates and the Week 11 grading and design checklists. The final defense PowerPoint is a separate deliverable. | Pending | Professor reference list, [design document](design-document.md) |
-| 7 | Review frontend dependency advisories | The 18 November 2026 audit reported 10 advisories across all dependencies. A runtime-only audit reported 2 high-severity entries in `react-router` and `react-router-dom`. A dependency update needs its own verification. | Pending | `online/frontend/package-lock.json` and `npm audit --omit=dev` |
+| 6 | Check the final document format | The documents follow the available course references. The original design document and presentation templates, along with the Week 11 checklists, are still needed to confirm the final format. The presentation is prepared separately. | Pending | Course reference files, [design document](design-document.md) |
+| 7 | Review frontend dependency advisories | The dependency check on 18 November 2026 reported 10 advisories. Two high-severity entries affect the runtime packages `react-router` and `react-router-dom`. Updates still need testing. | Pending | `online/frontend/package-lock.json` and `npm audit --omit=dev` |
 
 The desktop database migration can refuse inconsistent historical rows or unsupported custom schema changes. Keep the original SQLite file available for review if migration stops. Mailjet acceptance records a provider response. Actual delivery depends on the provider and recipient.
 
-## Design Questions from the Professor
+## Design Decisions
 
 | Question | Answer |
 |---|---|
