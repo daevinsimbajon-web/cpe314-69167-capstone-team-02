@@ -1,16 +1,36 @@
-# Hootly — Project Design Document
+# Trivia & Quiz Night Manager
+
+Project Design Document · Hootly
+
+University of Cebu<br>
+Computer Engineering Department
+
+Table 1. Project information
 
 | Item | Details |
 |---|---|
-| Project title | Trivia & Quiz Game Night Manager |
+| Project title | Trivia & Quiz Night Manager |
 | Application | Hootly |
 | Course and section | CPE 314 — Software Design, Section 3A |
 | Team | 02 |
 | Instructor | Richyll Son |
-| Revision | 1.1 |
+| Term | First Semester, S.Y. 2026–2027 |
+| Document version | V1.0 |
 | Date | 18 November 2026 |
 
+Table 2. Team 02
+
+| Member | Student ID |
+|---|---|
+| John Daevin S. Simbajon | 25245093 |
+| Justine B. Cuizon | 25245374 |
+| Joshua Neil G. Malaya | 25209073 |
+| Clarence Philip A. Elegino | 25260068 |
+| Gebrielle P. Mirasol | 25207549 |
+
 ## Table of Contents
+
+[Revision History](#revision-history)
 
 1. [Introduction and Project Overview](#1-introduction-and-project-overview)
 2. [ER Sketch and Team Roles](#2-er-sketch-and-team-roles)
@@ -23,6 +43,18 @@
 9. [Individual Contributions](#9-individual-contributions)
 
 [References](#references) · [Appendices](#appendices)
+
+## Revision History
+
+Table 3. Design document revisions
+
+| Version | Date | Changes and evidence |
+|---|---|---|
+| V0.1 | 24–26 October 2026 | The original revision table records the project overview and preliminary ER sketch. That history is preserved in `6335ffa`. |
+| V0.2 | 28 October 2026 | The first tracked design document adds the architecture and data model. See `dfc18e6`. |
+| V0.3 | 5–6 November 2026 | The team added API and concurrency design and updated the overview and database notes. See `5f6cb34` and `9fb73cc`. |
+| V0.4 | 12–14 November 2026 | The team revised the ER sketch, setup, data model, and remaining technical sections. See `e84a472`, `c87d4da`, and `6335ffa`. |
+| V1.0 | 18 November 2026 | This submission documents Hootly Online and the retained desktop application. M3 source and the preceding documentation are based on `f64a223`. This revision adds final test evidence and diagrams. |
 
 ## 1. Introduction and Project Overview
 
@@ -45,7 +77,13 @@ The browser application includes account verification, room play, private quiz m
 
 ## 2. ER Sketch and Team Roles
 
-The [original proposal](proposal.md) preserves the preliminary design. The current model centers on accounts, rooms, question snapshots, sessions, and results. In the desktop model, players and sessions are linked through `session_players`. The full entity relationships and keys are in [Section 4](#4-data-model-and-database-design).
+The preliminary sketch from the [original proposal](proposal.md) shows the first data model. The online design now centers on user accounts, rooms, question snapshots, sessions, and results. The desktop model links players to sessions through `session_players`. The current keys and relationships appear in [Section 4](#4-data-model-and-database-design).
+
+![Original Team 02 preliminary ER sketch](images/Preliminary%20Sketch.png)
+
+Figure 1. Original preliminary ER sketch from the M3 repository history (`7985c96`).
+
+Table 4. Team roles from the original proposal
 
 | Member | Assigned role |
 |---|---|
@@ -62,7 +100,7 @@ The [original proposal](proposal.md) preserves the preliminary design. The curre
 The browser sends actions to the Spring Boot REST API and receives room notifications through WebSockets. Services check account ownership and room roles. Repositories save data in PostgreSQL, and the backend determines whether answers arrived in time. The frontend uses the same backend through the Vite proxy.
 
 ```mermaid
-flowchart LR
+flowchart TB
     Player["Host and player browsers"] --> Proxy["Vite frontend and proxy"]
     Proxy -->|REST and WebSocket| Backend["Spring Boot"]
     Backend --> Rooms["Room, practice, and quiz services"]
@@ -75,22 +113,54 @@ flowchart LR
     Accounts -->|Account email| Provider["Configured mail provider"]
 ```
 
+Figure 2. Hootly Online architecture.
+
 Spring Security checks the authenticated account and the application checks permissions for each room, quiz, or report. The session is stored through Spring Session JDBC. User passwords use BCrypt. The backend build reuses Java question models and the OpenTDB client from the desktop source tree.
 
 ### JavaFX desktop
 
 ```mermaid
-flowchart LR
+flowchart TB
     User["Local host and players"] --> View["JavaFX screens"]
-    View --> Logic["GameController and services"]
-    Logic --> Game["GameSession and GameEngine"]
-    Logic --> DAO["SQLite DAOs"]
-    Game --> DAO
+    View --> Controller["Game, history, quiz bank, player, results and analytics controllers"]
+    Controller --> Service["Desktop services on JavaFX workers"]
+    Service --> Game["GameSession and GameEngine"]
+    Game --> Port["GamePersistence"]
+    Port --> Adapter["SqliteGamePersistence"]
+    Service --> DAO["SQLite DAOs"]
+    Adapter --> DAO
     DAO --> DB[("SQLite")]
-    Logic --> Trivia["OpenTDB"]
+    Service --> Trivia["OpenTDB"]
 ```
 
-`App` starts JavaFX. `Navigator` opens screens, and `GameController` prepares games. The screens delegate work to controllers and services, although `GameSession` still has DAO dependencies and some screen coordination remains in views.
+Figure 3. JavaFX desktop architecture.
+
+App starts JavaFX and Navigator opens screens. Dedicated controllers prepare background work for games, score history, the question bank, players, results, and analytics. GameSession and GameEngine use storage interfaces. SqliteGamePersistence adapts these operations to SQLite. Production packages separate models, DTOs, controllers, services, DAOs, and UI classes.
+
+```mermaid
+classDiagram
+    direction LR
+    class GamePersistence {
+        <<interface>>
+    }
+    class ScoreStore {
+        <<interface>>
+    }
+    GameController --> GameSetupService
+    QuestionBankController --> DashboardService
+    QuestionBankController --> FetchQuestionsTask
+    PlayerController --> PlayerService
+    ResultsController --> LeaderboardService
+    AnalyticsController --> AnalyticsService
+    GameSetupService --> GameSession : prepares
+    GameSession --> GameEngine : one per participant
+    GameSession --> GamePersistence
+    GameEngine --> ScoreStore
+    ScoreStore <|-- GamePersistence
+    GamePersistence <|.. SqliteGamePersistence
+```
+
+Figure 4. Desktop gameplay persistence interfaces and dependencies.
 
 ### UML class diagram
 
@@ -117,6 +187,8 @@ classDiagram
     CategoryQuestion --> Question : delegates answer checking
 ```
 
+Figure 5. Question formats and desktop category scoring.
+
 The online email service uses the `EmailTransport` interface. Spring selects the Mailjet or SMTP implementation from the configured provider.
 
 ```mermaid
@@ -129,6 +201,8 @@ classDiagram
     EmailDelivery --> EmailTransport : sends messages
 ```
 
+Figure 6. Online email transport interface.
+
 ### Data structures and recursion
 
 The desktop `GameEngine` uses an `ArrayDeque` as a queue for questions and a separate deque as a stack for scored-answer undo. `LeaderboardService` uses a map indexed by player ID. `CategoryDao` traverses nested categories recursively. Online, `PracticeEngine` uses a queue and undo history for a private practice session. `CategoryTree` recursively visits user-owned category branches. Online multiplayer persists the question order and player progress in PostgreSQL.
@@ -139,25 +213,64 @@ Hootly Online uses PostgreSQL. The database stores accounts, quiz collections, r
 
 The desktop application uses SQLite. `session_players` links players to sessions, and each desktop score has a required `question_id`. Score categories are read through questions. Player, session, and score synchronization IDs help identify records when history is exported and reimported. Display names can repeat because each player has a separate identity.
 
+Table 5. Database schema sources and diagram locations
+
 | Database | Schema source | Diagram |
 |---|---|---|
 | PostgreSQL | [SQL migrations](../online/backend/src/main/resources/db/migration/) and [Java migrations](../online/backend/src/main/java/db/migration/) | [PostgreSQL ERDs](ERD.md#postgresql-for-hootly-online) |
-| SQLite | [Database.java](../src/main/java/com/triviagame/db/Database.java), [SessionPlayerDao.java](../src/main/java/com/triviagame/db/SessionPlayerDao.java), [TimedAnswerDao.java](../src/main/java/com/triviagame/db/TimedAnswerDao.java), and [QuestionBankService.java](../src/main/java/com/triviagame/service/QuestionBankService.java) | [SQLite ERD](ERD.md#sqlite-for-the-javafx-desktop-application) |
+| SQLite | [Database.java](../src/main/java/com/triviagame/dao/Database.java), [SessionPlayerDao.java](../src/main/java/com/triviagame/dao/SessionPlayerDao.java), [TimedAnswerDao.java](../src/main/java/com/triviagame/dao/TimedAnswerDao.java), and [QuestionBankService.java](../src/main/java/com/triviagame/service/QuestionBankService.java) | [SQLite ERD](ERD.md#sqlite-for-the-javafx-desktop-application) |
 
-The full ERDs distinguish nullable FKs, single-column and composite keys, and unique indexes. The SQLite desktop ERD is shown here for the course requirement.
+The full ERDs distinguish nullable FKs, single-column and composite keys, and unique indexes. The next figure shows the core PostgreSQL room relationships. The detailed ERD includes quiz ownership, source questions, accounts, practice, retry decisions, email deliveries, and statistics sharing.
 
 ```mermaid
 erDiagram
+    direction LR
+    users ||..o{ quiz_rooms : host_id
+    users ||--o{ room_participants : user_id
+    quiz_rooms ||--o{ room_participants : room_id
+    quiz_rooms ||..o{ room_questions : room_id
+    quiz_rooms ||..o| game_sessions : room_id
+    game_sessions ||--o{ scores : session_id
+    users ||--o{ scores : user_id
+    users {
+        uuid id PK
+    }
+    quiz_rooms {
+        uuid id PK
+        varchar(8) code UK
+        uuid host_id FK
+    }
+    room_participants {
+        uuid room_id PK,FK
+        uuid user_id PK,FK
+    }
+    room_questions {
+        uuid id PK
+        uuid room_id FK,UK "UK with ordinal"
+        integer ordinal UK "UK with room_id"
+    }
+    game_sessions {
+        uuid id PK
+        uuid room_id FK,UK
+    }
+    scores {
+        uuid session_id PK,FK
+        uuid user_id PK,FK
+    }
+```
+
+Figure 7. Core PostgreSQL room and score relationships.
+
+The SQLite diagram focuses on the score relationships. The [full SQLite ERD](ERD.md#sqlite-for-the-javafx-desktop-application) includes `session_players`, `timed_answers`, and `question_bank_imports`, as well as all columns and key definitions.
+
+```mermaid
+erDiagram
+    direction LR
     categories o|..o{ categories : "parent_id"
     categories ||..o{ questions : "category_id"
     questions ||..o{ scores : "question_id"
     players ||..o{ scores : "player_id"
     game_sessions ||..o{ scores : "session_id"
-    players ||--o{ session_players : "player_id"
-    game_sessions ||--o{ session_players : "session_id"
-    questions ||--o{ timed_answers : "question_id"
-    players ||--o{ timed_answers : "player_id"
-    game_sessions ||--o{ timed_answers : "session_id"
     categories {
         integer id PK "rowid"
         text name
@@ -173,20 +286,8 @@ erDiagram
         text name
         text player_sync_id UK "nullable"
     }
-    question_bank_imports {
-        integer id PK "rowid"
-        text source
-        integer inserted_count
-        text imported_at
-    }
     questions {
         integer id PK "rowid"
-        text text
-        text correct_answer
-        text incorrect_answers
-        text difficulty
-        text question_type
-        text created_at "nullable"
         text external_id UK "nullable"
         integer category_id FK
     }
@@ -195,28 +296,17 @@ erDiagram
         integer session_id FK
         integer player_id FK
         integer question_id FK
-        integer is_correct
-        integer points
         text score_sync_id UK "nullable"
     }
-    session_players {
-        integer session_id PK,FK,UK "UK (session_id, turn_order)"
-        integer player_id PK,FK
-        integer turn_order UK "UK (session_id, turn_order)"
-        integer seconds_per_question
-    }
-    timed_answers {
-        integer session_id PK,FK
-        integer player_id PK,FK
-        integer question_id PK,FK
-        integer elapsed_ms
-        integer timed_out
-    }
 ```
+
+Figure 8. Core SQLite score relationships.
 
 ## 5. API Integration Design
 
 `OpenTdbClient` uses the Java HTTP Client to call `https://opentdb.com/api.php` for question data and `https://opentdb.com/api_category.php` for category data. The question request sends `amount` (1 to 50) and `encode=url3986`. It sends `category`, `difficulty`, and `type` when the host selects specific filters. Difficulty can be easy, medium, or hard. Type can be multiple choice or true/false.
+
+Table 6. OpenTDB request and response handling
 
 | Step | Source and result |
 |---|---|
@@ -228,24 +318,36 @@ erDiagram
 ```mermaid
 sequenceDiagram
     participant Host
+    participant HTTP as RoomController
     participant Room as RoomService
     participant TDB as OpenTDB
     participant DB as PostgreSQL
-    Host->>Room: Create room and choose a source
+    Host->>HTTP: POST /api/rooms
+    HTTP->>Room: Prepare questions
     alt Instant Quiz
         Room->>TDB: Request filtered questions
         TDB-->>Room: JSON results
         Room->>Room: Parse, decode, and verify
-    else My Quizzes
+    end
+    Room-->>HTTP: Downloaded questions or saved quiz source
+    HTTP->>Room: Start room creation transaction
+    opt My Quizzes
         Room->>DB: Read the host's ready quiz in saved order
     end
-    Room->>DB: Save room and question snapshots
-    Room-->>Host: Room code
+    Room->>DB: Save room and complete question snapshots
+    Room-->>HTTP: Room details
+    HTTP-->>Host: 201 Created and room code
 ```
+
+Figure 9. Room creation and OpenTDB request sequence.
 
 The quiz API also accepts JSON as a private draft. Separately, a signed statistics export can be imported into Compare Players. Signature checks establish the originating account when available. The user receiving a request must approve it before the importer can view live updates. Import jobs keep duplicate handling and conflict checks separate from official scores.
 
+The OpenTDB response contains a numeric `response_code` and a `results` array. A question result includes the category, type, difficulty, question text, correct answer, and incorrect answers. The repository includes a [captured response fixture](../src/test/resources/opentdb/live-response-2026-11-17.json). Room endpoints use session authentication. The backend checks the host role on `POST /api/rooms/{code}/start` and the player role on `POST /api/rooms/{code}/answers`. Requests from non-members are rejected before room state is returned.
+
 ## 6. Concurrency Design
+
+Table 7. Background work and interface updates
 
 | Application | Work handled separately | Interface update |
 |---|---|---|
@@ -253,21 +355,36 @@ The quiz API also accepts JSON as a private draft. Separately, a signed statisti
 | Online rooms | HTTP requests prepare questions before the room write transaction. Room state transitions use transaction locks. `GameScheduler` handles deadlines and `RoomSockets` sends room events. | Players receive a room update and read the current state. A player’s own clock and answer status come from the server. |
 | Online imports and email | `StatisticsImportJobs` and `EmailDelivery` use bounded worker pools. | The browser polls import progress. Account workflows record delivery attempts separately. |
 
+```mermaid
+sequenceDiagram
+    participant FX as JavaFX screen
+    participant Worker as App executor
+    participant SQLite
+    FX->>Worker: Submit score import Task
+    Note over FX: The interface can process other events
+    Worker->>SQLite: Import each valid score in a transaction
+    SQLite-->>Worker: Saved or skipped records
+    Worker-->>FX: Task completion callback
+    FX->>FX: Render the import summary
+```
+
+Figure 10. Background score import and JavaFX completion callback.
+
 A new room starts with a countdown. A wrong answer can open a five-second chance decision if the player has chances left. The player’s question timer pauses during that decision. The server accepts an answer once, records the final result, and starts the next question after feedback.
 
 ```mermaid
-flowchart LR
-    A["Join room"] --> B["Host starts countdown"]
-    B --> C["Question timer starts"]
-    C --> D["Submit answer"]
-    D --> E{"Chance decision needed?"}
-    E -->|Use chance| C
-    E -->|No or decision expires| F["Finalize and show feedback"]
-    C -->|Question expires| F
-    F --> G{"More questions?"}
-    G -->|Yes| C
-    G -->|No| H["Results and standings"]
+flowchart TB
+    A["Room countdown"] --> Q["Server starts timed question"]
+    Q -->|Wrong with a chance left| E{"Use a chance in five seconds?"}
+    E -->|Yes| I["Use one chance and resume remaining time"]
+    I --> Q
+    E -->|No| F["Finalize answer and show feedback"]
+    Q -->|Correct, timeout, or no chance left| F
+    F -->|More questions| Q
+    F -->|Game ends| R["Results and standings"]
 ```
+
+Figure 11. Server-controlled online question, chance, and results flow.
 
 Automated tests use a controlled clock for deadline and retry behavior. The final demonstration should also check responsiveness during desktop import and room updates across separate devices.
 
@@ -275,28 +392,144 @@ Automated tests use a controlled clock for deadline and retry behavior. The fina
 
 Online reports read completed games, answers, and scores from PostgreSQL. The frontend summarizes points, wins, and accuracy. Charts show accuracy by category and points over time. Player comparisons are based on imported game histories and data shared with the account owner’s approval.
 
-The desktop `AnalyticsDao` groups saved results by category, session, and player ID. The analytics screen uses a bar chart to compare categories and a line chart to show changes across games. An imported history can change the chart because its records are included in the same queries.
+The desktop `AnalyticsDao` groups stored results by category, session, and player ID. It calculates category accuracy as correct answers divided by total recorded answers, and it reads the score history in session order. A bar chart shows discrete category accuracy side by side. A line chart shows the order and direction of changes across sessions. Imported scores contribute to the same desktop queries.
 
 ## 8. Testing Summary
 
-The desktop Maven suite uses a test SQLite file. Online backend tests use H2 and disposable PostgreSQL containers. Frontend tests cover components and user flows. [Testing](TESTING.md) records the actual results, commands, and remaining manual checks.
+The desktop Maven suite uses an isolated SQLite file. The backend suite uses H2 and disposable PostgreSQL containers. Email tests capture or mock delivery. Frontend tests cover component interactions and user flows. See [Testing](TESTING.md) for commands and manual checks.
+
+Table 8. Automated results from 18 November 2026
+
+| Suite | Test classes or files | Passed | Failed | Skipped |
+| --- | ---: | ---: | ---: | ---: |
+| Desktop | 25 | 189 | 0 | 0 |
+| Backend unit and application tests | 30 | 117 | 0 | 0 |
+| PostgreSQL | 9 | 53 | 0 | 0 |
+| Vitest | 22 | 137 | 0 | 0 |
+| Playwright | 2 | 2 | 0 | 0 |
+
+The Java suites were rerun after the package and exception corrections. The frontend results come from the earlier tests and successful production build on 18 November 2026.
+
+Table 9. JaCoCo coverage from executed JUnit tests
+
+| Code measured | Line coverage | Branch coverage |
+| --- | ---: | ---: |
+| Desktop | 1702/3371 (50.5%) | 659/1321 (49.9%) |
+| Online backend and shared compiled Java | 2875/3304 (87.0%) | 1261/1860 (67.8%) |
+
+Coverage includes production classes in each Maven test run. The desktop total includes JavaFX screen code. Online coverage combines the H2 and disposable PostgreSQL runs. It excludes React and browser tests.
+
+### Desktop test classes
+
+Table 10. Desktop JUnit test cases by class
+
+| Test class | Passed | Edge case exercised |
+| --- | ---: | --- |
+| `OpenTdbClientTest` | 31 | Rejects Invalid Type Before Sending Request |
+| `OpenTdbContractTest` | 2 | Upstream Aliases And Coerced Field Types Are Not Accepted |
+| `QuestionParserTest` | 32 | Rejects Invalid JSON And Non Text Answers |
+| `CategoryTest` | 5 | Find Category At Any Depth Ignoring Case |
+| `GameControllerTest` | 2 | Insufficient Question Selection Does Not Create A Game Session |
+| `AnalyticsDaoTest` | 9 | Invalid Player ID For Session Points |
+| `AnalyticsInsightsTest` | 9 | Player With Only Wrong Answers |
+| `CategoryDaoTest` | 4 | Invalid Category Name |
+| `DatabaseTest` | 8 | Failed Schema Migration Rolls Back Backfill And Preserves Existing Rows |
+| `PlayerDaoTest` | 2 | Empty Player Name |
+| `PlayerSetupTest` | 3 | Rejects Invalid Seconds |
+| `QuestionDaoTest` | 3 | Invalid Question |
+| `QuestionImportTest` | 8 | Concurrent Imports Do Not Duplicate Questions Or Categories |
+| `ScoreDaoTest` | 4 | Invalid Score Inputs |
+| `ScoreIdentityRoundTripTest` | 1 | Same Name Players Remain Separate In Export And Import |
+| `ScoreJsonImporterTest` | 10 | Import Malformed JSON |
+| `ScoreSchemaMigrationTest` | 4 | Conflicting Score With Timed Answer Aborts Without Breaking Their Link |
+| `GameEngineDatabaseTest` | 7 | Question Without Database ID Is Rejected |
+| `GameEngineTest` | 20 | Wrong Answer Scores Zero And Advances |
+| `GameSessionTimingTest` | 3 | Engine Enforces Deadline And Undo Does Not Extend It |
+| `CategoryQuestionTest` | 2 | Unrecognized Category Keeps The Base Question And Its Scoring |
+| `MultipleChoiceQuestionTest` | 10 | Out Of Range Positions Are Wrong |
+| `TrueFalseQuestionTest` | 7 | Invalid Input Is Wrong |
+| `GameSetupServiceTest` | 1 | Filters Count And Load The Same Questions Across Nested Categories |
+| `FetchQuestionsTaskTest` | 2 | Fetch Failure Is Propagated And Questions Are Not Imported |
+
+### Online backend test classes
+
+Table 11. Backend JUnit test cases by class
+
+| Test class | Passed | Edge case exercised |
+| --- | ---: | --- |
+| `AccountDeletionTest` | 6 | Erases Personal Fields And Credentials And Invalidates Every Device |
+| `SnapshotValidationTest` | 1 | Accepts Actual Timeout And Retry Relationships |
+| `AnalyticsExportTest` | 3 | Historical Unknown Attempt And Timing Fields Stay Unavailable |
+| `AnalyticsTest` | 3 | Finished Statistics Are Private And Exclude Unfinished Games |
+| `AuthenticationTest` | 7 | Rejects Missing CSRF And Invalid Credentials And Unapproved Origins |
+| `AvatarConfigTest` | 3 | Missing Or Invalid Stored Legacy Parameters Use Stable Fallback |
+| `AvatarTest` | 4 | Every Species Persists Without Changing The Palette And Invalid Species Are Rejected |
+| `CategoryTreeTest` | 1 | Traversal Handles Nested Branches Cycles And Missing Roots |
+| `DatabaseTimesTest` | 2 | Rejects Missing And Unsupported Database Values |
+| `DepartureTest` | 2 | Leaving Does Not Invent Timeouts Or Award Wins And Does Not Remove Real Submitted Answers |
+| `EmailSecurityTest` | 10 | Exact Account Recipient And Name Survive Recovery Without Automatic Or Duplicate Mail |
+| `EmailTemplatesTest` | 2 | Templates Escape Names And Contain Accessible Inline Branding |
+| `EmptyBankInstantQuizTest` | 1 | Fresh Provider Questions Create A Stable Room With Zero Bank Records |
+| `ForwardedAuthenticationTest` | 2 | Trusted HTTPS Password Recovery Sets And Clears Secure Purpose Restricted Cookie |
+| `IndependentGameplayTest` | 12 | Concurrent Duplicate Submissions Cannot Award Points Twice |
+| `LoginRateLimiterTest` | 2 | Rate Limit Expires At The Five Minute Boundary |
+| `EmailDeliveryTrackingTest` | 3 | Uncertain Network Failure Is Not Reported As Sent |
+| `MailjetEmailTransportTest` | 4 | Rejects Invalid Responses And Handles Rate Limits Without Retrying |
+| `OpenTriviaTest` | 7 | Malformed Category Caches Cannot Become Official Lists |
+| `PersonalQuizTest` | 7 | Quiz Edits Reorder Safely Reuse Questions And Reject Stale Versions |
+| `PracticeEngineTest` | 2 | Invalid Actions Never Consume Questions Or Alter Score |
+| `PracticeTest` | 2 | Practice Is Private Persistent Idempotent And Never Changes Competitive Statistics |
+| `ProfileEditingTest` | 2 | Concurrent Username Edits Have One Winner And Keep Both Account Identities |
+| `RetryGameTest` | 3 | Concurrent Duplicate Submissions Consume One Chance And Replay Survives Deadline |
+| `RetryScoringTest` | 5 | Optional Retry Settings Default Off And Reject Coercion And Unsupported Values |
+| `RoomGameTest` | 7 | Only Host Can Control Room And Outsiders Cannot Read It |
+| `RoomQuestionSourcesTest` | 5 | Legacy Lobby With Matching Count But Missing First Position Cannot Start |
+| `RoomRemovalTest` | 2 | Voluntary Departure Is Not A Kick And Rejoining Clears The Removal Flag |
+| `StatisticsSharingTest` | 5 | Denial Cooldown And Multiple Connections Are Independent |
+| `WebSocketTest` | 2 | Rejects Outsiders Unauthenticated Sockets And Unapproved Origins |
+
+### PostgreSQL integration test classes
+
+Table 12. PostgreSQL JUnit test cases by class
+
+| Test class | Passed | Edge case exercised |
+| --- | ---: | --- |
+| `DeparturePostgresIT` | 2 | Leaving Does Not Invent Timeouts Or Award Wins And Does Not Remove Real Submitted Answers |
+| `EmailSecurityPostgresIT` | 10 | Exact Account Recipient And Name Survive Recovery Without Automatic Or Duplicate Mail |
+| `EmptyBankInstantQuizPostgresIT` | 1 | Fresh Provider Questions Create A Stable Room With Zero Bank Records |
+| `IndependentGameplayPostgresIT` | 12 | Concurrent Duplicate Submissions Cannot Award Points Twice |
+| `InstantQuizPostgresIT` | 7 | Malformed Category Caches Cannot Become Official Lists |
+| `PersonalQuizPostgresIT` | 7 | Quiz Edits Reorder Safely Reuse Questions And Reject Stale Versions |
+| `PostgresIT` | 7 | Only Host Can Control Room And Outsiders Cannot Read It |
+| `PracticePostgresIT` | 2 | Practice Is Private Persistent Idempotent And Never Changes Competitive Statistics |
+| `StatisticsSharingPostgresIT` | 5 | Denial Cooldown And Multiple Connections Are Independent |
 
 ## 9. Individual Contributions
 
-The examples below come from commits in the current branch’s history. The team’s original allocation remains in the [proposal](proposal.md).
+The table counts non-merge commits reachable from M3 at `f64a223`. It combines the author names and GitHub handles shown in the branch history. Added and removed lines are Git numstat totals for text changes across the repository. Binary files and current working-tree changes are excluded. The source file and commit in each row are representative. The original assignment of roles remains in the [proposal](proposal.md).
 
-| Member | Example contribution | Git evidence |
-|---|---|---|
-| John Daevin S. Simbajon | Set up the React/Vite frontend and online local-development configuration. | `86d8d1f` |
-| Justine B. Cuizon | Normalized desktop score storage and preserved player identities during migration and JSON import. | `cab4e44` |
-| Joshua Neil G. Malaya | Implemented the room creation interface. | `949e290` |
-| Clarence Philip A. Elegino | Implemented independent multiplayer progression. | `273b2b6` |
-| Gebrielle P. Mirasol | Added desktop analytics queries and analytics test coverage. | `2396491`, `5722e44` |
+Table 13. Individual contribution totals from Git
+
+| Member | Commits | Lines added | Lines removed | Representative work |
+| --- | ---: | ---: | ---: | --- |
+| John Daevin S. Simbajon | 45 | 8,214 | 1,164 | React/Vite frontend and local setup |
+| Justine B. Cuizon | 56 | 15,511 | 6,584 | Score normalization and identity-safe migration and import |
+| Joshua Neil G. Malaya | 42 | 6,808 | 1,310 | Online room creation interface |
+| Clarence Philip A. Elegino | 82 | 4,744 | 314 | Independent multiplayer progression |
+| Gebrielle P. Mirasol | 17 | 23,617 | 107 | Desktop analytics queries and test cases |
+
+Representative source files and commits
+
+- John Daevin S. Simbajon · [package.json](../online/frontend/package.json) (`86d8d1f`).
+- Justine B. Cuizon · [Database.java](../src/main/java/com/triviagame/dao/Database.java) (`cab4e44`), [ScoreJsonImporter.java](../src/main/java/com/triviagame/dao/ScoreJsonImporter.java) (`cab4e44`).
+- Joshua Neil G. Malaya · [CreateRoomPage.tsx](../online/frontend/src/CreateRoomPage.tsx) (`949e290`).
+- Clarence Philip A. Elegino · [IndependentGame.java](../online/backend/src/main/java/com/triviagame/online/rooms/IndependentGame.java) (`273b2b6`).
+- Gebrielle P. Mirasol · [AnalyticsDao.java](../src/main/java/com/triviagame/dao/AnalyticsDao.java) (`2396491`), [AnalyticsInsightsTest.java](../src/test/java/com/triviagame/dao/AnalyticsInsightsTest.java) (`5722e44`).
 
 ## References
 
-- *Project Specification and Rubric*, *Week 09 Checklist*, and *Week 10 Checklist*.
-- *Week 10 Design Document Checklist*, *W10 Team 02 Quiz Night Host*, *Additional A2 Quiz Night Host*, and *Week 11 Check A2*.
+- [Project Specification and Rubric](../professor-references/Project_Specification_and_Rubric.pdf), [Week 09 Checklist](../professor-references/Week09_Checklist.pdf), and [Week 10 Checklist](../professor-references/Week10_Checklist.pdf).
+- [Week 10 Design Document Checklist](../professor-references/Week10_DesignDoc_Checklist.pdf), [W10 Team 02 Quiz Night Host](../professor-references/W10_3A_team-02_Quiz_Night_Host.pdf), [Additional A2 Quiz Night Host](../professor-references/Additional_A2_Quiz_Night_Host.pdf), and [Week 11 Check A2](../professor-references/Week11_Check_A2.pdf).
 - Open Trivia Database, [API documentation](https://opentdb.com/api_config.php).
 
 ## Appendices

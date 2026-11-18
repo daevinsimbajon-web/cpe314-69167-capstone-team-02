@@ -1,9 +1,9 @@
 package com.triviagame.service;
 
-import com.triviagame.db.CategoryDao;
-import com.triviagame.db.Database;
-import com.triviagame.db.PlayerDao;
-import com.triviagame.db.QuestionDao;
+import com.triviagame.dao.CategoryDao;
+import com.triviagame.dao.Database;
+import com.triviagame.dao.PlayerDao;
+import com.triviagame.dao.QuestionDao;
 import java.nio.file.Path;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

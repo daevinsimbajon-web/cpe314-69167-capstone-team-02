@@ -32,9 +32,9 @@
         <executions><execution><id>reuse-capstone-models</id><phase>generate-sources</phase><goals><goal>copy-resources</goal></goals>
           <configuration><outputDirectory>${project.build.directory}/generated-sources/capstone</outputDirectory><resources><resource>
             <directory>${project.basedir}/../../src/main/java</directory><filtering>false</filtering><includes>
-              <include>com/triviagame/api/*.java</include><include>com/triviagame/api/dto/*.java</include><include>com/triviagame/questions/Question.java</include>
-              <include>com/triviagame/questions/MultipleChoiceQuestion.java</include><include>com/triviagame/questions/TrueFalseQuestion.java</include>
-              <include>com/triviagame/category/Category.java</include>
+              <include>com/triviagame/api/*.java</include><include>com/triviagame/dto/opentdb/*.java</include><include>com/triviagame/model/questions/Question.java</include>
+              <include>com/triviagame/model/questions/MultipleChoiceQuestion.java</include><include>com/triviagame/model/questions/TrueFalseQuestion.java</include>
+              <include>com/triviagame/model/category/Category.java</include>
             </includes>
           </resource></resources></configuration>
         </execution></executions>

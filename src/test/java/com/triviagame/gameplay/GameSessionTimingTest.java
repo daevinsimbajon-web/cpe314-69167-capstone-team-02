@@ -1,10 +1,12 @@
 package com.triviagame.gameplay;
 
-import com.triviagame.db.CategoryDao;
-import com.triviagame.db.Database;
-import com.triviagame.db.QuestionDao;
-import com.triviagame.db.PlayerDao;
-import com.triviagame.db.SessionPlayerDao;
+import com.triviagame.dao.CategoryDao;
+import com.triviagame.dao.Database;
+import com.triviagame.dao.QuestionDao;
+import com.triviagame.dao.PlayerDao;
+import com.triviagame.dao.SessionPlayerDao;
+import com.triviagame.model.GamePlayer;
+import com.triviagame.service.GameSetupService;
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.util.List;
@@ -37,8 +39,9 @@ class GameSessionTimingTest {
         int id = questions.addQuestion("A timed question", "Yes", "[\"No\"]", "easy", category);
         var bank = List.of(questions.getQuestionById(id).orElseThrow());
         var now = new AtomicLong();
-        var game = new GameSession(List.of(new SessionPlayerDao.PlayerSetup("Player one", 5),
-                new SessionPlayerDao.PlayerSetup("Player two", 5)), bank, 1, now::get);
+        var game = new GameSetupService().prepareGame(List.of(new GamePlayer.Setup("Player one", 5),
+                new GamePlayer.Setup("Player two", 5)), bank, 1, now::get);
+        var firstQuestion = game.currentTurn().question();
 
         game.startTurn();
         now.addAndGet(TimeUnit.SECONDS.toNanos(4));
@@ -59,6 +62,9 @@ class GameSessionTimingTest {
         assertEquals(0, game.remainingSeconds(), "Undo must not restart the clock");
         assertTrue(game.answer("Yes").timedOut());
         assertTrue(game.nextTurn());
+        assertEquals(firstQuestion.getId(), game.currentTurn().question().getId());
+        assertNotSame(firstQuestion, game.currentTurn().question(),
+                "Each player needs an independently shuffled answer order");
         assertEquals(5, game.remainingSeconds());
         assertTrue(game.answer("Yes").correct());
     }
@@ -68,9 +74,9 @@ class GameSessionTimingTest {
         int first = players.addPlayer("Same Name");
         int second = players.addPlayer("Same Name");
         var setup = new SessionPlayerDao().createGame(List.of(
-                new SessionPlayerDao.PlayerSetup("Same Name", 5, first),
-                new SessionPlayerDao.PlayerSetup("Same Name", 5, second),
-                new SessionPlayerDao.PlayerSetup("Same Name", 5)));
+                new GamePlayer.Setup("Same Name", 5, first),
+                new GamePlayer.Setup("Same Name", 5, second),
+                new GamePlayer.Setup("Same Name", 5)));
         assertEquals(first, setup.players().get(0).playerId());
         assertEquals(second, setup.players().get(1).playerId());
         assertNotEquals(first, second);
@@ -84,9 +90,9 @@ class GameSessionTimingTest {
         int questionId = questions.addQuestion(
                 "Persist on answer", "Yes", "[\"No\"]", "easy", category);
         var bank = List.of(questions.getQuestionById(questionId).orElseThrow());
-        var game = new GameSession(
-                List.of(new SessionPlayerDao.PlayerSetup("Ready player", 30)),
-                bank, 1);
+        var game = new GameSetupService().prepareGame(
+                List.of(new GamePlayer.Setup("Ready player", 30)),
+                bank, 1, System::nanoTime);
 
         assertEquals(0, game.sessionId());
         assertEquals(0, countSessions());

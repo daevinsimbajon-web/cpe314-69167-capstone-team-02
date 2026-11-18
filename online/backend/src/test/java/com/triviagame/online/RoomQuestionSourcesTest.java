@@ -47,6 +47,31 @@ class RoomQuestionSourcesTest extends RoomTestSupport {
     }
 
     @Test
+    void legacyLobbyWithMatchingCountButMissingFirstPositionCannotStart() throws Exception {
+        var host = registered(username());
+        var player = registered(username());
+        String code = create(host);
+        String path = "/rooms/" + code;
+        assertThat(join(player, code).status()).isEqualTo(200);
+        jdbc.update("UPDATE quiz_rooms SET custom_quiz_id=NULL WHERE code=?", code);
+        assertThat(jdbc.update("""
+                UPDATE room_questions SET ordinal=2
+                WHERE room_id=(SELECT id FROM quiz_rooms WHERE code=?)
+                """, code)).isEqualTo(1);
+
+        assertThat(host.post(path + "/start", null).status()).isEqualTo(409);
+        assertThat(host.get(path).body().get("status").asText()).isEqualTo("LOBBY");
+        assertThat(jdbc.queryForObject("""
+                SELECT COUNT(*) FROM game_sessions g JOIN quiz_rooms r ON g.room_id=g.id
+                WHERE r.code=?
+                """, Integer.class, code)).isZero();
+        assertThat(jdbc.queryForObject("""
+                SELECT ordinal FROM room_questions
+                WHERE room_id=(SELECT id FROM quiz_rooms WHERE code=?)
+                """, Integer.class, code)).isEqualTo(2);
+    }
+
+    @Test
     void retainedSharedQuestionSnapshotsStillPlayAndExport() throws Exception {
         var host = registered(username());
         var player = registered(username());

@@ -1,182 +1,158 @@
 package com.triviagame.gameplay;
 
+import com.triviagame.model.questions.Question;
 import java.sql.SQLException;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 import java.util.Objects;
 
-import com.triviagame.db.ScoreDao;
-import com.triviagame.questions.Question;
-
+/** Tracks one player's question queue, points, and undo history. */
 public class GameEngine {
+  private static final int FULL_CREDIT = 10;
+  private static final int[] RETRY_POINTS = {FULL_CREDIT, 7, 4, 2};
 
-    private final Deque<Question> questions =
-            new ArrayDeque<>();
+  /** Optional score persistence for a game backed by a saved session. */
+  public interface ScoreStore {
+    int addScore(
+        int sessionId, int playerId, int categoryId, int questionId, boolean correct, int points)
+        throws SQLException;
 
-    private final Deque<AnswerHistory> history =
-            new ArrayDeque<>();
+    boolean deleteScore(int scoreId) throws SQLException;
+  }
 
-    private final ScoreDao scoreDao;
+  private final Deque<Question> questions = new ArrayDeque<>();
 
-    private int score = 0;
-    private int total = 0;
-    private final int playerId;
-    private final int sessionId;
+  private final Deque<AnswerHistory> history = new ArrayDeque<>();
 
-    private record AnswerHistory(
-            Question question,
-            int previousScore,
-            int savedScoreId) {
+  private final ScoreStore scores;
+
+  private int score = 0;
+  private int total = 0;
+  private final int playerId;
+  private final int sessionId;
+
+  private record AnswerHistory(Question question, int previousScore, int savedScoreId) {}
+
+  /** Creates an engine that keeps its history in memory. */
+  public GameEngine() {
+    playerId = 0;
+    sessionId = 0;
+    scores = null;
+  }
+
+  public GameEngine(int playerId, int sessionId, ScoreStore scores) {
+
+    this.playerId = playerId;
+    this.sessionId = sessionId;
+    this.scores = Objects.requireNonNull(scores, "scores");
+  }
+
+  public void loadQuestions(List<Question> list) {
+
+    if (list == null) {
+      throw new IllegalArgumentException("Question list cannot be null");
     }
 
-    // Constructor for normal game and unit testing
-    public GameEngine() {
-        this(0, 0, new ScoreDao());
+    questions.clear();
+    history.clear();
+
+    score = 0;
+    questions.addAll(list);
+    total = list.size();
+  }
+
+  public boolean hasNextQuestion() {
+    return !questions.isEmpty();
+  }
+
+  public Question nextQuestion() {
+    return questions.peekFirst();
+  }
+
+  public boolean submitAnswer(String answer) throws SQLException {
+    return submitAnswer(answer, 0);
+  }
+
+  /** Score a corrected answer at a reduced rate after prior incorrect attempts. */
+  public boolean submitAnswer(String answer, int priorIncorrectAttempts) throws SQLException {
+
+    if (priorIncorrectAttempts < 0) {
+      throw new IllegalArgumentException("Attempt count cannot be negative");
     }
 
-    // Constructor for database-connected gameplay
-    public GameEngine(int playerId, int sessionId) {
-        this(playerId, sessionId, new ScoreDao());
+    if (questions.isEmpty()) {
+      return false;
     }
 
-    public GameEngine(
-            int playerId,
-            int sessionId,
-            ScoreDao scoreDao) {
+    Question question = questions.peekFirst();
 
-        this.playerId = playerId;
-        this.sessionId = sessionId;
-        this.scoreDao = Objects.requireNonNull(
-                scoreDao,
-                "ScoreDao cannot be null"
-        );
+    boolean correct = question.checkAnswer(answer);
+
+    // Runtime polymorphism
+    int multiplier = RETRY_POINTS[Math.min(priorIncorrectAttempts, RETRY_POINTS.length - 1)];
+    int points = correct ? Math.max(1, question.getPoints() * multiplier / FULL_CREDIT) : 0;
+
+    int savedScoreId = 0;
+
+    // Save to SQLite if this is a database game.
+    if (scores != null && playerId > 0 && sessionId > 0) {
+
+      if (question.getId() <= 0 || question.getCategoryId() <= 0) {
+        throw new IllegalStateException("Question must have a database ID");
+      }
+
+      savedScoreId =
+          scores.addScore(
+              sessionId, playerId, question.getCategoryId(), question.getId(), correct, points);
     }
 
-    public void loadQuestions(List<Question> list) {
+    // Only change game state after saving succeeds.
+    questions.removeFirst();
 
-        if (list == null) {
-            throw new IllegalArgumentException(
-                "Question list cannot be null"
-            );
-        }
+    history.push(new AnswerHistory(question, score, savedScoreId));
 
-        questions.clear();
-        history.clear();
+    score += points;
 
-        score = 0;
-        questions.addAll(list);
-        total = list.size();
+    return correct;
+  }
+
+  public boolean undo() throws SQLException {
+
+    if (history.isEmpty()) {
+      return false;
     }
 
-    public boolean hasNextQuestion() {
-        return !questions.isEmpty();
+    AnswerHistory previous = history.peek();
+
+    // Remove the previously saved answer from SQLite.
+    if (previous.savedScoreId() > 0) {
+
+      boolean deleted = scores.deleteScore(previous.savedScoreId());
+
+      if (!deleted) {
+        throw new SQLException("Unable to undo saved score");
+      }
     }
 
-    public Question nextQuestion() {
-        return questions.peekFirst();
-    }
+    history.pop();
 
-    public boolean submitAnswer(String answer)
-            throws SQLException {
-        return submitAnswer(answer, 0);
-    }
+    questions.addFirst(previous.question());
 
-    /** Score a corrected answer at a reduced rate after prior incorrect attempts. */
-    public boolean submitAnswer(String answer, int priorIncorrectAttempts)
-            throws SQLException {
+    score = previous.previousScore();
 
-        if (priorIncorrectAttempts < 0) {
-            throw new IllegalArgumentException("Attempt count cannot be negative");
-        }
+    return true;
+  }
 
-        if (questions.isEmpty()) {
-            return false;
-        }
+  public int getScore() {
+    return score;
+  }
 
-        Question question = questions.peekFirst();
+  public int getTotal() {
+    return total;
+  }
 
-        boolean correct = question.checkAnswer(answer);
-
-        // Runtime polymorphism
-        int[] multipliers = {10, 7, 4, 2};
-        int multiplier = multipliers[Math.min(priorIncorrectAttempts, multipliers.length - 1)];
-        int points = correct ? Math.max(1, question.getPoints() * multiplier / 10) : 0;
-
-        int savedScoreId = 0;
-
-        // Save to SQLite if this is a database game.
-        if (playerId > 0 && sessionId > 0) {
-
-            if (question.getId() <= 0
-                    || question.getCategoryId() <= 0) {
-                throw new IllegalStateException(
-                    "Question must have a database ID"
-                );
-            }
-
-            savedScoreId = scoreDao.addScore(
-                sessionId,
-                playerId,
-                question.getCategoryId(),
-                question.getId(),
-                correct,
-                points
-            );
-        }
-
-        // Only change game state after saving succeeds.
-        questions.removeFirst();
-
-        history.push(new AnswerHistory(
-                question, score, savedScoreId
-        ));
-
-        score += points;
-
-        return correct;
-    }
-
-    public boolean undo() throws SQLException {
-
-        if (history.isEmpty()) {
-            return false;
-        }
-
-        AnswerHistory previous = history.peek();
-
-        // Remove the previously saved answer from SQLite.
-        if (previous.savedScoreId() > 0) {
-
-            boolean deleted = scoreDao.deleteScore(
-                    previous.savedScoreId()
-            );
-
-            if (!deleted) {
-                throw new SQLException(
-                        "Unable to undo saved score"
-                );
-            }
-        }
-
-        history.pop();
-
-        questions.addFirst(previous.question());
-
-        score = previous.previousScore();
-
-        return true;
-    }
-
-    public int getScore() {
-        return score;
-    }
-
-    public int getTotal() {
-        return total;
-    }
-
-    public int getRemaining() {
-        return questions.size();
-    }
+  public int getRemaining() {
+    return questions.size();
+  }
 }

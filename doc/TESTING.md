@@ -40,28 +40,44 @@ The browser checks in the recorded run used installed Microsoft Edge through `PL
 
 ## Recorded Results
 
-Results from the documentation revision on 18 November 2026:
+Results from isolated runs on 18 November 2026.
 
-| Check | Passed | Failed or errors | Skipped |
-|---|---:|---:|---:|
-| Desktop Maven tests | 188 | 0 | 0 |
-| Online backend Maven tests | 115 | 0 | 0 |
-| PostgreSQL integration tests | 53 | 0 | 0 |
-| Vitest | 137 | 0 | 0 |
-| Playwright | 2 | 0 | 0 |
+| Check | Classes or files | Passed | Failed or errors | Skipped |
+|---|---:|---:|---:|---:|
+| Desktop Maven tests | 25 | 189 | 0 | 0 |
+| Online backend Maven tests | 30 | 117 | 0 | 0 |
+| PostgreSQL integration tests | 9 | 53 | 0 | 0 |
+| Vitest | 22 | 137 | 0 | 0 |
+| Playwright | 2 | 2 | 0 | 0 |
 
-The frontend production build passed. Vite reported existing warnings about bundle size and a module imported both statically and dynamically. Database diagrams were checked against a freshly initialized SQLite file and a disposable PostgreSQL catalog migrated through V16.
+The final Java verification reran the desktop suite after the package moves and the backend suite after the exception cleanup. Frontend results come from the earlier run on the same day. The frontend source has no changes in this follow-up. The production build succeeded with warnings about a bundle larger than 500 kB and a module imported both statically and dynamically.
+
+JaCoCo measured 50.5% line and 49.9% branch coverage for desktop production Java after the controller and package changes. Backend coverage is recorded in [design document section 8](design-document.md#8-testing-summary), along with one executed edge case per JUnit class.
+
+The SQLite DDL matched a freshly initialized isolated file. The PostgreSQL diagrams use the catalog captured from a PostgreSQL 17 database migrated through V16. The current integration run verified the same migration sources. All 15 Mermaid diagrams rendered in Edge.
 
 | Area | Examples of coverage |
 |---|---|
 | Desktop game and database | `GameEngineTest`, `GameSessionTimingTest`, `DatabaseTest`, and `ScoreSchemaMigrationTest` cover scoring, undo and timing, database failure, and preserving historical data. |
-| Online rooms and question sources | `IndependentGameplayTest`, `RoomQuestionSourcesTest`, `OpenTriviaTest`, and `PersonalQuizTest` cover timing, retries, snapshots, saved quiz access, and provider failures. |
+| Online rooms and question sources | `IndependentGameplayTest`, `RoomQuestionSourcesTest`, `OpenTriviaTest`, and `PersonalQuizTest` cover timing, retries, invalid snapshot positions, saved quiz access, and provider failures. |
 | Accounts and comparisons | `EmailSecurityTest` covers verification and recovery with captured mail. `StatisticsSharingTest` covers export signatures, permissions, revocation, and renewed consent. |
 | Frontend | Vitest covers sign-in, room setup, the quiz editor, retry prompts, and statistics comparisons. Playwright checks two browser-based visuals and interactions. |
 
 ## Manual Verification
 
-- Complete a room across two devices using the configured public HTTPS endpoint.
-- Verify account email delivery with the configured provider and an approved test recipient.
-- Check JavaFX layout and responsiveness on the type of display used for the defense.
-- Rehearse room setup, timed play, and results. Each team member should prepare an explanation of their work. [Individual contributions](design-document.md#9-individual-contributions)
+### Local checks completed
+
+- Two independent Edge sessions used a disposable backend and database. Both verified registration through a local SMTP sink, with the exact addresses associated with the test accounts.
+- The host created a room from My Quizzes and the player joined with its code. The browser showed the five-second retry prompt and the paused timer. The correct retry earned seven points, the chance counter reached zero, and both users saw final standings and history.
+- Instant Quiz created a room from a live OpenTDB response with one question.
+- A signed statistics export imported successfully. The comparer saw the sharing disconnect without a browser refresh. The recipient could deny a new request, and the denial cooldown was enforced.
+- The same accounts, results, and statistics were available after restarting only the temporary backend.
+- The JavaFX startup and game setup screens rendered at 1280 × 800. The game setup loaded its saved-question count and kept navigation accessible.
+- A separate 2,000-record SQLite import completed in 18.688 seconds while JavaFX processed 670 visible label updates.
+
+### Checks requiring the defense setup
+
+- Complete a room across two physical devices using the public HTTPS forwarding address.
+- Confirm delivery through the configured email provider using an approved recipient with access to the inbox.
+- Recheck JavaFX layout and responsiveness on the defense display.
+- Rehearse the demonstration and review each member’s contribution. [Individual contributions](design-document.md#9-individual-contributions)

@@ -2,11 +2,11 @@ package com.triviagame.controller;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.triviagame.db.CategoryDao;
-import com.triviagame.db.Database;
-import com.triviagame.db.PlayerDao;
-import com.triviagame.db.QuestionDao;
-import com.triviagame.db.SessionPlayerDao;
+import com.triviagame.dao.CategoryDao;
+import com.triviagame.dao.Database;
+import com.triviagame.dao.PlayerDao;
+import com.triviagame.dao.QuestionDao;
+import com.triviagame.model.GamePlayer;
 import com.triviagame.service.GameSetupService;
 import java.nio.file.Path;
 import java.sql.Connection;
@@ -55,7 +55,7 @@ class GameControllerTest {
         assertEquals(1, controller.count(filters));
 
         var result = controller.startGame(
-                List.of(new SessionPlayerDao.PlayerSetup("Guest", 30)),
+                List.of(new GamePlayer.Setup("Guest", 30)),
                 filters, 1);
         assertEquals(1, result.availableQuestions());
         var game = result.game().orElseThrow();
@@ -72,7 +72,7 @@ class GameControllerTest {
             throws Exception {
         var controller = new GameController();
         var result = controller.startGame(
-                List.of(new SessionPlayerDao.PlayerSetup("Guest", 30)),
+                List.of(new GamePlayer.Setup("Guest", 30)),
                 new GameSetupService.Filters(0, "any", "ANY"), 1);
 
         assertEquals(0, result.availableQuestions());

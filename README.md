@@ -98,7 +98,7 @@ Open `http://localhost:5173`. Vite forwards both `/api` and `/ws` to the backend
 
 ### Access from different devices
 
-Forward the frontend on port 5173 through an HTTPS endpoint that supports WebSockets. The Vite forwarding configuration recognizes a local Cloudflare Tunnel when its exact HTTPS origin is approved. Use that origin for `FRONTEND_URL` and `ALLOWED_ORIGINS` and set `COOKIE_SECURE=true` in `online/.env`. Set the same origin in the terminal that starts Vite:
+Forward frontend port 5173 through an HTTPS endpoint that supports WebSockets. Use the forwarded HTTPS origin for `FRONTEND_URL` and `ALLOWED_ORIGINS` and set `COOKIE_SECURE=true` in `online/.env`. Start Vite with that same origin so it accepts requests for the forwarded hostname.
 
 ```powershell
 $env:HOOTLY_PUBLIC_ORIGINS = 'https://your-forwarded-host.example'
@@ -158,11 +158,11 @@ The main entry point is `com.triviagame.App`.
 
 ## Known Issues and Limitations
 
-Instant Quiz depends on OpenTDB. Rooms from older versions that lack a complete question snapshot must be recreated. Online personal category names are unique across a user’s collection, including across different branches. The [requirements and known issues](doc/KNOWN_ISSUES.md) list the remaining implementation and demonstration checks.
+Instant Quiz depends on OpenTDB. An older lobby with missing question snapshots or positions needs a new room. Online personal category names are unique across a user’s collection, including across different branches. The [requirements and known issues](doc/KNOWN_ISSUES.md) list the remaining implementation and demonstration checks.
 
 ## Documentation
 
-- [Project design document](doc/design-document.md)
+- Project design document V1.0 ([DOCX](doc/Project_Design_Document.docx), [PDF](doc/Project_Design_Document.pdf), [Markdown](doc/design-document.md))
 - [PostgreSQL and SQLite ERDs](doc/ERD.md)
 - [Known issues and professor requirements](doc/KNOWN_ISSUES.md)
 - [Testing commands and results](doc/TESTING.md)

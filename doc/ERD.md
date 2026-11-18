@@ -93,7 +93,7 @@ erDiagram
 
 ### Quizzes and question sources
 
-A quiz collection orders its questions through `quiz_collection_questions`. A question can be shared by multiple collections belonging to its owner. Personal categories support nesting. The actual unique key is owner plus normalized name, so a single owner cannot reuse a name across different branches. The OpenTDB category cache holds category metadata. The old shared-bank import table retains its records.
+A quiz collection orders its questions through `quiz_collection_questions`. A question can be shared by multiple collections belonging to its owner. Personal categories support nesting. Their unique key is `(owner_user_id, normalized_name)`. It rejects repeated names within one branch and across separate branches owned by the same account. Different owners can use the same name. The OpenTDB category cache holds category metadata. The old shared-bank import table retains its records.
 
 ```mermaid
 erDiagram
@@ -197,7 +197,7 @@ erDiagram
 
 ### Multiplayer and scoring
 
-A room can have at most one game session because `game_sessions.room_id` is unique. The participant and score tables join users to rooms and sessions. Online scores are totals per user and session. Individual answers link to `room_questions`. Instant Quiz snapshots can have a null source question and store their category name. Saved-quiz snapshots link to source questions. `room_retry_decisions` references the compound attempt identity `(user_id, submission_id)`.
+A room can have at most one game session because `game_sessions.room_id` is unique. The participant and score tables join users to rooms and sessions. Online scores are totals per user and session. Individual answers link to `room_questions`. Instant Quiz snapshots can have a null source question and store their category name. Saved-quiz snapshots link to source questions. `room_retry_decisions` references the compound attempt identity `(user_id, submission_id)`. Before starting an older room, the service verifies that its stored snapshot positions cover zero through the declared question count minus one. The UK on `(room_id, ordinal)` prevents repeated positions.
 
 ```mermaid
 erDiagram
@@ -494,7 +494,7 @@ The `session_players` table joins sessions and players. A desktop score belongs 
 
 Desktop categories use insert and update triggers to stop duplicate sibling names. This rule is distinct from a declared UK. The nullable external question ID and the sync IDs use unique indexes. The schema keeps nullable fields for compatibility with older SQLite files.
 
-Schema sources: [Database.java](../src/main/java/com/triviagame/db/Database.java), [SessionPlayerDao.java](../src/main/java/com/triviagame/db/SessionPlayerDao.java), [TimedAnswerDao.java](../src/main/java/com/triviagame/db/TimedAnswerDao.java), and [QuestionBankService.java](../src/main/java/com/triviagame/service/QuestionBankService.java).
+Schema sources: [Database.java](../src/main/java/com/triviagame/dao/Database.java), [SessionPlayerDao.java](../src/main/java/com/triviagame/dao/SessionPlayerDao.java), [TimedAnswerDao.java](../src/main/java/com/triviagame/dao/TimedAnswerDao.java), and [QuestionBankService.java](../src/main/java/com/triviagame/service/QuestionBankService.java).
 
 ## Unique index definitions
 

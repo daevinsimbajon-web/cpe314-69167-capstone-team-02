@@ -1,14 +1,16 @@
 package com.triviagame.gameplay;
 
-import com.triviagame.category.Category;
-import com.triviagame.questions.MultipleChoiceQuestion;
-import com.triviagame.questions.Question;
-import com.triviagame.questions.TrueFalseQuestion;
+import com.triviagame.dao.SqliteGamePersistence;
 
-import com.triviagame.category.Category;
-import com.triviagame.questions.MultipleChoiceQuestion;
-import com.triviagame.questions.Question;
-import com.triviagame.questions.TrueFalseQuestion;
+import com.triviagame.model.category.Category;
+import com.triviagame.model.questions.MultipleChoiceQuestion;
+import com.triviagame.model.questions.Question;
+import com.triviagame.model.questions.TrueFalseQuestion;
+
+import com.triviagame.model.category.Category;
+import com.triviagame.model.questions.MultipleChoiceQuestion;
+import com.triviagame.model.questions.Question;
+import com.triviagame.model.questions.TrueFalseQuestion;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -362,7 +364,7 @@ public class GameEngineTest {
     @Test
     void testDatabaseGameRejectsQuestionWithoutId() {
 
-        GameEngine game = new GameEngine(1, 1);
+        GameEngine game = new GameEngine(1, 1, new SqliteGamePersistence());
         game.loadQuestions(List.of(
             new TrueFalseQuestion("No database id", "True")
         ));
