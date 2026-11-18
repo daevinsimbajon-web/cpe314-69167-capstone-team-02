@@ -190,6 +190,15 @@ public class RoomDataRepository {
                 room);
     }
 
+    /** Atomically spend exactly one chance, never allowing a negative balance. */
+    public boolean consumeChance(UUID room, UUID user) {
+        return jdbc.update("""
+                UPDATE scores SET retries_remaining=retries_remaining-1
+                WHERE user_id=? AND retries_remaining>0
+                AND session_id=(SELECT id FROM game_sessions WHERE room_id=?)
+                """,user,room)==1;
+    }
+
     public void attempt(
             UUID question,
             UUID user,

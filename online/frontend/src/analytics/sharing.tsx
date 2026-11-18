@@ -25,7 +25,7 @@ export function SyncStatus({player,onRequest,busy}:{player:ComparedPlayer;onRequ
     {(player.canRequest||ownSnapshot)&&<button className="button small" disabled={busy||ownSnapshot} onClick={onRequest} title={ownSnapshot?'You cannot send a sharing request to your own account.':undefined}>Request Auto-Update</button>}
     {ownSnapshot&&<small>This is your own account. To request auto-updates, import another player’s signed Hootly export. Your latest statistics are in My Analytics.</small>}
     {!player.verified&&<small>Automatic updates are unavailable for this imported history.</small>}
-    {player.verified&&['DENIED','REVOKED'].includes(player.status??'')&&!player.canRequest&&<small>You can request again after the seven-day cooldown.</small>}
+    {player.verified&&player.status==='DENIED'&&!player.canRequest&&<small>You can request again after the seven-day cooldown.</small>}
     {player.status==='ALLOWED'&&<small>Refreshed on opening and every 15 seconds while this page is open.</small>}
   </div>;
 }
@@ -33,9 +33,9 @@ interface Connection {id:string;displayName:string;avatar:AvatarConfig;status:st
 interface Inbox {pending:Connection[];active:Connection[]}
 export function StatisticsSharing() {
   const [inbox,setInbox]=useState<Inbox>({pending:[],active:[]}),[error,setError]=useState(''),[busy,setBusy]=useState(false),[disconnect,setDisconnect]=useState<Connection|null>(null);
-  const dialog=useRef<HTMLDialogElement>(null);
-  async function refresh(){const next=await api<Inbox>('/analytics/sharing');setInbox(next);setError('');}
-  useEffect(()=>{let alive=true;const load=()=>{api<Inbox>('/analytics/sharing').then(next=>{if(alive&&Array.isArray(next.pending)&&Array.isArray(next.active)){setInbox(next);setError('');}}).catch(e=>{if(alive)setError(e.message);});};load();const timer=setInterval(load,15000);window.addEventListener('focus',load);return()=>{alive=false;clearInterval(timer);window.removeEventListener('focus',load);};},[]);
+  const dialog=useRef<HTMLDialogElement>(null),version=useRef(0);
+  async function refresh(){const current=++version.current;const next=await api<Inbox>('/analytics/sharing');if(current===version.current&&Array.isArray(next.pending)&&Array.isArray(next.active)){setInbox(next);setError('');}}
+  useEffect(()=>{let alive=true,polling=false;const load=()=>{if(polling||document.hidden)return;polling=true;void refresh().catch(e=>{if(alive)setError(e.message);}).finally(()=>{polling=false;});};load();const timer=setInterval(load,15000);window.addEventListener('focus',load);document.addEventListener('visibilitychange',load);return()=>{alive=false;version.current++;clearInterval(timer);window.removeEventListener('focus',load);document.removeEventListener('visibilitychange',load);};},[]);
   useEffect(()=>{if(disconnect)dialog.current?.showModal();else dialog.current?.close();},[disconnect]);
   async function act(connection:Connection,action:'allow'|'deny'|'disconnect') {
     if(busy)return;setBusy(true);setError('');

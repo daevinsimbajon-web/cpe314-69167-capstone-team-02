@@ -40,3 +40,14 @@ it('keeps the request active for another verified player',async()=>{
   const onRequest=vi.fn();render(<SyncStatus player={{id:'other-export',label:'RJ',games:[],exportedAt:'2026-11-17T00:00:00Z',verified:true,status:'SNAPSHOT',canRequest:true}} onRequest={onRequest} busy={false}/>);
   expect(screen.getByRole('button',{name:'Request Auto-Update'})).toBeEnabled();await userEvent.setup().click(screen.getByRole('button',{name:'Request Auto-Update'}));expect(onRequest).toHaveBeenCalledOnce();expect(screen.queryByText(/This is your own account/)).not.toBeInTheDocument();
 });
+it('offers a fresh request immediately after sharing is disconnected',async()=>{
+  const onRequest=vi.fn();render(<SyncStatus player={{id:'other-export',label:'RJ',games:[],exportedAt:'2026-11-17T00:00:00Z',verified:true,status:'REVOKED',canRequest:true}} onRequest={onRequest} busy={false}/>);
+  expect(screen.getByText('Sharing Disconnected')).toBeInTheDocument();
+  await userEvent.setup().click(screen.getByRole('button',{name:'Request Auto-Update'}));expect(onRequest).toHaveBeenCalledOnce();
+  expect(screen.queryByText(/seven-day cooldown/)).not.toBeInTheDocument();
+});
+it('refreshes pending requests when the user returns to the page',async()=>{
+  pending=[];render(<StatisticsSharing/>);await waitFor(()=>expect(api).toHaveBeenCalled());
+  pending=[rj];window.dispatchEvent(new Event('focus'));
+  expect(await screen.findByRole('button',{name:'Allow RJ'})).toBeInTheDocument();
+});

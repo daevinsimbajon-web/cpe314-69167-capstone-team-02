@@ -556,7 +556,7 @@ public final class NewGameScreen {
  try {
  if (game.nextTurn()) prepareTurn();
  else showLeaderboard();
- } catch (Exception e) { Ui.error("Could not continue: " + e.getMessage()); }
+ } catch (IllegalStateException e) { reportFailure("Could not continue the game.", e); }
  }
  private void showLeaderboard() {
  stopTimers();

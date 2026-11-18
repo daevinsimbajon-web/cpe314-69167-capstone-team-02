@@ -22,7 +22,7 @@ import { AnswerCard } from './components/game/AnswerCard';
 import { Leaderboard } from './components/game/Leaderboard';
 import { Celebration } from './components/game/Celebration';
 import { Tabs } from './components/ui/Tabs';
-import { api, ApiError, type History, type Room } from './api';
+import { api, ApiError, type AnswerAttempt, type History, type Room } from './api';
 import { useAuth, useToast } from './context';
 import { Loading, PageHeading, useLoad } from './App';
 
@@ -52,14 +52,14 @@ export function RoomPage({leaderboardOnly=false}:{leaderboardOnly?:boolean}){
     connect();const polling=setInterval(()=>void reload(),5000);return()=>{stopped=true;version.current++;document.removeEventListener('visibilitychange',resumed);window.removeEventListener('online',resumed);clearInterval(polling);clearTimeout(retry);socket?.close();setConnected(false);};},[code,reload,removed]);
   useEffect(()=>{function update(){setRemaining(room?.deadline?Math.max(0,(Date.parse(room.deadline)-Date.now()-offset.current)/1000):0);}update();const timer=setInterval(update,100);return()=>clearInterval(timer);},[room?.deadline]);
   useEffect(()=>{if(room?.status==='FINISHED'&&!finished.current){finished.current=true;void refresh();}},[room?.status,refresh]);
-  async function command(action:string,body?:unknown,method='POST'){setBusy(true);try{await api(`/rooms/${code}/${action}`,{method,body:body===undefined?undefined:JSON.stringify(body)});await reload();}catch(e){toast((e as Error).message);}finally{setBusy(false);}}
+  async function command(action:string,body?:unknown,method='POST'){setBusy(true);try{const result=await api<Room|undefined>(`/rooms/${code}/${action}`,{method,body:body===undefined?undefined:JSON.stringify(body)});if(action==='retry'&&result){version.current++;offset.current=Date.parse(result.serverTime)-Date.now();setRoom(result);setError('');}else await reload();}catch(e){toast((e as Error).message);await reload();}finally{setBusy(false);}}
   async function submitAnswer(index:number){
     if(submitting.current||!room?.question)return;
     submitting.current=true;setBusy(true);
     const prior=pendingSubmission.current;
     const pending=prior&&prior.number===room.question.number?prior:{id:crypto.randomUUID(),number:room.question.number,index};
     pendingSubmission.current=pending;
-    try{await api(`/rooms/${code}/answers`,{method:'POST',body:JSON.stringify({questionNumber:pending.number,selectedIndex:pending.index,submissionId:pending.id})});pendingSubmission.current=null;await reload();}
+    try{const attempt=await api<AnswerAttempt>(`/rooms/${code}/answers`,{method:'POST',body:JSON.stringify({questionNumber:pending.number,selectedIndex:pending.index,submissionId:pending.id})});pendingSubmission.current=null;if(room.independentFlow){version.current++;setRoom(current=>{if(!current||current.question?.number!==pending.number)return current;const pause=attempt.questionTimerPaused&&attempt.decisionExpiresAt?Math.max(0,Date.parse(attempt.decisionExpiresAt)-Date.parse(attempt.acceptedAt)):0;const oldDeadline=current.deadline?Date.parse(current.deadline):0,accepted=Date.parse(attempt.acceptedAt);const baseDeadline=accepted>=oldDeadline?accepted+1000:oldDeadline;const deadline=pause&&current.deadline&&current.lastAttempt?.submissionId!==attempt.submissionId?new Date(baseDeadline+pause).toISOString():current.deadline;return {...current,deadline,submittedIndex:pending.index,lastAttempt:attempt,retriesRemaining:attempt.retriesRemaining,questionFinalized:attempt.outcome!=='RETRY',awardedPoints:attempt.awardedPoints??null};});}await reload();}
     catch(e){toast((e as Error).message);if(e instanceof ApiError&&e.status>0&&e.status<500)pendingSubmission.current=null;await reload();}
     finally{submitting.current=false;setBusy(false);}
   }

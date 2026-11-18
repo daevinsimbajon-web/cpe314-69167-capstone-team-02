@@ -45,6 +45,20 @@ class StatisticsSharingTest extends RoomTestSupport {
         assertThat(player.post("/analytics/sharing/"+request+"/disconnect",null).status()).isEqualTo(204);
         assertThat(player.get("/analytics/sharing").body().get("active").size()).isZero();completedGame(player);
         var revoked=viewer.get(COMPARISONS).body().get(0);assertThat(revoked.get("status").asText()).isEqualTo("REVOKED");assertThat(revoked.get("snapshot").get("games").size()).isEqualTo(1);
+        assertThat(revoked.get("canRequest").asBoolean()).isTrue();
+        assertThat(viewer.post(COMPARISONS+"/"+memberId+"/request",null).status()).isEqualTo(204);
+        var renewed=player.get("/analytics/sharing").body().get("pending");assertThat(renewed).hasSize(1);
+        String newRequest=renewed.get(0).get("id").asText();assertThat(newRequest).isNotEqualTo(request);
+        assertThat(player.post("/analytics/sharing/"+request+"/allow",null).status()).isEqualTo(404);
+        assertThat(viewer.get(COMPARISONS).body().get(0).get("snapshot").get("games").size()).isEqualTo(1);
+        assertThat(player.post("/analytics/sharing/"+newRequest+"/allow",null).status()).isEqualTo(204);
+        assertThat(viewer.get(COMPARISONS).body().get(0).get("snapshot").get("games").size()).isEqualTo(4);
+        assertThat(player.post("/analytics/sharing/"+newRequest+"/disconnect",null).status()).isEqualTo(204);
+        assertThat(viewer.post(COMPARISONS+"/"+memberId+"/request",null).status()).isEqualTo(204);
+        String deniedRenewal=player.get("/analytics/sharing").body().get("pending").get(0).get("id").asText();
+        assertThat(player.post("/analytics/sharing/"+deniedRenewal+"/deny",null).status()).isEqualTo(204);
+        var deniedMember=viewer.get(COMPARISONS).body().get(0);assertThat(deniedMember.get("status").asText()).isEqualTo("DENIED");assertThat(deniedMember.get("snapshot").get("games").size()).isEqualTo(1);
+        assertThat(viewer.post(COMPARISONS+"/"+memberId+"/request",null).status()).isEqualTo(429);
         assertThat(player.get("/analytics/report").body().get("games").size()).isEqualTo(4);
         assertThat(viewer.delete(COMPARISONS+"/"+memberId).status()).isEqualTo(204);assertThat(viewer.get(COMPARISONS).body().size()).isZero();
         assertThat(new Browser().get(COMPARISONS).status()).isEqualTo(401);
@@ -62,7 +76,9 @@ class StatisticsSharingTest extends RoomTestSupport {
         String otherRequest=player.get("/analytics/sharing").body().get("pending").get(0).get("id").asText();player.post("/analytics/sharing/"+otherRequest+"/allow",null);
         clock.advance(Duration.ofDays(7));assertThat(viewer.post(COMPARISONS+"/"+memberId+"/request",null).status()).isEqualTo(204);
         assertThat(player.get("/analytics/sharing").body().get("pending").size()).isEqualTo(1);assertThat(player.get("/analytics/sharing").body().get("active").size()).isEqualTo(1);
-        player.post("/analytics/sharing/"+denied+"/allow",null);player.post("/analytics/sharing/"+denied+"/disconnect",null);
+        String renewed=player.get("/analytics/sharing").body().get("pending").get(0).get("id").asText();
+        assertThat(player.post("/analytics/sharing/"+denied+"/allow",null).status()).isEqualTo(404);
+        player.post("/analytics/sharing/"+renewed+"/allow",null);player.post("/analytics/sharing/"+renewed+"/disconnect",null);
         assertThat(player.get("/analytics/sharing").body().get("active").size()).isEqualTo(1);
     }
     @Test void unsignedAndTamperedIdentityNeverAuthorizeFutureStatistics()throws Exception {

@@ -44,15 +44,15 @@ export function ComparePlayersPage(){
   async function load(){const version=++loadVersion.current;const saved=await api<SavedMember[]>('/analytics/comparisons');if(version===loadVersion.current){update(saved.map(memberToPlayer));setLoadError('');setLoaded(true);}}
   useEffect(()=>{
     const controller=new AbortController();lifetime.current=controller;
-    const refresh=()=>{if(!importBusy.current)void load().catch(e=>{setLoadError(e.message);setLoaded(false);});};refresh();
+    let polling=false;const refresh=()=>{if(!importBusy.current&&!polling&&!document.hidden){polling=true;void load().catch(e=>{if(!controller.signal.aborted){setLoadError(e.message);setLoaded(false);}}).finally(()=>{polling=false;});}};refresh();
     void api<ImportJob[]>('/analytics/comparisons/import-jobs').then(async jobs=>{
       const pending=jobs.filter(j=>j.status==='QUEUED'||j.status==='PROCESSING');if(!pending.length||controller.signal.aborted)return;
       importBusy.current=true;setBusy(true);
       try{for(const job of pending){const result=await waitForImport(job,j=>setProgress(j.progress),controller.signal);setReports(reports=>[...reports,{name:'Recovered import',status:result.status==='COMPLETED'?'accepted':'rejected',message:result.message??'Import complete.'}]);}await load();}
       finally{if(!controller.signal.aborted){importBusy.current=false;setBusy(false);}}
     }).catch(e=>{if(e.name!=='AbortError')setLoadError(e.message);});
-    const interval=setInterval(refresh,15000);window.addEventListener('focus',refresh);
-    return()=>{controller.abort();loadVersion.current++;clearInterval(interval);window.removeEventListener('focus',refresh);};
+    const interval=setInterval(refresh,15000);window.addEventListener('focus',refresh);document.addEventListener('visibilitychange',refresh);
+    return()=>{controller.abort();loadVersion.current++;clearInterval(interval);window.removeEventListener('focus',refresh);document.removeEventListener('visibilitychange',refresh);};
   },[]);
   async function action(work:()=>Promise<unknown>){if(actionBusy)return;setActionBusy(true);try{await work();await load();}catch(e){toast((e as Error).message);void load().catch(()=>{});}finally{setActionBusy(false);}}
   function autoUpdate(player:ComparedPlayer){if(player.membershipId)void action(()=>api(`/analytics/comparisons/${player.membershipId}/request`,{method:'POST'}));}

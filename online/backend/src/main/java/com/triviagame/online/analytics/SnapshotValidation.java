@@ -28,7 +28,7 @@ public class SnapshotValidation {
                 Integer attempts=optional(q,"attemptCount",11),retry=optional(q,"retriesUsed",10);optional(q,"elapsedMs",86_400_000);
                 Boolean first=q.hasNonNull("firstTryCorrect")?bool(q,"firstTryCorrect"):null;
                 if(attempts!=null){check(attempts!=0||timeout&&first==null,"Invalid timeout attempts.");check(attempts==0||first!=null,"Missing first-try result.");
-                    check(retry==null||retry==attempts-(timeout?0:1),"Retries do not match attempts.");check(!Boolean.TRUE.equals(first)||attempts==1&&correct,"Conflicting first-try result.");}
+                    check(retry==null||(timeout?retry>=Math.max(0,attempts-1)&&retry<=attempts:retry==attempts-1),"Retries do not match attempts.");check(!Boolean.TRUE.equals(first)||attempts==1&&correct,"Conflicting first-try result.");}
                 if(version.equals("retry-v2"))check(m==10&&retry!=null&&retry<=3&&attempts!=null&&p==(correct?new int[]{10,7,4,2}[retry]:0),"Question points do not match retry-v2 scoring.");
                 if(List.of("retry-v1","legacy-v1").contains(version))check(p==(correct?m:0),"Question points do not match historical scoring.");
                 points+=p;maximum+=m;retries+=retry==null?0:retry;
