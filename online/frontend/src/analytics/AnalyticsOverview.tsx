@@ -70,7 +70,10 @@ export function AnalyticsPage(){
   const [group,setGroup]=useState<'day'|'week'|'month'>('day'),[exporting,setExporting]=useState(false),[data,setData]=useState<StatsExport|null>(null),[error,setError]=useState('');
   const toast=useToast(),invalid=dateError(filters.period);
   const query=invalid?null:new URLSearchParams({zone:'UTC',...(filters.period.from?{from:filters.period.from}:{}),...(filters.period.to?{to:filters.period.to}:{})}).toString();
-  useEffect(()=>{let active=true;setData(null);setError('');if(query!==null)api<StatsExport>(`/analytics/report?${query}`).then(result=>{if(active)setData(result);}).catch(e=>{if(active)setError(e.message);});return()=>{active=false;};},[query]);
+  useEffect(()=>{let active=true,inFlight=false;const controller=new AbortController();setData(null);setError('');
+    const refresh=()=>{if(query===null||inFlight||document.hidden)return;inFlight=true;api<StatsExport>(`/analytics/report?${query}`,{signal:controller.signal}).then(result=>{if(active){setData(result);setError('');}}).catch(e=>{if(active&&e.name!=='AbortError')setError(e.message);}).finally(()=>{inFlight=false;});};
+    refresh();const timer=setInterval(refresh,15000);window.addEventListener('focus',refresh);document.addEventListener('visibilitychange',refresh);
+    return()=>{active=false;controller.abort();clearInterval(timer);window.removeEventListener('focus',refresh);document.removeEventListener('visibilitychange',refresh);};},[query]);
   const selected=useMemo(()=>filterGames(data?.games??[],filters),[data,filters]),stats=summarize(selected),category=categories(selected),trend=timeline(selected,group);
   const versions=[...new Set(selected.map(game=>game.scoringVersion))];
   const accuracySeries=[{label:'First try',color:chartColors[1],values:trend.map(t=>t.firstAccuracy)},{label:'Final answer',color:chartColors[0],values:trend.map(t=>t.accuracy)}].filter(series=>series.values.some(value=>value!==null));

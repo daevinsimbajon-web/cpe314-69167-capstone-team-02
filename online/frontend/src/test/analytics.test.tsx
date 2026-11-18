@@ -43,6 +43,15 @@ describe('analytics definitions and rankings',()=>{
   });
 });
 describe('untrusted multi-export processing',()=>{
+  it('accepts timeout records with and without a consumed retry and rejects impossible counts',()=>{
+    const timeout=(attemptCount:number,retriesUsed:number)=>({...question,firstTryCorrect:attemptCount?false:null,finalCorrect:false,attemptCount,retriesUsed,pointsEarned:0,timedOut:true});
+    for(const [attempts,retries] of [[0,0],[1,0],[1,1],[2,1]]){
+      const g={...game,pointsEarned:0,maxPossiblePoints:5,presentedQuestions:1,questions:[timeout(attempts,retries)]};
+      expect(()=>parse({...data,games:[g]})).not.toThrow();
+    }
+    const invalid={...game,pointsEarned:0,maxPossiblePoints:5,presentedQuestions:1,questions:[timeout(2,0)]};
+    expect(()=>parse({...data,games:[invalid]})).toThrow('Retries');
+  });
   it('accepts real versioned exports and same-name distinct identities; skips overlapping games',()=>{
     const one=parse(data).data;const first=mergeExport([],one);const again=mergeExport(first.players,parse({...data,games:[game,game]}).data);
     expect(again.duplicates).toBe(1);expect(parse({...data,games:[game,game]}).duplicatesSkipped).toBe(1);

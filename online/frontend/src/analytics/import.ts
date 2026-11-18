@@ -39,7 +39,7 @@ export function parseStats(source:string):{data:StatsExport;warnings:string[];du
       if(result.attemptCount!==null){
         if(result.attemptCount===0&&(!result.timedOut||firstTryCorrect!==null))throw Error('A question without attempts must be a timeout with no first-try result.');
         if(result.attemptCount>0&&firstTryCorrect===null)throw Error('Recorded attempts require first-try correctness.');
-        if(result.retriesUsed!==null&&result.retriesUsed!==result.attemptCount-(result.timedOut?0:1))throw Error('Retries do not match the recorded attempts.');
+        if(result.retriesUsed!==null&&(result.timedOut?(result.retriesUsed<Math.max(0,result.attemptCount-1)||result.retriesUsed>result.attemptCount):result.retriesUsed!==result.attemptCount-1))throw Error('Retries do not match the recorded attempts.');
         if(firstTryCorrect&&(result.attemptCount!==1||!result.finalCorrect))throw Error('First-try correctness conflicts with the final result.');
       }else warnings.add('Some first-attempt history is unavailable.');
       if(result.retriesUsed===null)warnings.add('Some retry counts are unavailable.');if(result.elapsedMs===null)warnings.add('Some answer times are unavailable.');

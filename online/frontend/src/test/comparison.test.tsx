@@ -86,3 +86,12 @@ it('keeps unverified imports historical, shows denied/disconnected states and re
   saved[0]={...saved[0],status:'REVOKED'};jobs=[{id:'recovered',status:'PROCESSING',progress:45,message:null}];render(<MemoryRouter><ComparePlayersPage/></MemoryRouter>);expect(await screen.findByLabelText('JSON import progress')).toHaveAttribute('value','45');
   await screen.findByText(/History restored/);expect(screen.getByText('Sharing Disconnected')).toBeInTheDocument();
 });
+it('refreshes disconnected sharing and comparison scores on returning to the page',async()=>{
+  saved=[{membershipId:'verified-player',snapshot:make(),label:'Alpha Owl',verified:true,status:'ALLOWED',canRequest:false,lastSyncedAt:null}];
+  await mount();expect(screen.getByText('Auto-Update Enabled')).toBeInTheDocument();
+  saved[0]={...saved[0],status:'REVOKED',canRequest:true,snapshot:make('alpha',2)};
+  fireEvent.focus(window);
+  expect(await screen.findByText('Sharing Disconnected')).toBeInTheDocument();
+  expect(screen.getByRole('button',{name:'Request Auto-Update'})).toBeEnabled();
+  expect(within(document.querySelector('.player-comparison') as HTMLElement).getByText('20')).toBeInTheDocument();
+});

@@ -15,13 +15,13 @@ it('uses the same persisted GO time and requests the first question only when it
   for(const label of ['3','2','1','GO!']){await act(()=>vi.advanceTimersByTimeAsync(1000));expect(document.querySelector('.ready-number')).toHaveTextContent(label);}
   expect(reload).not.toHaveBeenCalled();await act(()=>vi.advanceTimersByTimeAsync(1000));expect(reload).toHaveBeenCalledTimes(1);expect(screen.queryByRole('button',{name:/True/})).not.toBeInTheDocument();
 });
-it('shows a timed chance decision while the question timer continues',async()=>{
+it('shows five seconds for a chance while the question timer is paused',async()=>{
   vi.useFakeTimers();vi.setSystemTime(new Date('2026-11-17T00:00:00Z'));
   const acceptedAt=new Date().toISOString();
-  const {commands,answer}=mount({...room,serverTime:acceptedAt,deadline:new Date(Date.now()+20000).toISOString(),submittedIndex:1,lastAttempt:{submissionId:'attempt',outcome:'RETRY',retriesRemaining:2,acceptedAt,decisionExpiresAt:new Date(Date.now()+3000).toISOString(),questionTimerPaused:false},questionFinalized:false});
+  const {commands,answer}=mount({...room,serverTime:acceptedAt,deadline:new Date(Date.now()+25000).toISOString(),submittedIndex:1,lastAttempt:{submissionId:'attempt',outcome:'RETRY',retriesRemaining:2,acceptedAt,decisionExpiresAt:new Date(Date.now()+5000).toISOString(),questionTimerPaused:true},questionFinalized:false});
   expect(screen.getByRole('dialog')).toHaveAccessibleName('Use a chance?');expect(commands).not.toHaveBeenCalled();expect(answer).not.toHaveBeenCalled();
-  expect(screen.getByRole('timer',{name:'Chance decision time'})).toHaveTextContent('3 seconds');expect(screen.getByLabelText('Time remaining: 20 seconds')).toBeInTheDocument();
-  await act(()=>vi.advanceTimersByTimeAsync(1000));expect(screen.getByRole('timer',{name:'Chance decision time'})).toHaveTextContent('2 seconds');expect(screen.getByLabelText('Time remaining: 19 seconds')).toBeInTheDocument();
+  expect(screen.getByRole('timer',{name:'Chance decision time'})).toHaveTextContent('5 seconds');expect(screen.getByLabelText('Time remaining: 20 seconds')).toBeInTheDocument();
+  await act(()=>vi.advanceTimersByTimeAsync(1000));expect(screen.getByRole('timer',{name:'Chance decision time'})).toHaveTextContent('4 seconds');expect(screen.getByLabelText('Time remaining: 20 seconds')).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button',{name:'Yes, use a chance'}));expect(commands).toHaveBeenCalledWith('retry',{submissionId:'attempt',useChance:true});expect(screen.queryByLabelText('Correct answer')).not.toBeInTheDocument();
 });
 it('shows the final leaderboard and personal result to a player',()=>{

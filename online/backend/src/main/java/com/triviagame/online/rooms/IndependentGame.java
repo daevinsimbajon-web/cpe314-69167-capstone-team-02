@@ -13,7 +13,9 @@ import java.util.*;
 /** New room flow. Every operation runs under RoomService's transaction and room lock. */
 @Service
 public class IndependentGame {
-    private static final Duration CHANCE_WINDOW=Duration.ofSeconds(3);
+    private static final Duration CHANCE_WINDOW=Duration.ofSeconds(5);
+    // Allow a bounded transport delay for a click made just before the displayed deadline.
+    private static final Duration ANSWER_DELIVERY_GRACE=Duration.ofSeconds(1);
     private final JdbcTemplate jdbc; private final RoomDataRepository data; private final QuestionBank bank;
     private final ScoringService scoring; private final Clock clock;
     public IndependentGame(JdbcTemplate jdbc,RoomDataRepository data,QuestionBank bank,ScoringService scoring,Clock clock){this.jdbc=jdbc;this.data=data;this.bank=bank;this.scoring=scoring;this.clock=clock;}
@@ -46,13 +48,17 @@ public class IndependentGame {
             var a=old.get(0);if(!r.id.equals(a.get("room_id"))||((Number)a.get("ordinal")).intValue()!=input.questionNumber()-1||((Number)a.get("selected_index")).intValue()!=input.selectedIndex())throw conflict("Submission ID already used.");
             return attempt(r,a);
         }
-        Progress p=player(r,user);answerable(r,p,input.questionNumber());var q=question(r,p);UUID id=(UUID)q.get("id");
+        Progress p=player(r,user);Instant acceptedAt=clock.instant();answerable(r,p,input.questionNumber(),acceptedAt,true);var q=question(r,p);UUID id=(UUID)q.get("id");
         if(data.finalized(id,user))throw conflict("Your response is final.");
         var attempts=data.attempts(id,user);if(pending(user,attempts))throw conflict("Choose whether to use a chance first.");
         var choices=bank.read((String)q.get("choices"));if(input.selectedIndex()<0||input.selectedIndex()>=choices.size())throw conflict("Unknown answer choice.");
         boolean correct=choices.get(input.selectedIndex()).equals(q.get("correct_answer"));int remaining=balance(r,user);
         String outcome=correct?"CORRECT":remaining>0?"RETRY":"INCORRECT";
-        data.attempt(id,user,input.submissionId(),attempts.size()+1,input.selectedIndex(),correct,outcome,remaining,clock.instant());
+        data.attempt(id,user,input.submissionId(),attempts.size()+1,input.selectedIndex(),correct,outcome,remaining,acceptedAt);
+        if(outcome.equals("RETRY")){
+            Instant remainingDeadline=p.deadline.isAfter(acceptedAt)?p.deadline:acceptedAt.plus(ANSWER_DELIVERY_GRACE);
+            jdbc.update("UPDATE room_player_progress SET deadline=? WHERE room_id=? AND user_id=?",at(remainingDeadline.plus(CHANCE_WINDOW)),r.id,user);
+        }
         if(!outcome.equals("RETRY"))finalizeAnswer(r,p,input.selectedIndex(),correct,false);
         schedule(r);return attempt(r,data.replay(user,input.submissionId()).get(0));
     }
@@ -63,13 +69,18 @@ public class IndependentGame {
         if(!previous.isEmpty()){if(!input.useChance().equals(previous.get(0).get("use_chance")))throw conflict("A decision was already saved.");return;}
         Progress p=player(r,user);UUID question=(UUID)question(r,p).get("id");var attempts=data.attempts(question,user);
         if(data.finalized(question,user)||!pending(user,attempts)||!input.submissionId().equals(attempts.get(attempts.size()-1).get("submission_id")))throw conflict("This response is already final.");
-        var latest=attempts.get(attempts.size()-1);Instant expires=decisionDeadline(latest);
-        if(!clock.instant().isBefore(p.deadline)){finalizeAnswer(r,p,((Number)latest.get("selected_index")).intValue(),false,true);schedule(r);return;}
-        if(!clock.instant().isBefore(expires)){decline(r,p,latest);schedule(r);return;}
-        answerable(r,p,p.ordinal+1);
+        var latest=attempts.get(attempts.size()-1);Instant expires=decisionDeadline(latest),decidedAt=clock.instant();
+        if(!decidedAt.isBefore(p.deadline)){finalizeAnswer(r,p,((Number)latest.get("selected_index")).intValue(),false,true);schedule(r);return;}
+        if(!decidedAt.isBefore(expires)){decline(r,p,latest);schedule(r);return;}
+        answerable(r,p,p.ordinal+1,decidedAt,false);
         if(input.useChance()&&balance(r,user)<=0)throw conflict("No chances remain.");
         jdbc.update("INSERT INTO room_retry_decisions(user_id,submission_id,use_chance,decided_at) VALUES(?,?,?,?)",user,input.submissionId(),input.useChance(),at(clock.instant()));
-        if(input.useChance())data.balance(r.id,user,balance(r,user)-1);
+        if(input.useChance()){
+            if(!data.consumeChance(r.id,user))throw conflict("No chances remain.");
+            Duration unused=Duration.between(decidedAt,expires);
+            Duration paused=CHANCE_WINDOW.minus(unused);
+            jdbc.update("UPDATE room_player_progress SET deadline=?,question_started_at=? WHERE room_id=? AND user_id=?",at(p.deadline.minus(unused)),at(p.started.plus(paused)),r.id,user);
+        }
         else finalizeAnswer(r,p,((Number)records.get(0).get("selected_index")).intValue(),false,false);
         schedule(r);
     }
@@ -78,10 +89,11 @@ public class IndependentGame {
         int used=retries(question,user),maximum=((Number)a.get("question_maximum")).intValue();var submitted=data.submitted(question,user);
         Integer points=submitted.isEmpty()?null:((Number)submitted.get(0).get("points")).intValue();
         Instant expires=outcome.equals("RETRY")&&!decided(user,(UUID)a.get("submission_id"))?decisionDeadline(a):null;
-        return new RoomAttempt((UUID)a.get("submission_id"),outcome,balance(r,user),instant(a.get("accepted_at")),points==null?scoring.correctPoints(r.scoringVersion,used,maximum):0,points,expires,expires==null?null:false);
+        return new RoomAttempt((UUID)a.get("submission_id"),outcome,balance(r,user),instant(a.get("accepted_at")),points==null?scoring.correctPoints(r.scoringVersion,used,maximum):0,points,expires,expires==null?null:true);
     }
-    private void answerable(QuizRoom r,Progress p,int number){
-        if(!r.status.equals("QUESTION")||clock.instant().isBefore(r.startsAt)||p.completed!=null||p.feedback!=null||p.ordinal+1!=number||!clock.instant().isBefore(p.deadline))throw conflict("This question is not accepting answers.");
+    private void answerable(QuizRoom r,Progress p,int number,Instant acceptedAt,boolean allowDeliveryGrace){
+        Instant cutoff=allowDeliveryGrace?p.deadline.plus(ANSWER_DELIVERY_GRACE):p.deadline;
+        if(!r.status.equals("QUESTION")||acceptedAt.isBefore(r.startsAt)||p.completed!=null||p.feedback!=null||p.ordinal+1!=number||!acceptedAt.isBefore(cutoff))throw conflict("This question is not accepting answers.");
     }
     private void finalizeAnswer(QuizRoom r,Progress p,Integer selected,boolean correct,boolean timeout){
         var q=question(r,p);UUID id=(UUID)q.get("id");if(data.finalized(id,p.user))return;
@@ -103,7 +115,7 @@ public class IndependentGame {
                 if(p.ordinal+1>=r.questionCount)jdbc.update("UPDATE room_player_progress SET completed_at=? WHERE room_id=? AND user_id=?",at(clock.instant()),r.id,p.user);
                 else {jdbc.update("UPDATE room_player_progress SET ordinal=ordinal+1,question_started_at=?,deadline=?,feedback_until=NULL WHERE room_id=? AND user_id=?",at(clock.instant()),at(clock.instant().plusSeconds(r.secondsPerQuestion)),r.id,p.user);presented(r,p.ordinal+1,p.user,clock.instant());}
                 changed=true;
-            }else if(p.feedback==null&&!clock.instant().isBefore(p.deadline)){var a=data.attempts((UUID)question(r,p).get("id"),p.user);Integer selected=a.isEmpty()?null:((Number)a.get(a.size()-1).get("selected_index")).intValue();finalizeAnswer(r,p,selected,false,true);changed=true;}
+            }else if(p.feedback==null&&!clock.instant().isBefore(p.deadline.plus(ANSWER_DELIVERY_GRACE))){var a=data.attempts((UUID)question(r,p).get("id"),p.user);Integer selected=a.isEmpty()?null:((Number)a.get(a.size()-1).get("selected_index")).intValue();finalizeAnswer(r,p,selected,false,true);changed=true;}
         }
         schedule(r);return changed;
     }
@@ -116,7 +128,7 @@ public class IndependentGame {
         if(clock.instant().isBefore(r.startsAt)){r.deadline=r.startsAt;return;}
         var active=players(r).stream().filter(p->p.completed==null).toList();
         if(active.isEmpty()){r.status="FINISHED";r.deadline=null;data.finish(r.id,clock.instant());}
-        else r.deadline=active.stream().map(p->{if(p.feedback!=null)return p.feedback;var chance=pendingAttempt(r,p);if(chance==null)return p.deadline;var expires=decisionDeadline(chance);return p.deadline.isBefore(expires)?p.deadline:expires;}).min(Instant::compareTo).orElse(null);
+        else r.deadline=active.stream().map(p->{if(p.feedback!=null)return p.feedback;var chance=pendingAttempt(r,p);if(chance==null)return p.deadline.plus(ANSWER_DELIVERY_GRACE);var expires=decisionDeadline(chance);return p.deadline.isBefore(expires)?p.deadline:expires;}).min(Instant::compareTo).orElse(null);
     }
     public void end(QuizRoom r){
         for(Progress p:players(r))if(p.completed==null){if(!clock.instant().isBefore(r.startsAt)&&p.feedback==null)finalizeAnswer(r,p,null,false,true);jdbc.update("UPDATE room_player_progress SET completed_at=? WHERE room_id=? AND user_id=?",at(clock.instant()),r.id,p.user);}
@@ -138,7 +150,7 @@ public class IndependentGame {
                 if(finalized){selected=(Integer)answers.get(0).get("selected_index");awarded=((Number)answers.get(0).get("points")).intValue();}
                 var attempts=data.attempts(id,user);if(!attempts.isEmpty()){var a=attempts.get(attempts.size()-1);last=attempt(r,data.replay(user,(UUID)a.get("submission_id")).get(0));if(!finalized&&pending(user,attempts))selected=((Number)a.get("selected_index")).intValue();}
                 available=finalized?0:scoring.correctPoints(r.scoringVersion,retries(id,user),((Number)q.get("points")).intValue());
-                question=new RoomQuestion(p.ordinal+1,(String)q.get("text"),bank.read((String)q.get("choices")),(String)q.get("difficulty"),(String)q.get("question_type"),finalized&&r.revealAnswers?(String)q.get("correct_answer"):null);
+                question=new RoomQuestion(p.ordinal+1,(String)q.get("text"),bank.read((String)q.get("choices")),(String)q.get("difficulty"),(String)q.get("question_type"),r.revealAnswers&&finalized?(String)q.get("correct_answer"):null);
             }
         }
         var answerCounts=host?jdbc.queryForList("SELECT a.user_id,COUNT(*) AS total FROM answers a JOIN room_questions q ON q.id=a.room_question_id WHERE q.room_id=? GROUP BY a.user_id",r.id):List.<Map<String,Object>>of();

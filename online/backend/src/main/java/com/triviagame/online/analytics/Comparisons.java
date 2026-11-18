@@ -31,7 +31,7 @@ public class Comparisons {
         return jdbc.queryForList("SELECT * FROM statistics_sharing WHERE requester_id=? AND recipient_id=? FOR UPDATE",owner,target);
     }
     private boolean canRequest(Map<String,Object> permission){
-        return List.of("DENIED","REVOKED").contains(permission.get("status"))&&instant(permission.get("updated_at")).plus(Duration.ofDays(7)).compareTo(clock.instant())<=0;
+        return "REVOKED".equals(permission.get("status"))||"DENIED".equals(permission.get("status"))&&instant(permission.get("updated_at")).plus(Duration.ofDays(7)).compareTo(clock.instant())<=0;
     }
     @Transactional
     public List<Member> list(UUID owner) {
@@ -100,8 +100,8 @@ public class Comparisons {
         var permissions=permission(owner,target);
         if(!permissions.isEmpty()) {
             var p=permissions.get(0);if(List.of("PENDING","ALLOWED").contains(p.get("status")))return;
-            if(!canRequest(p))throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,"Please wait seven days after a declined or disconnected request.");
-            jdbc.update("UPDATE statistics_sharing SET status='PENDING',requested_at=?,updated_at=? WHERE id=?",now(),now(),p.get("id"));
+            if(!canRequest(p))throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,"Please wait seven days after a declined request.");
+            jdbc.update("UPDATE statistics_sharing SET id=?,status='PENDING',requested_at=?,updated_at=?,granted_at=NULL,revoked_at=NULL WHERE id=?",UUID.randomUUID(),now(),now(),p.get("id"));
         }else jdbc.update("INSERT INTO statistics_sharing(id,requester_id,recipient_id,status,requested_at,updated_at) VALUES(?,?,?,'PENDING',?,?)",UUID.randomUUID(),owner,target,now(),now());
     }
     @Transactional(readOnly=true)
