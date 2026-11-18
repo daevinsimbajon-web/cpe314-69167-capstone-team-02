@@ -1,95 +1,170 @@
-﻿# Hootly — Trivia & Quiz Night Manager
+# Hootly — Trivia & Quiz Night Manager
 
-Hootly Online lets a host run trivia rooms while players answer on their own devices. The app supports retry chances, game history, personal analytics, and consent-based comparison of exported statistics.
+## Project Information
 
-Hosts choose one of two question sources:
+Project Title: Trivia & Quiz Game Night Manager
 
-- **Instant Quiz** fetches fresh questions from Open Trivia Database (OpenTDB) when the host creates a room. If the provider cannot supply the requested questions, room creation reports the error.
-- **My Quizzes** uses a ready quiz saved to the host’s private collection. It works independently of OpenTDB.
+Application Name: Hootly
 
-Both sources save a question snapshot at room creation. Existing snapshots and their historical records remain readable. A legacy lobby with missing snapshots needs to be recreated using one of the two current sources.
+Course: CPE 314 — Software Design
 
-**Team 02, CPE 314 section 3A:** John Daevin S. Simbajon, Clarence Philip A. Elegino, Justine B. Cuizon, Joshua Neil G. Malaya, and Gebrielle P. Mirasol.
+Section: 3A
 
-## Technology and requirements
+Team Number: 02
 
-- JDK 17 or later and Maven 3.9.
-- Node.js 22 and npm; React, TypeScript and Vite for the frontend.
-- PostgreSQL 17 (or Docker with Compose) for online data; Spring Boot, JDBC/JPA and Flyway for the backend.
-- The desktop application uses JavaFX, SQLite and JDBC. Maven supplies JavaFX dependencies.
-- Docker is required for the isolated PostgreSQL integration tests.
+## Team Members
 
-## Configure and start Hootly Online
+| No. | Name | Student ID Number | GitHub Username |
+|---:|---|---|---|
+| 1 | John Daevin S. Simbajon | 25245093 | [@daevinsimbajon-web](https://github.com/daevinsimbajon-web) |
+| 2 | Justine B. Cuizon | 25245374 | [@justinecuizon0906-create](https://github.com/justinecuizon0906-create) |
+| 3 | Joshua Neil G. Malaya | 25209073 | [@jmalaya7231-lgtm](https://github.com/jmalaya7231-lgtm) |
+| 4 | Clarence Philip A. Elegino | 25260068 | [@philipelegino](https://github.com/philipelegino) |
+| 5 | Gebrielle P. Mirasol | 25207549 | [@gebriellemirasol](https://github.com/gebriellemirasol) |
 
-From the repository root in PowerShell, copy the example only if you do not already have `online/.env`:
+## Project Overview
+
+Hootly Online is a multiplayer trivia application for classmates, friends, and community groups. A host selects a question source, creates a room, and shares its room code. Players join from their own browsers. In new rooms, the host starts and monitors the game while players answer at their own pace. Hootly records the results so participants can review their games and compare their progress.
+
+## Features
+
+- Create an account, verify your email with a code, and sign in. Email codes also support password recovery.
+- Host multiplayer rooms and invite players by room code or invitation link.
+- Fetch questions through Instant Quiz or host a ready quiz from My Quizzes.
+- Create, edit, preview, duplicate, and practice private quizzes. Import questions into a private draft.
+- Play timed questions with optional retry chances. The host can choose whether to reveal answers.
+- View final standings and completed games in game history.
+- Review personal statistics and charts based on saved results.
+- Export personal statistics as JSON and import exports into Compare Players. Verified accounts can approve or revoke access to live updates.
+
+## Requirements
+
+- JDK 17 or later and Apache Maven 3.9.
+- Node.js 22.12 or later in the Node 22 release line, with npm.
+- PostgreSQL 17. The supplied Compose file uses the `postgres:17-alpine` image. A local PostgreSQL installation can also be used.
+- Docker with Compose for the supplied database setup. Docker is also required for the PostgreSQL integration tests.
+- A configured email provider and OTP secret for account verification and recovery. Automated tests use captured or mocked email.
+
+## Technologies Used
+
+| Area | Technology |
+|---|---|
+| Frontend | React, TypeScript, and Vite |
+| Backend | Java, Spring Boot, Spring Security, REST, and WebSockets |
+| Online storage | PostgreSQL, JDBC/JPA, Flyway, and Spring Session JDBC |
+| Question API and JSON | Open Trivia Database, Java HTTP Client, and Jackson |
+| Email | Mailjet REST API by default, with SMTP as a separate configuration option |
+| Testing | JUnit 5, Testcontainers, Vitest, Testing Library, and Playwright |
+| Retained desktop app | JavaFX, SQLite, and JDBC |
+
+## Build and Run
+
+Run these commands from the repository root in PowerShell unless a step changes the directory.
+
+### Environment configuration
+
+Create a local configuration from the example if `online/.env` does not already exist.
 
 ```powershell
-Copy-Item online/.env.example online/.env
+if (-not (Test-Path online/.env)) {
+    Copy-Item online/.env.example online/.env
+}
 ```
 
-Edit `online/.env` privately. Set `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `DATABASE_URL` to your PostgreSQL database; the Compose configuration initializes a new volume using `POSTGRES_DB`, `POSTGRES_USER`, and `POSTGRES_PASSWORD`. Changing these variables later does not change credentials inside an existing PostgreSQL volume. Never delete an existing volume just to restart the app.
+Set `POSTGRES_USER` and `POSTGRES_PASSWORD` in `online/.env`. Make the database name in `DATABASE_URL` match `POSTGRES_DB`. For the default Compose setup, use `jdbc:postgresql://localhost:5432/quiznight`. Reuse the existing database credentials when starting an existing volume.
 
-For account email codes, generate `OTP_HMAC_SECRET` as Base64 containing at least 32 cryptographically random bytes. Configure `EMAIL_PROVIDER=mailjet`, `MAILJET_API_KEY`, `MAILJET_SECRET_KEY`, and a verified `MAILJET_FROM_EMAIL`; `MAILJET_FROM_NAME` defaults to Hootly. Mailjet acceptance does not guarantee delivery. Keep these values out of Git. The configured SMTP transport is an optional alternative; do not configure both as simultaneous senders. Without email and OTP configuration, email verification cannot be delivered.
+For account email, leave `EMAIL_PROVIDER=mailjet` and set `MAILJET_API_KEY`, `MAILJET_SECRET_KEY`, and a verified `MAILJET_FROM_EMAIL`. Generate a private `OTP_HMAC_SECRET` from at least 32 random bytes encoded as Base64. Keep the values in the ignored `online/.env` file.
 
-Start PostgreSQL if necessary, preserving any existing database:
+### PostgreSQL and backend
 
 ```powershell
 docker compose --env-file online/.env -f online/docker-compose.yml up -d
-```
-
-In a separate terminal, start the backend. This script loads `online/.env` and then runs Spring Boot. Flyway applies pending migrations; the backend defaults to `127.0.0.1:8080`.
-
-```powershell
 powershell -NoProfile -File online/scripts/Start-Backend.ps1
 ```
 
-In another terminal, start the frontend:
+The start script loads `online/.env`. Flyway applies pending migrations and the backend listens at `127.0.0.1:8080` by default.
+
+### Frontend
+
+In a separate terminal, run:
 
 ```powershell
 cd online/frontend
-npm install
+npm ci
 npm run dev
 ```
 
-Visit `http://localhost:5173`. The existing Vite proxy forwards `/api` and `/ws` to the backend. If Node is not on PowerShell's PATH and the optional portable installation exists, run `. ./online/scripts/Use-PortableNode.ps1` from the repository root before starting the frontend.
+Open `http://localhost:5173`. Vite forwards both `/api` and `/ws` to the backend. If you use the repository’s optional portable Node installation, run `. ./online/scripts/Use-PortableNode.ps1` from the root before changing directories.
 
-## Public access
+### Access from different devices
 
-Use an HTTPS-capable public port-forwarding service and forward its public endpoint to the Vite frontend on port 5173. Keep PostgreSQL and the backend on loopback. Put the exact public HTTPS origin in `FRONTEND_URL` and `ALLOWED_ORIGINS` in `online/.env`; set `COOKIE_SECURE=true` for HTTPS. Before starting Vite, set `HOOTLY_PUBLIC_ORIGINS` to that exact origin, for example:
+Forward the frontend on port 5173 through an HTTPS endpoint that supports WebSockets. The Vite forwarding configuration recognizes a local Cloudflare Tunnel when its exact HTTPS origin is approved. Use that origin for `FRONTEND_URL` and `ALLOWED_ORIGINS` and set `COOKIE_SECURE=true` in `online/.env`. Set the same origin in the terminal that starts Vite:
 
 ```powershell
-$env:HOOTLY_PUBLIC_ORIGINS='https://your-public-host.example'
+$env:HOOTLY_PUBLIC_ORIGINS = 'https://your-forwarded-host.example'
 cd online/frontend
 npm run dev
 ```
 
-Restart the corresponding application process after changing its configuration. The forwarded origin must be trusted by the proxy configuration for correct HTTPS cookies, API requests, and WebSockets. Do not use a wildcard host allowance. Do not expose the backend or database directly.
+Keep the backend and database on loopback. Share the HTTPS URL and room code with players. Use the configured HTTPS URL on other devices so browser features such as generating submission IDs and copying room codes have a secure context.
 
-## Tests
-
-Tests use isolated databases and mock/capture email delivery; they do not require real test emails.
+### Tests and production build
 
 ```powershell
-# Desktop, isolated SQLite
 mvn test
-
-# Online unit/HTTP tests and disposable PostgreSQL integration tests (Docker required)
+mvn -f online/backend/pom.xml test
 mvn -f online/backend/pom.xml verify
-
-# Frontend
 cd online/frontend
 npm test
 npm run build
 ```
 
-PostgreSQL integration tests use Testcontainers and require Docker plus the `postgres:17-alpine` image. Avoid `clean` or volume removal against running services.
+The root Maven command runs the desktop suite with a test SQLite file. Backend `test` uses H2, and `verify` also runs the integration suite against disposable PostgreSQL containers. See [Testing](doc/TESTING.md) for browser tests and recorded results.
 
-## Legacy JavaFX desktop
+## Database
 
-From the repository root:
+Hootly Online uses PostgreSQL. The main tables are grouped below.
+
+| Purpose | Tables |
+|---|---|
+| Accounts | `users`, `account_email_challenges`, `password_reset_grants`, `account_email_deliveries` |
+| Private quizzes | `quiz_collections`, `quiz_collection_questions`, `questions`, `categories`, `personal_quiz_categories` |
+| Multiplayer | `quiz_rooms`, `room_participants`, `room_questions`, `game_sessions`, `answers`, `answer_attempts`, `scores` |
+| Statistics sharing | `compared_players`, `compared_games`, `statistics_sharing`, `statistics_import_jobs` |
+
+The full [ERDs](doc/ERD.md) include the supporting tables and constraints. SQLite belongs to the separate JavaFX desktop application.
+
+## Question Sources
+
+1. **Instant Quiz** requests fresh questions from OpenTDB. Hootly saves them in the room’s question snapshots.
+2. **My Quizzes** uses the questions from a ready quiz owned by the host. Hootly copies the questions into the room so later edits to the quiz do not alter the game.
+
+## OpenTDB Limitations
+
+- Instant Quiz accepts 1 to 50 questions. `amount` is required and `encode=url3986` is sent automatically.
+- Optional filters are `category` (an official category ID), `difficulty` (`easy`, `medium`, or `hard`), and `type` (`multiple` or `boolean`). An `any` selection omits that filter.
+- OpenTDB controls the choices. True/false has two choices. Multiple choice has one correct answer and the incorrect options supplied by OpenTDB. Hootly does not request a custom number of choices.
+- Hootly normally spaces question requests five seconds apart and makes up to three attempts to fill a room with distinct questions. It uses a saved category list when available during a category API outage. If there are too few matching questions or the question API is unavailable, room creation reports the problem. A saved quiz can still be hosted.
+
+## JavaFX Desktop Application
+
+The retained JavaFX application demonstrates the course’s JavaFX and SQLite requirements. It uses a local SQLite file, `data/trivia.db`, and runs separately from Hootly Online.
 
 ```powershell
 mvn javafx:run
 ```
 
-The entry point is `com.triviagame.App` and the default SQLite file is `data/trivia.db`. This retained application supplies the course-required JavaFX and SQLite implementation. The online build reuses selected Java models and API classes without loading the desktop GUI, SQLite storage, or bundled questions. See [design document](doc/design-document.md), [requirement map](doc/KNOWN_ISSUES.md), and [defense outline](doc/FINAL_DEFENSE.md).
+The main entry point is `com.triviagame.App`.
+
+## Known Issues and Limitations
+
+Instant Quiz depends on OpenTDB. Rooms from older versions that lack a complete question snapshot must be recreated. Online personal category names are unique across a user’s collection, including across different branches. The [requirements and known issues](doc/KNOWN_ISSUES.md) list the remaining implementation and demonstration checks.
+
+## Documentation
+
+- [Project design document](doc/design-document.md)
+- [PostgreSQL and SQLite ERDs](doc/ERD.md)
+- [Known issues and professor requirements](doc/KNOWN_ISSUES.md)
+- [Testing commands and results](doc/TESTING.md)
+- [Final defense outline](doc/FINAL_DEFENSE.md)
+- [Original project proposal](doc/proposal.md)

@@ -1,93 +1,84 @@
-﻿# Known issues and requirement-to-code map
+# Hootly Requirements and Known Issues
 
-Audit of `project/milestone-3`, 18 November 2026. The numbering below follows the 34 corrections in `professor-references/Week11_Check_A2.pdf`, not that review's old status. “Partial” means some evidence exists but the complete instruction or a manual defense check remains. Paths are repository-relative. This is a source/test review, not proof of a live public deployment or real email delivery.
+This document maps the nine technical requirements and the 34 corrections in the Week 11 review to the current code. A completed implementation may still need to be demonstrated. See [Testing](TESTING.md) for results and the manual checks.
 
-Hootly Online now creates rooms through Instant Quiz or a ready quiz from My Quizzes. `RoomService.java` requires room snapshots at start. Older lobbies with incomplete snapshots must be recreated. Existing shared-bank records, historical game snapshots, and import logs remain in PostgreSQL. The archived online bank endpoints and online starter-bank loading have been retired.
+In the tables, desktop Java paths are relative to `src/main/java/com/triviagame/` or `src/test/java/com/triviagame/`. Online Java paths are relative to `online/backend/src/main/java/com/triviagame/online/` or its matching test package. Other paths are relative to the repository root.
 
-## Current remaining issues
+## Nine Mandatory Technical Requirements
 
-1. Desktop MVC is improved but incomplete: `src/main/java/com/triviagame/gameplay/GameSession.java` still creates DAOs; there is no dedicated controller per screen and DAO classes remain in `db`. Avoid claiming complete layer isolation.
-2. Java standards are incomplete across the tree: long methods/files, compact formatting and some broad exception handling remain. The two newly identified desktop catches were corrected in this audit; a full standards cleanup is not claimed.
-3. The SQLite ERD records the eight desktop tables and their columns; the online ERDs show core and support relationships but omit non-key columns. Exact definitions and constraints are in `src/main/java/com/triviagame/db/Database.java`, `SessionPlayerDao.java`, `TimedAnswerDao.java`, `service/QuestionBankService.java`, and `online/backend/src/main/resources/db/migration/`.
-4. The standalone final-defense template and the Week 11 full checklist are not supplied. `professor-references/README.txt` identifies them as missing. `doc/FINAL_DEFENSE.md` is content for a deck, not the professor's verified template or a finished slide file.
-5. Team members must confirm individual work and demonstrate their own contribution. Public-access gameplay, real OTP email delivery and the final live demo were not exercised by this audit; do not present automated results as evidence of real delivery.
-6. The desktop score-category migration intentionally refuses certain conflicting legacy data linked to timed answers, or custom schema dependencies, rather than losing records. Back up and investigate such a database; do not reset it.
-7. Current online Mailjet and optional SMTP are mutually exclusive provider settings. Configuration and sender verification determine real delivery; provider acceptance alone is not proof of delivery.
-8. PostgreSQL personal quiz categories retain `UNIQUE(owner_user_id, normalized_name)` from `online/backend/src/main/resources/db/migration/V7__personal_quiz_collections.sql`; V13 adds a parent but does not change that constraint. Consequently identical names under different parents are currently rejected for one owner. The SQLite sibling rule is separate. Changing online identity semantics requires an additive migration and corresponding repository changes; no existing records were modified in this audit.
-9. The instructor's prior desktop visual findings (control alignment, scaling, contrast and window sizing) have not been checked in a live JavaFX session during this audit. They cannot be marked fixed from automated test results alone; inspect the current UI against Week 11 review §7 before the defense.
+| No. | Requirement | Implementation | Status | Reference |
+|---:|---|---|---|---|
+| 1 | Object-oriented design and polymorphism | The desktop engine uses question subclasses and category-specific scoring. The online backend shares the question formats and uses interchangeable email transports. | Completed | Desktop `questions/Question.java`, `questions/CategoryQuestion.java`, `questions/CategoryQuestionTest.java`. Online `mail/EmailTransport.java`. |
+| 2 | Data structures and recursion | The desktop engine uses a question queue and an answer stack. Leaderboard maps use player IDs. The online practice engine and personal category tree use these structures in private quizzes. | Completed | Desktop `gameplay/GameEngine.java`, `service/LeaderboardService.java`, `db/CategoryDao.java`, `gameplay/GameEngineTest.java`. Online `practice/PracticeEngine.java`, `bank/CategoryTree.java`, `CategoryTreeTest.java`. |
+| 3 | JUnit 5 tests for normal and edge cases | Desktop and online tests cover scoring, timing, persistence, authorization, and invalid input. | Completed | Root and backend `pom.xml`, [test results](TESTING.md#recorded-results). |
+| 4 | SQLite, JDBC, and prepared statements | The desktop DAOs use SQLite with parameterized statements. The web application uses PostgreSQL. | Completed | Desktop `db/Database.java`, `db/ScoreDao.java`, `db/ScoreSchemaMigrationTest.java`. [ERDs](ERD.md). |
+| 5 | Public REST API and JSON | The Java client reads official OpenTDB results. Both applications use the data, and the online service saves selected questions as room snapshots. | Completed | `api/OpenTdbClient.java`, `api/OpenTdbResponseParser.java`, `api/OpenTdbContractTest.java`, online `bank/OpenTriviaService.java`, `OpenTriviaTest.java`. |
+| 6 | Event-driven JavaFX GUI | The retained desktop interface has navigation, timed play, score import, and analytics. Online uses React. | Completed | Desktop `App.java`, `home/Home.java`, `gameplay/NewGameScreen.java`, `analytics/AnalyticsScreen.java`. |
+| 7 | Background concurrency | JavaFX delegates slow work to tasks. The online backend schedules deadlines and queues statistics imports and email. | Completed | Desktop `App.java`, `tasks/FetchQuestionsTask.java`, `importer/ImportScreen.java`. Online `rooms/GameScheduler.java`, `analytics/StatisticsImportJobs.java`, `mail/EmailDelivery.java`. |
+| 8 | Data mining from stored records | Desktop queries aggregate saved scores by category, player, and session. Online analytics use saved answers and completed games. | Completed | Desktop `db/AnalyticsDao.java`, `db/AnalyticsInsightsTest.java`. Online `analytics/AnalyticsRepository.java`, `AnalyticsExportTest.java`. |
+| 9 | Labeled charts | The desktop and online dashboards display category and score charts with labels. | Completed | Desktop `analytics/AnalyticsScreen.java`, online `online/frontend/src/analytics/Charts.tsx` and `online/frontend/src/test/analytics-overview.test.tsx`. |
 
-## Nine mandatory technical requirements
+## Professor Corrections
 
-| # | Requirement | Current implementation and evidence | Status |
-|---|---|---|---|
-| 1 | OOP, inheritance, runtime polymorphism | `questions/Question.java`, `MultipleChoiceQuestion.java`, `TrueFalseQuestion.java`, `CategoryQuestion.java`, `ScienceQuestion.java`, `HistoryQuestion.java`, `EntertainmentQuestion.java`; `questions/CategoryQuestionTest.java`. Category decorators vary points. | Implemented; demonstrate |
-| 2 | Queue, stack, map and recursion | `gameplay/GameEngine.java` FIFO deque and scored-answer LIFO undo; `gameplay/NewGameScreen.java` Undo; `category/Category.java`, `db/CategoryDao.java`; `service/LeaderboardService.java`; `GameEngineTest`, `CategoryDaoTest`. | Implemented; demonstrate |
-| 3 | JUnit normal and edge cases | `src/test/java/`, `online/backend/src/test/java/`; desktop test summary below. | Implemented |
-| 4 | SQLite, JDBC, prepared statements | `db/Database.java`, `db/ScoreDao.java`, `db/ScoreSchemaMigrationTest.java`, `pom.xml`. PostgreSQL is an additional online store. | Implemented |
-| 5 | Public REST and JSON | `api/OpenTdbClient.java`, `api/dto/`, `api/OpenTdbResponseParser.java`, `api/OpenTdbQuestionMapper.java`, `api/OpenTdbClientTest.java`, `api/OpenTdbContractTest.java`. | Implemented; network availability limits live demo |
-| 6 | Event-driven JavaFX GUI | `App.java`, `home/Home.java`, `gameplay/NewGameScreen.java`, `analytics/AnalyticsScreen.java`. | Implemented; demonstrate |
-| 7 | Background concurrency | `App.java` owns executor; `tasks/FetchQuestionsTask.java`, `importer/ImportScreen.java`, `online/.../analytics/StatisticsImportJobs.java`; `tasks/FetchQuestionsTaskTest.java`. | Implemented; demonstrate responsiveness |
-| 8 | Mining from stored records | `db/AnalyticsDao.java`, `service/AnalyticsService.java`, `online/.../analytics/AnalyticsRepository.java`; `AnalyticsInsightsTest.java`. | Implemented |
-| 9 | Labeled visualizations | `analytics/AnalyticsScreen.java`, `online/frontend/src/analytics/Charts.tsx`; analytics tests. | Implemented; demonstrate |
+| No. | Requirement | Implementation | Status | Reference |
+|---:|---|---|---|---|
+| 1 | List known issues and map the requirements to code | This file records the implementation, evidence, and open work. | Completed | This document |
+| 2 | Separate controllers, screens, and database access | Screens delegate work to services and the game controller. Dedicated controllers and full game-session separation remain incomplete. | Partially Completed | Desktop `controller/GameController.java`, `gameplay/GameSession.java` |
+| 3 | Organize model, DTO, service, DAO, controller, and UI packages | The question service and API DTOs have separate packages. Desktop DAOs remain in `db`, and the proposed layout is only partly adopted. | Partially Completed | Desktop `service/QuestionBankService.java`, `api/dto/`, `db/`, `controller/` |
+| 4 | Consolidate entry points and duplicate game screens | The root Maven configuration starts a single player-facing desktop entry point and one desktop game screen. The seeder is retained as a utility. | Completed | Root `pom.xml`, desktop `App.java`, `home/Navigator.java`, `gameplay/NewGameScreen.java` |
+| 5 | Remove milestone-specific class and package names | The current desktop game uses the `gameplay` package and `NewGameScreen`. | Completed | Desktop `gameplay/NewGameScreen.java` |
+| 6 | Run database reads outside the JavaFX thread | Dashboard, player, result, analytics, and game setup screens schedule reads as background tasks. Interactive load checks remain. | Partially Completed | Desktop `home/Home.java`, `players/Players.java`, `results/Results.java`, `analytics/AnalyticsScreen.java`, `gameplay/NewGameScreen.java` |
+| 7 | Own the executor and update controls on the JavaFX thread | The application owns and shuts down the worker pool. Task handlers update the controls. | Completed | Desktop `App.java`, `importer/ImportScreen.java` |
+| 8 | Keep the score importer synchronous | `ImportScreen` starts a task that calls the synchronous importer. | Completed | Desktop `db/ScoreJsonImporter.java`, `importer/ImportScreen.java` |
+| 9 | Test API, background work, and controller behavior | Tests cover provider responses and failures, task results, and controller behavior. | Completed | Desktop `api/OpenTdbClientTest.java`, `tasks/FetchQuestionsTaskTest.java`, `controller/GameControllerTest.java` |
+| 10 | Cover edge cases consistently | Both suites contain boundary and failure cases. Edge-case coverage for every test class has yet to be reviewed individually. | Partially Completed | Desktop `db/DatabaseTest.java`, `gameplay/GameSessionTimingTest.java`. Online `IndependentGameplayTest.java` |
+| 11 | Draw the ERD from the real schema | The PostgreSQL catalog and a newly initialized desktop SQLite schema supply the table, column, and key definitions. | Completed | [ERDs](ERD.md) |
+| 12 | Correct the question-to-score cardinality | A desktop score has exactly one question through the required `question_id` FK. | Completed | Desktop `db/Database.java`, [SQLite ERD](ERD.md#sqlite-for-the-javafx-desktop-application) |
+| 13 | Include the final ERD and remove placeholders | Section 4 embeds the desktop ERD and links the full PostgreSQL diagrams. | Completed | [Design document, Section 4](design-document.md#4-data-model-and-database-design) |
+| 14 | Identify the join table and correct unique keys | `session_players` joins desktop sessions and players. The diagrams show actual UKs and group composite keys. | Completed | Desktop `db/SessionPlayerDao.java`, [ERDs](ERD.md) |
+| 15 | Use the actual schema or cite the defining files | Section 4 links the desktop schema classes and both kinds of Flyway migration files. | Completed | [Design document, Section 4](design-document.md#4-data-model-and-database-design) |
+| 16 | Derive the score’s category from its question | The SQLite migration removes the redundant column and retains scores. A conflicting historical category tied to a timed answer can block migration for review. | Completed | Desktop `db/Database.java`, `db/ScoreDao.java`, `db/ScoreSchemaMigrationTest.java` |
+| 17 | Use revision numbers and dates | The current design document uses a numbered revision. The original proposal retains its historical heading. | Completed | [Design document](design-document.md), [proposal](proposal.md) |
+| 18 | Describe each OpenTDB parameter correctly | The documentation lists amount, encoding, category, difficulty, and type and explains when filters are omitted. | Completed | Desktop `api/OpenTdbClient.java`, [Design document, Section 5](design-document.md#5-api-integration-design) |
+| 19 | Document the places that start background work | Section 6 identifies the desktop tasks, room scheduler and WebSockets, and online import and email workers. | Completed | [Design document, Section 6](design-document.md#6-concurrency-design), desktop `App.java`, `home/Home.java`, `importer/ImportScreen.java` |
+| 20 | Complete concurrency verification | Automated tests cover background work and game timing. Live JavaFX responsiveness and play across devices remain to be checked. | Partially Completed | Desktop `tasks/FetchQuestionsTaskTest.java`, `gameplay/GameSessionTimingTest.java`, [manual checks](TESTING.md#manual-verification) |
+| 21 | Log technical errors and give clear user messages | Game setup and provider errors use short messages. Some broad catches and other error paths still need review. | Partially Completed | Desktop `gameplay/NewGameScreen.java`, `api/QuestionParser.java`. Online `bank/OpenTriviaService.java` |
+| 22 | Remove the reported semicolon and tab problems | The deque declarations use one semicolon, and the two reported DAO files use spaces. | Completed | Desktop `gameplay/GameEngine.java`, `db/CategoryDao.java`, `db/QuestionDao.java` |
+| 23 | Apply Java coding standards | Long methods, compact formatting, broad catches, and gaps in Javadoc remain in parts of the project. | Partially Completed | Desktop `gameplay/NewGameScreen.java`, online `rooms/IndependentGame.java` |
+| 24 | Use API DTOs, a mapper, result types, and a saved fixture | The OpenTDB path parses a typed response, then maps and decodes each question. The contract test reads a saved response. | Completed | Desktop `api/dto/`, `api/OpenTdbQuestionMapper.java`, `api/OpenTdbResult.java`, `api/OpenTdbContractTest.java`, `src/test/resources/opentdb/live-response-2026-11-17.json` |
+| 25 | Describe a user-based design and authorization | Online users have accounts and per-room roles. The application uses BCrypt and checks ownership and permissions. The two-device demonstration remains. | Partially Completed | Online `auth/AuthController.java`, `auth/SecurityConfiguration.java`, `rooms/RoomService.java`, `AuthenticationTest.java` |
+| 26 | Answer the four design questions | The outline records the current answers. Team members must explain them during the defense. | Partially Completed | [Defense Q&A](FINAL_DEFENSE.md#14-individual-contributions-and-qa) |
+| 27 | Explain individual contributions | The design document cites a verified commit for each member. The oral explanations are pending. | Partially Completed | [Design document, Section 9](design-document.md#9-individual-contributions) |
+| 28 | Explain the host and player relationship | The design describes the online host and player roles and the separate local desktop workflow. | Completed | [Design document, Section 1](design-document.md#1-introduction-and-project-overview), online `rooms/RoomService.java` |
+| 29 | Explain outages, insufficient results, and encoded text | The design describes cached categories, provider failures, the result count requirement, and the decoding step. | Completed | [Design document, Section 5](design-document.md#5-api-integration-design), desktop `api/OpenTdbQuestionMapper.java`, online `OpenTriviaTest.java` |
+| 30 | Explain category uniqueness and duplicate player names | SQLite prevents duplicate sibling category names. PostgreSQL personal category names are unique per owner. Duplicate player display names remain distinct by ID. | Completed | [ERDs](ERD.md), desktop `db/Database.java`, `db/CategoryDaoTest.java`, `db/ScoreIdentityRoundTripTest.java` |
+| 31 | Record question creation timestamps and external IDs | Both question schemas include creation timestamps and external IDs. SQLite allows a null external ID for local or older questions. | Completed | [ERDs](ERD.md), desktop `db/Database.java`, `db/QuestionImportTest.java`, online PostgreSQL V1 migration |
+| 32 | Keep timing in the game engine and test with a fake clock | The desktop turn timer and online game service enforce deadlines. Tests check both paths using controlled clocks. | Completed | Desktop `gameplay/TurnTimer.java`, `gameplay/GameSessionTimingTest.java`. Online `rooms/IndependentGame.java`, `IndependentGameplayTest.java` |
+| 33 | Decode HTML entities in answers | The parser and mapper decode text in the question and choices. Tests cover encoded answer characters. | Completed | Desktop `api/OpenTdbQuestionMapper.java`, `api/QuestionParserTest.java` |
+| 34 | Test a damaged or locked database | Tests cover corrupt and locked databases and rollback after a failed migration. | Completed | Desktop `db/DatabaseTest.java` |
 
-All desktop paths below are under `src/main/java/com/triviagame/`, unless another root is explicit. Test paths are under `src/test/java/com/triviagame/`.
+## Eight Reported Bugs
 
-## All 34 professor corrections
+| No. | Requirement | Implementation | Status | Reference |
+|---:|---|---|---|---|
+| 1 | Prevent full credit after wrong attempts | An incorrect attempt reduces the points available for a later correct answer. | Completed | Desktop `gameplay/GameEngine.java`, `gameplay/GameEngineTest.java` |
+| 2 | Avoid timeout records for eliminated players | Reaching zero extra chances does not eliminate a player. | Completed | Desktop `gameplay/NewGameScreen.java`, `gameplay/GameSessionTimingTest.java` |
+| 3 | Keep setup queries off the UI thread | Game setup and filtered counts use background tasks. Live load verification remains. | Partially Completed | Desktop `gameplay/NewGameScreen.java`, `db/QuestionDao.java` |
+| 4 | Keep players with identical names distinct | Scoring, aggregation, and import use stable IDs. | Completed | Desktop `service/LeaderboardService.java`, `db/AnalyticsDao.java`, `db/ScoreIdentityRoundTripTest.java` |
+| 5 | Count records without loading full tables | Dashboard service uses DAO count queries in a task. | Completed | Desktop `service/DashboardService.java`, `home/Home.java` |
+| 6 | Avoid empty sessions before play | The desktop session is created when the first answer is committed. | Completed | Desktop `gameplay/GameSession.java`, `gameplay/GameSessionTimingTest.java` |
+| 7 | Avoid loading the chart twice on refresh | Refresh guards against triggering the selection listener a second time. | Completed | Desktop `analytics/AnalyticsScreen.java` |
+| 8 | Remove duplicate screens and automatic downloads | The desktop has one game screen. Users explicitly download from the home screen. | Completed | Desktop `home/Navigator.java`, `home/Home.java` |
 
-| # | Requirement | Current implementation, exact evidence and verification | Status |
-|---|---|---|---|
-| 1 | Known issues and requirement map | This document; Week 11 reference §2. | Completed |
-| 2 | Controllers; views avoid direct DAO/SQL | `controller/GameController.java`, `service/` and JavaFX screens; `gameplay/GameSession.java` still constructs DAOs and other screens use services directly. | Partial |
-| 3 | Organize model/DTO/service/DAO/controller/UI; move QuestionBankService | `service/QuestionBankService.java`, `api/dto/`, `controller/GameController.java`; DAOs still under `db`, desktop package layout is not the proposed complete layout. | Partial |
-| 4 | Consolidate entry points and game screens | `App.java`, `home/Navigator.java`, `gameplay/NewGameScreen.java`; old `m2` and duplicate screen files are absent from current tree. `db/SampleQuestionSeeder.java` is a utility. | Completed for main app |
-| 5 | Remove milestone-specific package/screen names | `gameplay/NewGameScreen.java`; no `com.triviagame.m2` in current source tree. | Completed |
-| 6 | Move DB reads off JavaFX thread | `home/Home.java`, `players/Players.java`, `results/Results.java`, `analytics/AnalyticsScreen.java`, `gameplay/NewGameScreen.java` use `Task` and workers; no interactive profiling in this audit. | Partial; live responsiveness pending |
-| 7 | Managed executor, UI updates on FX thread | `App.java` owns executor and shuts it down; screen `Task` handlers update UI. | Completed for reviewed flows |
-| 8 | Synchronous score importer; controller/task owns worker | `db/ScoreJsonImporter.java`; `importer/ImportScreen.java` schedules a Task. | Completed |
-| 9 | API client, background task and controller tests | `api/OpenTdbClientTest.java`, `tasks/FetchQuestionsTaskTest.java`, `controller/GameControllerTest.java`; actual suite results below. | Completed |
-| 10 | Edge cases for every test class | Extensive normal/boundary coverage including `db/DatabaseTest.java`; exhaustive per-class coverage not independently established. | Partial |
-| 11 | Accurate complete ERD, all columns/FKs | `doc/design-document.md` §4 includes the eight desktop tables and columns; online support tables and all check constraints remain in the schema sources. | Completed for desktop; online overview partial |
-| 12 | Scores-to-questions cardinality | SQLite `Database.java` makes `scores.question_id` NOT NULL; §4 ERD shows exactly one question per score. | Completed |
-| 13 | Final ERD in design document; remove placeholder | `doc/design-document.md` §4 includes the local desktop Mermaid ERD and the outdated placeholder is gone. | Completed |
-| 14 | Describe many-to-many link and real unique keys | §4 ERD and `db/SessionPlayerDao.java` show `session_players` and composite key; review all constraints using schema source. | Completed for core relationships |
-| 15 | Real SQL or link to real schema | `doc/design-document.md` §4 references exact schema sources and Flyway migrations. | Completed |
-| 16 | Remove redundant scores.category_id | `db/Database.java` migrates, `db/ScoreDao.java` and `db/AnalyticsDao.java` derive category; `db/ScoreSchemaMigrationTest.java`. | Completed with documented refusal cases |
-| 17 | Remove obsolete week references from design text | `doc/design-document.md` V1.0 describes current state; instructor historical review is identified as historical. | Completed |
-| 18 | Document OpenTDB query parameters | `api/OpenTdbClient.java` and `doc/design-document.md` §5. | Completed |
-| 19 | Describe all background operations accurately | `doc/design-document.md` §6; `App.java`, `tasks/FetchQuestionsTask.java`, `importer/ImportScreen.java`, `online/.../analytics/StatisticsImportJobs.java`, `online/.../mail/EmailDelivery.java`. | Partial; live profiling not performed |
-| 20 | Finish concurrency verification | Automated Task and controller tests run; live GUI responsiveness and public demo still need manual verification. | Partial |
-| 21 | Log technical errors and show safe messages | `gameplay/NewGameScreen.java` uses `reportFailure`; `api/QuestionParser.java` no longer silently catches the encoding conversion. Broad catches remain in other modules; not all error paths reviewed. | Partial |
-| 22 | Remove duplicate semicolon and tab problems | `gameplay/GameEngine.java` has normal deque declarations; no tabs were found in `db/CategoryDao.java` or `db/QuestionDao.java`. Other formatting is tracked under item 23. | Completed |
-| 23 | Braces, specific exceptions, size, Javadoc and constants | Some improvements exist; `gameplay/NewGameScreen.java` and compact online services still need a standards sweep. | Partial |
-| 24 | API DTOs, strict parse/map, result type and saved fixture | `api/dto/OpenTdbResponse.java`, `api/dto/OpenTdbQuestionDto.java`, `api/OpenTdbResponseParser.java`, `api/OpenTdbQuestionMapper.java`, `api/OpenTdbResult.java`, `src/test/resources/opentdb/live-response-2026-11-17.json`, `api/OpenTdbContractTest.java`; legacy local import parser still supports historical formats. | Completed for OpenTDB |
-| 25 | User-based design and authorization | `online/.../auth/AuthController.java`, `auth/SecurityConfiguration.java`, `rooms/RoomService.java`, `analytics/AnalyticsController.java`; host/player are room roles. Password hashing algorithm differs from the original proposal; manual two-device demonstration is pending. | Partial |
-| 26 | Answer four team design questions | `doc/FINAL_DEFENSE.md` discussion prompts; actual answers must be delivered and confirmed by team. | Partial |
-| 27 | Each member explains own contributions | Roles in `doc/design-document.md` §2 and §9; individual claims must be verified and presented by each member. | Partial |
-| 28 | Describe host/player relationship and user | `doc/design-document.md` §§1, 3, 6; `rooms/RoomService.java`. | Completed |
-| 29 | Document offline, fewer questions, HTML text | `doc/design-document.md` §5; `api/OpenTdbClient.java`, `api/OpenTdbQuestionMapper.java`, `api/OpenTdbClientTest.java`, `api/QuestionParserTest.java`. | Completed |
-| 30 | Category sibling uniqueness and player names | `db/Database.java` sibling triggers, `db/CategoryDaoTest.java`; players use IDs, duplicate display names permitted; `db/ScoreIdentityRoundTripTest.java`. | Completed |
-| 31 | Question creation time and external ID | `db/Database.java`, `db/QuestionDao.java`, `db/QuestionImportTest.java`; SQLite ERD §4. | Completed |
-| 32 | Engine-owned timer, fake clock | `gameplay/GameSession.java`, `gameplay/TurnTimer.java`, `gameplay/GameSessionTimingTest.java`; online `rooms/IndependentGame.java`, `IndependentGameplayTest.java`. | Completed |
-| 33 | Decode answers including apostrophe/ampersand | `api/QuestionParser.java`, `api/OpenTdbQuestionMapper.java`, `api/QuestionParserTest.java`. | Completed |
-| 34 | Corrupt/locked database failure tests | `db/DatabaseTest.java` tests corrupt, locked and failed-migration rollback with isolated files. | Completed |
+## Remaining Issues and Checks
 
-## Eight bugs in Week 11 review
+| No. | Requirement | Implementation | Status | Reference |
+|---:|---|---|---|---|
+| 1 | Complete desktop MVC and Java cleanup | Controllers, services, and background tasks are in place. The remaining separation and style issues are listed in corrections 2, 3, 21, and 23. | Partially Completed | Desktop `gameplay/GameSession.java`, `gameplay/NewGameScreen.java` |
+| 2 | Support identical online category names in separate branches | The current unique key is owner plus normalized name. The repository rejects the same name under another parent. | Pending | Online `bank/PersonalQuizzes.java`, V7 and V13 migrations |
+| 3 | Open older room lobbies with incomplete snapshots | An older lobby without all stored questions cannot start. Create a new room to continue. Existing historical results remain readable. | Pending | Online `rooms/RoomService.java`, `RoomQuestionSourcesTest.java` |
+| 4 | Verify desktop layout and responsiveness on a real display | Automated tests cover underlying operations. Control alignment, scaling, contrast, and window sizing still need inspection. | Pending | Week 11 review §7, [manual checks](TESTING.md#manual-verification) |
+| 5 | Verify public room play and real email delivery | Automated tests verify room operations and capture email. Public HTTPS gameplay and delivery to a real inbox still need verification. | Pending | [Manual checks](TESTING.md#manual-verification) |
+| 6 | Match the official final document and defense format | The current documents follow the available review. Obtain the standalone design and defense templates and the Week 11 grading and design checklists. | Pending | Professor reference list, [final defense](FINAL_DEFENSE.md) |
 
-| # | Reported bug | Status and evidence |
-|---|---|---|
-| 1 | Wrong answers then full credit | Fixed in reviewed flow: `gameplay/NewGameScreen.java` records incorrect attempts; `gameplay/GameEngine.java` applies reduced score; `GameEngineTest.java`. |
-| 2 | Eliminated players get fake timeout rows | Fixed in reviewed flow: chances are retries, not elimination; players can continue with zero. `gameplay/NewGameScreen.java`, `GameSessionTimingTest.java`. |
-| 3 | Setup database work blocks FX thread | Fixed for reviewed setup: `gameplay/NewGameScreen.java` uses background Tasks; `db/QuestionDao.java` has filtered COUNT. Manual load profiling remains. |
-| 4 | Duplicate names merge players | Fixed: stable player IDs in `service/LeaderboardService.java` and `db/AnalyticsDao.java`; `db/ScoreIdentityRoundTripTest.java`. |
-| 5 | Dashboard loads full tables for counts | Fixed: `service/DashboardService.java`, `db/QuestionDao.java` and other DAO COUNT methods; `home/Home.java` background Task. |
-| 6 | Empty session created before play | Fixed: `gameplay/GameSession.java` creates session at first committed answer; `gameplay/GameSessionTimingTest.java`. |
-| 7 | Analytics chart loads twice | Fixed in reviewed refresh: `analytics/AnalyticsScreen.java` guards selection listener with `updatingSelection`. |
-| 8 | Dead/duplicate screens and automatic downloads | Fixed for identified files: current source has one desktop game screen, no `m2` package, and `home/Home.java` exposes explicit fetch. Utility `db/SampleQuestionSeeder.java` remains intentionally. |
-
-## Test and operational evidence
-
-- Desktop Maven: 188 tests, 0 failures, 0 errors, 0 skipped (18 November 2026; rerun after desktop error-handling edits is recorded in `target/final-desktop-test.log`).
-- Frontend after the source cleanup: 137 Vitest tests and 2 Playwright tests passed with zero failures or skips. The production build succeeded.
-- Backend after the source cleanup: 115 Maven tests and 53 disposable PostgreSQL integration tests passed with zero failures, errors, or skips.
-- `online/backend/src/test/java/com/triviagame/online/StatisticsSharingTest.java` uses multiple isolated authenticated accounts and tests authorization, import signatures, revoke, renewed consent, denial and cooldown. `IndependentGameplayTest.java` covers exported timeout results and import. No production database records or real email are needed for these tests.
-- Public port forwarding and actual mail delivery were not tested or restarted in this audit.
+The desktop database migration can refuse inconsistent historical rows or unsupported custom schema changes. Keep the original SQLite file available for review if migration stops. Mailjet acceptance records a provider response. Actual delivery depends on the provider and recipient.
