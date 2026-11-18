@@ -18,3 +18,7 @@ online/**/.env.local
 online/**/.env.*.local
 online/**/.env.*
 !online/**/.env.example
+
+/*-Contribution.zip
+/*-FILES.txt
+/COMMIT_GUIDE.txt
