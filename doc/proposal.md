@@ -4,7 +4,6 @@
 
 ### **Week 8 — Project Proposal** 
 
-_<mark>Due end of Week 8 session | 10% of the Finals Term Grade | Scored out of 100</mark>_ 
 
 |**Group Name / No.:**|2|
 |---|---|
