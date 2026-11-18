@@ -166,5 +166,6 @@ Instant Quiz depends on OpenTDB. Rooms from older versions that lack a complete 
 - [PostgreSQL and SQLite ERDs](doc/ERD.md)
 - [Known issues and professor requirements](doc/KNOWN_ISSUES.md)
 - [Testing commands and results](doc/TESTING.md)
-- [Final defense outline](doc/FINAL_DEFENSE.md)
 - [Original project proposal](doc/proposal.md)
+
+The final defense presentation will be added to the repository as a separate PowerPoint file.

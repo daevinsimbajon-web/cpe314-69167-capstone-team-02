@@ -305,4 +305,3 @@ The examples below come from commits in the current branch’s history. The team
 - [Full database ERDs and key tables](ERD.md)
 - [Professor corrections and requirements map](KNOWN_ISSUES.md)
 - [Testing commands and results](TESTING.md)
-- [Final defense outline](FINAL_DEFENSE.md)

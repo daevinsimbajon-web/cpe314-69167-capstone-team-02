@@ -47,7 +47,7 @@ In the tables, desktop Java paths are relative to `src/main/java/com/triviagame/
 | 23 | Apply Java coding standards | Long methods, compact formatting, broad catches, and gaps in Javadoc remain in parts of the project. | Partially Completed | Desktop `gameplay/NewGameScreen.java`, online `rooms/IndependentGame.java` |
 | 24 | Use API DTOs, a mapper, result types, and a saved fixture | The OpenTDB path parses a typed response, then maps and decodes each question. The contract test reads a saved response. | Completed | Desktop `api/dto/`, `api/OpenTdbQuestionMapper.java`, `api/OpenTdbResult.java`, `api/OpenTdbContractTest.java`, `src/test/resources/opentdb/live-response-2026-11-17.json` |
 | 25 | Describe a user-based design and authorization | Online users have accounts and per-room roles. The application uses BCrypt and checks ownership and permissions. The two-device demonstration remains. | Partially Completed | Online `auth/AuthController.java`, `auth/SecurityConfiguration.java`, `rooms/RoomService.java`, `AuthenticationTest.java` |
-| 26 | Answer the four design questions | The outline records the current answers. Team members must explain them during the defense. | Partially Completed | [Defense Q&A](FINAL_DEFENSE.md#14-individual-contributions-and-qa) |
+| 26 | Answer the four design questions | The answers are recorded below. Team members must explain them during the defense. | Partially Completed | [Design questions](#design-questions-from-the-professor) |
 | 27 | Explain individual contributions | The design document cites a verified commit for each member. The oral explanations are pending. | Partially Completed | [Design document, Section 9](design-document.md#9-individual-contributions) |
 | 28 | Explain the host and player relationship | The design describes the online host and player roles and the separate local desktop workflow. | Completed | [Design document, Section 1](design-document.md#1-introduction-and-project-overview), online `rooms/RoomService.java` |
 | 29 | Explain outages, insufficient results, and encoded text | The design describes cached categories, provider failures, the result count requirement, and the decoding step. | Completed | [Design document, Section 5](design-document.md#5-api-integration-design), desktop `api/OpenTdbQuestionMapper.java`, online `OpenTriviaTest.java` |
@@ -79,6 +79,15 @@ In the tables, desktop Java paths are relative to `src/main/java/com/triviagame/
 | 3 | Open older room lobbies with incomplete snapshots | An older lobby without all stored questions cannot start. Create a new room to continue. Existing historical results remain readable. | Pending | Online `rooms/RoomService.java`, `RoomQuestionSourcesTest.java` |
 | 4 | Verify desktop layout and responsiveness on a real display | Automated tests cover underlying operations. Control alignment, scaling, contrast, and window sizing still need inspection. | Pending | Week 11 review §7, [manual checks](TESTING.md#manual-verification) |
 | 5 | Verify public room play and real email delivery | Automated tests verify room operations and capture email. Public HTTPS gameplay and delivery to a real inbox still need verification. | Pending | [Manual checks](TESTING.md#manual-verification) |
-| 6 | Match the official final document and defense format | The current documents follow the available review. Obtain the standalone design and defense templates and the Week 11 grading and design checklists. | Pending | Professor reference list, [final defense](FINAL_DEFENSE.md) |
+| 6 | Match the official final document and defense format | The current documents follow the available review. Obtain the standalone design and defense templates and the Week 11 grading and design checklists. The final defense PowerPoint is a separate deliverable. | Pending | Professor reference list, [design document](design-document.md) |
 
 The desktop database migration can refuse inconsistent historical rows or unsupported custom schema changes. Keep the original SQLite file available for review if migration stops. Mailjet acceptance records a provider response. Actual delivery depends on the provider and recipient.
+
+## Design Questions from the Professor
+
+| Question | Answer |
+|---|---|
+| Which desktop screen is used for the final game? | `Navigator` opens `NewGameScreen`. |
+| Why did desktop scores contain both a category and a question? | The category was redundant. Scores now link to the question and derive the category from it. |
+| Why are there synchronization IDs? | The desktop importer uses them to identify the same player, session, or score across exports. |
+| What data does the host need between sessions? | Online hosts use their account, saved quizzes, and room history. Room passwords are stored as hashes. The desktop game stores local players and results in SQLite. |

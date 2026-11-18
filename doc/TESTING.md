@@ -64,4 +64,4 @@ The frontend production build passed. Vite reported existing warnings about bund
 - Complete a room across two devices using the configured public HTTPS endpoint.
 - Verify account email delivery with the configured provider and an approved test recipient.
 - Check JavaFX layout and responsiveness on the type of display used for the defense.
-- Rehearse the [demonstration and individual explanations](FINAL_DEFENSE.md).
+- Rehearse room setup, timed play, and results. Each team member should prepare an explanation of their work. [Individual contributions](design-document.md#9-individual-contributions)
