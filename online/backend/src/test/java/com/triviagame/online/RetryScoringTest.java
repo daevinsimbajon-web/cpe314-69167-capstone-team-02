@@ -18,12 +18,14 @@ class RetryScoringTest extends RoomTestSupport {
         var host=registered(username());String code=create(host),path="/rooms/"+code;
         for(int value=0;value<=3;value++)assertThat(host.patch(path+"/settings",Map.of("retryAllowance",value)).body().get("retryAllowance").asInt()).isEqualTo(value);
         for(Object value:List.of(-1,4,10,1.5,"2"))assertThat(host.patch(path+"/settings",Map.of("retryAllowance",value)).status()).isEqualTo(400);
-        var created=host.post("/rooms",Map.of("title","No retries","difficulty","any","questionType","any","questionCount",1,"secondsPerQuestion",5,"maxPlayers",2));
+        var request = savedRoomRequest(host, 1, 2, "TRUE_FALSE");
+        request.remove("retryAllowance");
+        var created = host.post("/rooms", request);
         assertThat(created.status()).isEqualTo(201);assertThat(created.body().get("retryAllowance").asInt()).isZero();
-        var nullRetry=new LinkedHashMap<String,Object>(Map.of("title","Invalid retry","difficulty","any","questionType","any","questionCount",1,"secondsPerQuestion",5,"maxPlayers",2));nullRetry.put("retryAllowance",null);assertThat(host.post("/rooms",nullRetry).status()).isEqualTo(400);
+        request.put("retryAllowance",null);assertThat(host.post("/rooms",request).status()).isEqualTo(400);
     }
     @Test void historicalUnsupportedRoomsKeepTheirOriginalBalancesAndScores() throws Exception {
-        var host=registered(username());var player=registered(username());var created=host.post("/rooms",Map.of("title","Historical compatibility","difficulty","any","questionType","TRUE_FALSE","questionCount",1,"secondsPerQuestion",5,"maxPlayers",2,"retryAllowance",0));
+        var host=registered(username());var player=registered(username());var created=host.post("/rooms",savedRoomRequest(host, 1, 2, "TRUE_FALSE"));
         String code=legacyRoom(created.body().get("code").asText()),path="/rooms/"+code;
         jdbc.update("UPDATE quiz_rooms SET scoring_version='retry-v1',retry_allowance=10 WHERE code=?",code);jdbc.update("UPDATE room_questions SET points=5 WHERE room_id=(SELECT id FROM quiz_rooms WHERE code=?)",code);join(player,code);assertThat(player.get(path).body().get("retryAllowance").asInt()).isEqualTo(10);host.post(path+"/start",null);
         var question=player.get(path).body().get("question");player.post(path+"/answers",Map.of("questionNumber",1,"selectedIndex",correctIndex(code,question)));host.post(path+"/end",null);
@@ -52,7 +54,7 @@ class RetryScoringTest extends RoomTestSupport {
     }
     @Test void threeRetriesGrantTheFourthAttemptAndTwoPointsForEitherType() throws Exception {
         for(String type:List.of("MULTIPLE_CHOICE","TRUE_FALSE")){
-            var host=registered(username());var player=registered(username());var created=host.post("/rooms",Map.of("title","Fourth attempt","questionType",type,"difficulty","any","questionCount",1,"secondsPerQuestion",5,"maxPlayers",2,"retryAllowance",3));
+            var host=registered(username());var player=registered(username());var created=host.post("/rooms",savedRoomRequest(host, 1, 2, type));
             String path="/rooms/"+legacyRoom(created.body().get("code").asText());join(player,created.body().get("code").asText());host.post(path+"/start",null);var question=player.get(path).body().get("question");int index=correctIndex(created.body().get("code").asText(),question);
             for(int i=0;i<3;i++){assertThat(player.post(path+"/answers",Map.of("questionNumber",1,"selectedIndex",(index+1)%question.get("choices").size())).body().get("outcome").asText()).isEqualTo("RETRY");clock.advance(Duration.ofMillis(350));}
             var answer=Map.of("questionNumber",1,"selectedIndex",index,"submissionId",UUID.randomUUID());var result=player.post(path+"/answers",answer);assertThat(result.body().get("awardedPoints").asInt()).isEqualTo(2);assertThat(player.post(path+"/answers",answer).body()).isEqualTo(result.body());host.post(path+"/end",null);

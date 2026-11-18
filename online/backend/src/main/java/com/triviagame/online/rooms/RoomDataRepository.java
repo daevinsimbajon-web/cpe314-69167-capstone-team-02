@@ -30,12 +30,6 @@ public class RoomDataRepository {
                 time(now));
     }
 
-    public boolean categoryExists(Long category) {
-        return jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM categories WHERE id=?", Integer.class, category)
-                > 0;
-    }
-
     public void snapshot(
             UUID room,
             UUID question,

@@ -4,7 +4,8 @@ import com.triviagame.api.BankQuestion;
 import com.triviagame.online.auth.AvatarConfig;
 import com.triviagame.online.bank.OpenTriviaService;
 import com.triviagame.online.bank.PersonalQuizzes;
-import com.triviagame.online.bank.QuestionBank;
+import com.triviagame.online.bank.QuestionChoices;
+import com.triviagame.online.bank.QuestionSourceEntry;
 import com.triviagame.online.rooms.dto.RoomAnswerRequest;
 import com.triviagame.online.rooms.dto.RoomAttempt;
 import com.triviagame.online.rooms.dto.RoomCreateRequest;
@@ -32,7 +33,7 @@ import java.util.*;
 public class RoomService {
     private final IndependentGame independent;
     private final RoomRepository rooms;
-    private final QuestionBank bank;
+    private final QuestionChoices questionChoices;
     private final OpenTriviaService trivia;
     private final ScoringService scoring;
     private final PersonalQuizzes quizzes;
@@ -46,7 +47,7 @@ public class RoomService {
 
     public RoomService(
             RoomRepository rooms,
-            QuestionBank bank,
+            QuestionChoices questionChoices,
             RoomDataRepository data,
             Clock clock,
             PasswordEncoder passwords,
@@ -58,7 +59,7 @@ public class RoomService {
             PersonalQuizzes quizzes, IndependentGame independent) {
         this.independent=independent;
         this.rooms = rooms;
-        this.bank = bank;
+        this.questionChoices = questionChoices;
         this.data = data;
         this.clock = clock;
         this.passwords = passwords;
@@ -72,8 +73,7 @@ public class RoomService {
 
     /** Network work happens before the room transaction, never while holding an account lock. */
     public List<BankQuestion> prepare(RoomCreateRequest input) {
-        String source = source(input);
-        if (source.equals("OPENTDB")) {
+        if ("OPENTDB".equals(input.questionSource())) {
             if (input.quizId() != null
                     || input.categoryId() != null
                     || !Set.of("any", "multiple", "boolean").contains(input.questionType()))
@@ -85,35 +85,18 @@ public class RoomService {
                     input.difficulty(),
                     input.questionType());
         }
-        if (input.openTdbCategoryId() != null)
+        if (!"LOCAL".equals(input.questionSource()) || input.quizId() == null)
             throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "My Quizzes uses your saved quizzes.");
-        if (input.quizId() != null
-                && (input.categoryId() != null || !input.questionType().equals("any")))
+                    HttpStatus.BAD_REQUEST, "Choose Instant Quiz or select a saved quiz from My Quizzes.");
+        if (input.openTdbCategoryId() != null || input.categoryId() != null
+                || !"any".equals(input.questionType()))
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Your saved quiz supplies its own questions and types.");
-        if (input.quizId() == null
-                && (input.difficulty() == null
-                        || !Set.of("any", "easy", "medium", "hard").contains(input.difficulty())))
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "Choose valid question settings.");
         return List.of();
     }
 
-    private static String source(RoomCreateRequest input) {
-        return input.questionSource() == null ? "LOCAL" : input.questionSource();
-    }
-
-    private static String canonicalType(String type) {
-        return switch (type) {
-            case "MULTIPLE_CHOICE" -> "multiple";
-            case "TRUE_FALSE" -> "boolean";
-            default -> type;
-        };
-    }
-
-    private void snapshot(QuizRoom room, List<QuestionBank.Entry> entries) {
+    private void snapshot(QuizRoom room, List<QuestionSourceEntry> entries) {
         var pool = new ArrayList<>(entries);
         if (pool.size() < room.questionCount)
             throw conflict(
@@ -127,11 +110,11 @@ public class RoomService {
             Collections.shuffle(choices, random);
             data.snapshot(
                     room.id,
-                    entry.id(),
+                    entry.questionId(),
                     i,
                     q.text(),
                     q.correctAnswer(),
-                    bank.write(choices),
+                    questionChoices.write(choices),
                     q.difficulty(),
                     q.questionType(),
                     scoring.maximum(
@@ -147,21 +130,18 @@ public class RoomService {
         requireActiveAccount(user);
         int active = data.activeRooms(user, clock.instant());
         if (active >= 5) throw conflict("Close an existing room before creating another");
-        if (input.categoryId() != null && !data.categoryExists(input.categoryId()))
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown category");
         QuizRoom r = new QuizRoom();
         r.id = UUID.randomUUID();
         r.code = code();
         r.hostId = user;
         r.title = input.title().strip();
         r.status = "LOBBY";
-        r.categoryId = input.categoryId();
-        r.questionSource = source(input);
+        r.questionSource = input.questionSource();
         r.independentFlow=true;
         r.revealAnswers=input.revealAnswers()==null||input.revealAnswers();
         r.openTdbCategoryId = input.openTdbCategoryId();
         r.difficulty = input.quizId() == null ? input.difficulty() : "any";
-        r.questionType = canonicalType(input.questionType());
+        r.questionType = input.questionType();
         r.questionCount = input.questionCount();
         r.secondsPerQuestion = input.secondsPerQuestion();
         r.maxPlayers = input.maxPlayers();
@@ -177,21 +157,16 @@ public class RoomService {
                         HttpStatus.BAD_REQUEST, "Room password is too long");
             r.passwordHash = passwords.encode(input.password());
         }
-        List<QuestionBank.Entry> pool;
-        if (input.quizId() != null) {
+        List<QuestionSourceEntry> pool;
+        if ("OPENTDB".equals(r.questionSource)) {
+            pool = downloaded.stream().map(q -> new QuestionSourceEntry(null, q)).toList();
+        } else {
             var quiz = quizzes.playable(user, input.quizId());
             r.customQuizId = quiz.id();
             r.customQuizVersion = quiz.version();
             pool = quiz.questions();
             r.questionCount = pool.size();
-        } else if (r.questionSource.equals("OPENTDB")) {
-            pool = downloaded.stream().map(q -> new QuestionBank.Entry(null, q)).toList();
-        } else
-            pool =
-                    bank.select(
-                            r.categoryId,
-                            r.difficulty,
-                            OpenTriviaService.modelType(r.questionType));
+        }
         if (pool.size() < r.questionCount)
             throw conflict(
                     "Not enough questions match. Choose fewer questions or broader filters, or"
@@ -276,13 +251,8 @@ public class RoomService {
         if (!r.status.equals("LOBBY")) throw conflict("Quiz already started or closed");
         if (data.participantCount(r.id) < 2)
             throw conflict("Invite at least one player before starting");
-        if (data.questionCount(r.id) == 0)
-            snapshot(
-                    r,
-                    bank.select(
-                            r.categoryId,
-                            r.difficulty,
-                            OpenTriviaService.modelType(r.questionType)));
+        if (data.questionCount(r.id) != r.questionCount)
+            throw conflict("This room's questions are unavailable. Create a new room to play.");
         UUID session = UUID.randomUUID();
         if(!r.independentFlow)data.start(session, r.id, r.retryAllowance, clock.instant());
         r.currentQuestion = 0;
@@ -308,7 +278,7 @@ public class RoomService {
         }
         answerable(r, answer.questionNumber());
         Map<String, Object> q = current(r);
-        List<String> choices = bank.read((String) q.get("choices"));
+        List<String> choices = questionChoices.read((String) q.get("choices"));
         if (answer.selectedIndex() >= choices.size())
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown answer choice");
         UUID question = (UUID) q.get("id");
@@ -653,7 +623,7 @@ public class RoomService {
                     new RoomQuestion(
                             r.currentQuestion + 1,
                             (String) q.get("text"),
-                            bank.read((String) q.get("choices")),
+                            questionChoices.read((String) q.get("choices")),
                             (String) q.get("difficulty"),
                             (String) q.get("question_type"),
                             r.status.equals("REVEAL") ? (String) q.get("correct_answer") : null);

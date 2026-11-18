@@ -70,24 +70,24 @@ public class PersonalQuizzes {
 
     public record LibraryQuestion(UUID id, String category, Question question) {}
 
-    public record Playable(UUID id, int version, List<QuestionBank.Entry> questions) {}
+    public record Playable(UUID id, int version, List<QuestionSourceEntry> questions) {}
 
     private final PersonalQuizRepository data;
     private final ObjectMapper json;
     private final Clock clock;
-    private final QuestionBank bank;
+    private final QuestionChoices choices;
     private final CategoryRepository categoryRepository;
 
     public PersonalQuizzes(
             PersonalQuizRepository data,
             ObjectMapper json,
             Clock clock,
-            QuestionBank bank,
+            QuestionChoices choices,
             CategoryRepository categoryRepository) {
         this.data = data;
         this.json = json;
         this.clock = clock;
-        this.bank = bank;
+        this.choices = choices;
         this.categoryRepository = categoryRepository;
     }
 
@@ -205,7 +205,7 @@ public class PersonalQuizzes {
                         : new CategoryTree(categoryRepository.list(user)).descendants(categoryId);
         return data.library(user, branch).stream()
                 .map(row -> {
-                    var options = new ArrayList<>(bank.read((String) row.get("incorrect_answers")));
+                    var options = new ArrayList<>(choices.read((String) row.get("incorrect_answers")));
                     options.add(0, (String) row.get("correct_answer"));
                     if (row.get("question_type").equals("TRUE_FALSE"))
                         options = new ArrayList<>(List.of("True", "False"));
@@ -230,13 +230,13 @@ public class PersonalQuizzes {
         var entries =
                 data.playable(user, id).stream()
                         .map(row ->
-                                new QuestionBank.Entry(
+                                new QuestionSourceEntry(
                                         (UUID) row.get("id"),
                                         new BankQuestion(
                                                 (String) row.get("category_name"),
                                                 (String) row.get("text"),
                                                 (String) row.get("correct_answer"),
-                                                bank.read((String) row.get("incorrect_answers")),
+                                                choices.read((String) row.get("incorrect_answers")),
                                                 (String) row.get("difficulty"),
                                                 (String) row.get("question_type"))))
                         .toList();
@@ -319,7 +319,7 @@ public class PersonalQuizzes {
                         categoryId,
                         q.text().strip(),
                         q.options().get(q.correctIndex()).strip(),
-                        bank.write(wrong),
+                        choices.write(wrong),
                         storageDifficulty,
                         q.type(),
                         key);

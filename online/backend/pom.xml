@@ -37,11 +37,6 @@
               <include>com/triviagame/category/Category.java</include>
             </includes>
           </resource></resources></configuration>
-        </execution><execution><id>reuse-example-bank</id><phase>generate-resources</phase><goals><goal>copy-resources</goal></goals>
-          <configuration><outputDirectory>${project.build.outputDirectory}</outputDirectory><resources><resource>
-            <directory>${project.basedir}/../../src/main/resources</directory><filtering>false</filtering>
-            <includes><include>example_question_bank.json</include></includes>
-          </resource></resources></configuration>
         </execution></executions>
       </plugin>
       <plugin><groupId>org.codehaus.mojo</groupId><artifactId>build-helper-maven-plugin</artifactId><version>3.6.1</version>

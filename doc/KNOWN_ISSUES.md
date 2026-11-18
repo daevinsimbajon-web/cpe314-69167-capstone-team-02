@@ -2,6 +2,8 @@
 
 Audit of `project/milestone-3`, 18 November 2026. The numbering below follows the 34 corrections in `professor-references/Week11_Check_A2.pdf`, not that review's old status. “Partial” means some evidence exists but the complete instruction or a manual defense check remains. Paths are repository-relative. This is a source/test review, not proof of a live public deployment or real email delivery.
 
+Hootly Online now creates rooms through Instant Quiz or a ready quiz from My Quizzes. `RoomService.java` requires room snapshots at start. Older lobbies with incomplete snapshots must be recreated. Existing shared-bank records, historical game snapshots, and import logs remain in PostgreSQL. The archived online bank endpoints and online starter-bank loading have been retired.
+
 ## Current remaining issues
 
 1. Desktop MVC is improved but incomplete: `src/main/java/com/triviagame/gameplay/GameSession.java` still creates DAOs; there is no dedicated controller per screen and DAO classes remain in `db`. Avoid claiming complete layer isolation.
@@ -85,7 +87,7 @@ All desktop paths below are under `src/main/java/com/triviagame/`, unless anothe
 ## Test and operational evidence
 
 - Desktop Maven: 188 tests, 0 failures, 0 errors, 0 skipped (18 November 2026; rerun after desktop error-handling edits is recorded in `target/final-desktop-test.log`).
-- Frontend Vitest: 137 tests, 0 failures, 0 skipped; `npm run build` succeeded. The room-removal test now waits for React's asynchronous effect cleanup; its two focused tests passed after the edit.
-- Backend Maven: 115 tests, 0 failures, 0 errors, 0 skipped; disposable PostgreSQL integration: 53 tests, 0 failures, 0 errors, 0 skipped (`online/backend/target/final-backend-after-edit.log`).
+- Frontend after the source cleanup: 137 Vitest tests and 2 Playwright tests passed with zero failures or skips. The production build succeeded.
+- Backend after the source cleanup: 115 Maven tests and 53 disposable PostgreSQL integration tests passed with zero failures, errors, or skips.
 - `online/backend/src/test/java/com/triviagame/online/StatisticsSharingTest.java` uses multiple isolated authenticated accounts and tests authorization, import signatures, revoke, renewed consent, denial and cooldown. `IndependentGameplayTest.java` covers exported timeout results and import. No production database records or real email are needed for these tests.
 - Public port forwarding and actual mail delivery were not tested or restarted in this audit.

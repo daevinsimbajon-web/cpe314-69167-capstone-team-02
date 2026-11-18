@@ -11,30 +11,16 @@ import org.springframework.web.server.ResponseStatusException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 /**
- * Maintains legacy question-file compatibility outside HTTP controllers and upstream DTO parsing.
+ * Converts question JSON into a private quiz draft.
  */
 @Service
 public class QuestionImportService {
-    private final QuestionBank bank;
     private final ObjectMapper json;
 
-    public QuestionImportService(QuestionBank bank, ObjectMapper json) {
-        this.bank = bank;
+    public QuestionImportService(ObjectMapper json) {
         this.json = json;
-    }
-
-    public QuestionBank.ImportReport shared(String source, String document, UUID user) {
-        try {
-            return bank.importQuestions(
-                    new QuestionParser().parse(document), "JSON:" + source, user);
-        } catch (IOException invalid) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Could not import these questions. Check the question-file format.");
-        }
     }
 
     public List<PersonalQuizzes.Question> draft(String source) {

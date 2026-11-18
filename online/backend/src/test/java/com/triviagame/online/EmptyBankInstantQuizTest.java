@@ -15,7 +15,7 @@ class EmptyBankInstantQuizTest extends HttpTestSupport {
     static final HttpServer provider=provider();
     @Autowired JdbcTemplate jdbc;
     static HttpServer provider(){try{var server=HttpServer.create(new InetSocketAddress("127.0.0.1",0),0);server.createContext("/",request->{String body=request.getRequestURI().getPath().contains("category")?"{\"trivia_categories\":[{\"id\":18,\"name\":\"Science\"}]}":"{\"response_code\":0,\"results\":[{\"category\":\"Science\",\"question\":\"The%20Sun%20is%20a%20star.\",\"type\":\"boolean\",\"difficulty\":\"easy\",\"correct_answer\":\"True\",\"incorrect_answers\":[\"False\"]}]}";byte[] bytes=body.getBytes(StandardCharsets.UTF_8);request.sendResponseHeaders(200,bytes.length);request.getResponseBody().write(bytes);request.close();});server.start();return server;}catch(Exception failure){throw new ExceptionInInitializerError(failure);}}
-    @DynamicPropertySource static void properties(DynamicPropertyRegistry config){config.add("app.seed-example-bank",()->false);config.add("app.opentdb.endpoint",()->"http://127.0.0.1:"+provider.getAddress().getPort()+"/api.php");config.add("app.opentdb.interval-ms",()->0);}
+    @DynamicPropertySource static void properties(DynamicPropertyRegistry config){config.add("app.opentdb.endpoint",()->"http://127.0.0.1:"+provider.getAddress().getPort()+"/api.php");config.add("app.opentdb.interval-ms",()->0);}
     @AfterAll static void closeProvider(){provider.stop(0);}
     @Test void freshProviderQuestionsCreateAStableRoomWithZeroBankRecords()throws Exception{
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM questions",Integer.class)).isZero();var host=registered(username());

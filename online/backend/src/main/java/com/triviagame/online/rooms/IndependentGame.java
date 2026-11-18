@@ -1,7 +1,7 @@
 package com.triviagame.online.rooms;
 
 import com.triviagame.online.DatabaseTimes;
-import com.triviagame.online.bank.QuestionBank;
+import com.triviagame.online.bank.QuestionChoices;
 import com.triviagame.online.rooms.dto.*;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -16,9 +16,9 @@ public class IndependentGame {
     private static final Duration CHANCE_WINDOW=Duration.ofSeconds(5);
     // Allow a bounded transport delay for a click made just before the displayed deadline.
     private static final Duration ANSWER_DELIVERY_GRACE=Duration.ofSeconds(1);
-    private final JdbcTemplate jdbc; private final RoomDataRepository data; private final QuestionBank bank;
+    private final JdbcTemplate jdbc; private final RoomDataRepository data; private final QuestionChoices choices;
     private final ScoringService scoring; private final Clock clock;
-    public IndependentGame(JdbcTemplate jdbc,RoomDataRepository data,QuestionBank bank,ScoringService scoring,Clock clock){this.jdbc=jdbc;this.data=data;this.bank=bank;this.scoring=scoring;this.clock=clock;}
+    public IndependentGame(JdbcTemplate jdbc,RoomDataRepository data,QuestionChoices choices,ScoringService scoring,Clock clock){this.jdbc=jdbc;this.data=data;this.choices=choices;this.scoring=scoring;this.clock=clock;}
     private record Progress(UUID user,int ordinal,Instant started,Instant deadline,Instant feedback,Instant completed) {}
     private List<Progress> players(QuizRoom r){return jdbc.query("SELECT * FROM room_player_progress WHERE room_id=? ORDER BY user_id",(rs,n)->new Progress(rs.getObject("user_id",UUID.class),rs.getInt("ordinal"),rs.getObject("question_started_at",OffsetDateTime.class).toInstant(),rs.getObject("deadline",OffsetDateTime.class).toInstant(),instant(rs.getObject("feedback_until")),instant(rs.getObject("completed_at"))),r.id);}
     private Progress player(QuizRoom r,UUID user){return players(r).stream().filter(p->p.user.equals(user)).findFirst().orElseThrow(()->denied("The host watches this game and cannot submit answers."));}
@@ -51,8 +51,8 @@ public class IndependentGame {
         Progress p=player(r,user);Instant acceptedAt=clock.instant();answerable(r,p,input.questionNumber(),acceptedAt,true);var q=question(r,p);UUID id=(UUID)q.get("id");
         if(data.finalized(id,user))throw conflict("Your response is final.");
         var attempts=data.attempts(id,user);if(pending(user,attempts))throw conflict("Choose whether to use a chance first.");
-        var choices=bank.read((String)q.get("choices"));if(input.selectedIndex()<0||input.selectedIndex()>=choices.size())throw conflict("Unknown answer choice.");
-        boolean correct=choices.get(input.selectedIndex()).equals(q.get("correct_answer"));int remaining=balance(r,user);
+        var options=choices.read((String)q.get("choices"));if(input.selectedIndex()<0||input.selectedIndex()>=options.size())throw conflict("Unknown answer choice.");
+        boolean correct=options.get(input.selectedIndex()).equals(q.get("correct_answer"));int remaining=balance(r,user);
         String outcome=correct?"CORRECT":remaining>0?"RETRY":"INCORRECT";
         data.attempt(id,user,input.submissionId(),attempts.size()+1,input.selectedIndex(),correct,outcome,remaining,acceptedAt);
         if(outcome.equals("RETRY")){
@@ -150,7 +150,7 @@ public class IndependentGame {
                 if(finalized){selected=(Integer)answers.get(0).get("selected_index");awarded=((Number)answers.get(0).get("points")).intValue();}
                 var attempts=data.attempts(id,user);if(!attempts.isEmpty()){var a=attempts.get(attempts.size()-1);last=attempt(r,data.replay(user,(UUID)a.get("submission_id")).get(0));if(!finalized&&pending(user,attempts))selected=((Number)a.get("selected_index")).intValue();}
                 available=finalized?0:scoring.correctPoints(r.scoringVersion,retries(id,user),((Number)q.get("points")).intValue());
-                question=new RoomQuestion(p.ordinal+1,(String)q.get("text"),bank.read((String)q.get("choices")),(String)q.get("difficulty"),(String)q.get("question_type"),r.revealAnswers&&finalized?(String)q.get("correct_answer"):null);
+                question=new RoomQuestion(p.ordinal+1,(String)q.get("text"),choices.read((String)q.get("choices")),(String)q.get("difficulty"),(String)q.get("question_type"),r.revealAnswers&&finalized?(String)q.get("correct_answer"):null);
             }
         }
         var answerCounts=host?jdbc.queryForList("SELECT a.user_id,COUNT(*) AS total FROM answers a JOIN room_questions q ON q.id=a.room_question_id WHERE q.room_id=? GROUP BY a.user_id",r.id):List.<Map<String,Object>>of();

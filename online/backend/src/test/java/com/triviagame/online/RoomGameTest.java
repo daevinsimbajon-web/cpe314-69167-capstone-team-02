@@ -85,8 +85,9 @@ class RoomGameTest extends RoomTestSupport {
     }
     @Test void roomPasswordRemovalAndExpirationAreEnforced() throws Exception {
         Browser host=registered(username()),player=registered(username());
-        Result result=host.post("/rooms",Map.of("title","Private room","difficulty","any","questionType","any","questionCount",1,
-                "secondsPerQuestion",5,"maxPlayers",3,"password","PrivateRoom42"));
+        var input = savedRoomRequest(host, 1, 3, "TRUE_FALSE");
+        input.put("password", "PrivateRoom42");
+        Result result = host.post("/rooms", input);
         assertThat(result.status()).isEqualTo(201);String code=result.body().get("code").asText(),path="/rooms/"+code;
         assertThat(join(player,code).status()).isEqualTo(403);
         assertThat(player.post(path+"/join",Map.of("password","PrivateRoom42")).status()).isEqualTo(200);

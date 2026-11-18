@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:quiznight;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1
+    username: sa
+    password: ""
+    driver-class-name: org.h2.Driver
+app:
+  scheduler-enabled: false
+  # Fixed 32-byte test key for captured codes only.
+  otp-secret: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+  login-attempts: 1000
+logging:
+  level:
+    root: WARN
+    org.springframework: WARN
+    org.hibernate: WARN
+    org.flywaydb: WARN

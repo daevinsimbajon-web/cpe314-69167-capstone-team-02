@@ -28,7 +28,7 @@ it('advances and returns between setup steps without submitting, then saves the 
   expect(screen.getByRole('radio',{name:'Off'})).toBeChecked();expect(screen.getAllByRole('radio')).toHaveLength(4);await user.click(screen.getByRole('radio',{name:'3'}));
   const reveal=screen.getByRole('switch',{name:'Reveal Answers'});expect(reveal).toBeChecked();reveal.focus();await user.keyboard(' ');expect(reveal).not.toBeChecked();
   await user.click(screen.getByRole('button',{name:'Create quiz room'}));await waitFor(()=>expect(requests).toHaveLength(1));
-  expect(requests[0]).toMatchObject({title:'Curious crew',questionCount:10,secondsPerQuestion:10,maxPlayers:8,questionSource:'OPENTDB',openTdbCategoryId:18,categoryId:null,difficulty:'medium',questionType:'multiple',retryAllowance:3,revealAnswers:false});
+  expect(requests[0]).toMatchObject({title:'Curious crew',questionCount:10,secondsPerQuestion:10,maxPlayers:8,questionSource:'OPENTDB',openTdbCategoryId:18,difficulty:'medium',questionType:'multiple',retryAllowance:3,revealAnswers:false});
   expect(await screen.findByRole('heading',{name:'Confirmed room lobby'},{timeout:5000})).toBeInTheDocument();
 },10000);
 it('supports keyboard selection, Escape and outside dismissal without changing sources',async()=>{

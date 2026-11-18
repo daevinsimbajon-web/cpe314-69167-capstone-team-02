@@ -12,7 +12,9 @@ import static org.assertj.core.api.Assertions.*;
 class RetryGameTest extends RoomTestSupport {
     @Autowired RoomService rooms;
     String retryRoom(Browser host,int questions,int retries) throws Exception {
-        var result=host.post("/rooms",Map.of("title","Retry test","difficulty","any","questionType","any","questionCount",questions,"secondsPerQuestion",5,"maxPlayers",3,"retryAllowance",retries));
+        var input = savedRoomRequest(host, questions, 3, "MULTIPLE_CHOICE");
+        input.put("retryAllowance", retries);
+        var result = host.post("/rooms", input);
         assertThat(result.status()).isEqualTo(201);return legacyRoom(result.body().get("code").asText());
     }
     Map<String,Object> attempt(JsonNode question,boolean correct,String code,UUID id){

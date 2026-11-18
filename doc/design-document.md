@@ -1,12 +1,12 @@
-﻿# Hootly — Project Design Document V1.0
+# Hootly — Project Design Document V1.0
 
 CPE 314 Software Design · Section 3A · Team 02 · 18 November 2026
 
-This document describes the current `project/milestone-3` source tree. The online and desktop applications use separate data stores. The diagrams are relationship overviews; the named schema sources are authoritative for all columns, constraints, later migrations, and indexes.
+This document describes Hootly Online, the final product on `project/milestone-3`. The retained desktop application uses its own SQLite store for academic demonstrations. The schema sources define the columns, constraints, migrations, and indexes shown in the diagrams.
 
 ## 1. Introduction and project overview
 
-Hootly is a trivia-night application. A host creates an online room, players join, answer timed questions, and review results. Users can build quizzes, use Open Trivia Database (OpenTDB) questions, export statistics, and compare imported histories. A recipient must consent before a comparison can update from their live account. The JavaFX application remains an offline desktop route for SQLite, timed games, score import and analytics.
+In Hootly Online, hosts create rooms with either Instant Quiz, which fetches fresh OpenTDB questions, or My Quizzes, which uses a ready quiz from the host’s private collection. Players join, answer timed questions, and review results. Users can export statistics and compare imported histories. A recipient must consent before a comparison can update from their live account.
 
 ## 2. ER sketch and team roles
 
@@ -25,18 +25,19 @@ The current entity relationships are shown in Section 4. Team roles below are th
 ```mermaid
 flowchart LR
   Browser[React / Vite browser] -->|HTTPS API and WebSocket via Vite proxy| Web[Spring Boot controllers]
-  Web --> Services[Auth, rooms, bank, practice and analytics services]
-  Services --> Repos[JDBC repositories and JPA user repository]
+  Web --> Services[Auth, rooms, quizzes, practice and analytics services]
+  Services --> Repos[JDBC repositories and JPA]
   Repos --> PG[(PostgreSQL / Flyway)]
-  Services --> OpenTDB[Open Trivia Database]
+  Services --> Room[Room creation and snapshot persistence]
+  Room --> Instant[Instant Quiz]
+  Instant --> OpenTDB[Open Trivia Database]
+  Room --> Saved[My Quizzes]
+  Saved --> Repos
+  Room --> Repos
   Services --> Mail[Configured email transport]
-  FX[JavaFX views] --> DesktopServices[Controller and services]
-  DesktopServices --> DAOs[SQLite JDBC DAOs]
-  DAOs --> SQLite[(SQLite)]
-  DesktopServices --> OpenTDB
 ```
 
-`online/backend/src/main/java/com/triviagame/online` separates web controllers, domain services and repositories. The desktop entry point is `com.triviagame.App`; `GameController` and services mediate several view operations, though not all desktop logic has a dedicated controller and `GameSession` still constructs DAOs. This is a partial MVC separation, not a claim of full package purity.
+`online/backend/src/main/java/com/triviagame/online` separates web controllers, domain services and repositories. The backend build uses selected shared Java API and question model classes. The retained academic desktop entry point is `com.triviagame.App`. Its JavaFX screens, services, and DAOs use a separate SQLite file. `GameController` mediates game actions and `GameSession` still constructs some DAOs.
 
 ```mermaid
 classDiagram
@@ -60,67 +61,9 @@ Category decorators retain multiple-choice or true/false answer behavior while d
 
 ## 4. Data model and database design
 
-### SQLite desktop ERD
-
-The core schema and preservation-oriented migration are in `src/main/java/com/triviagame/db/Database.java`; session membership and timing are created by `SessionPlayerDao` and `TimedAnswerDao`. `QuestionBankService` creates `question_bank_imports` independently, without the relationships below.
-
-```mermaid
-erDiagram
-  CATEGORIES o|--o{ CATEGORIES : parent_of
-  CATEGORIES ||--o{ QUESTIONS : categorizes
-  GAME_SESSIONS ||--o{ SESSION_PLAYERS : includes
-  PLAYERS ||--o{ SESSION_PLAYERS : participates
-  GAME_SESSIONS ||--o{ SCORES : contains
-  PLAYERS ||--o{ SCORES : earns
-  QUESTIONS ||--o{ SCORES : determines_category
-  GAME_SESSIONS ||--o{ TIMED_ANSWERS : records
-  PLAYERS ||--o{ TIMED_ANSWERS : submits
-  QUESTIONS ||--o{ TIMED_ANSWERS : times
-  CATEGORIES { int id PK
-    int parent_id FK
-    string name }
-  QUESTIONS { int id PK
-    int category_id FK
-    string text
-    string correct_answer
-    string incorrect_answers
-    string difficulty
-    string question_type
-    string external_id UK
-    string created_at }
-  PLAYERS { int id PK
-    string player_sync_id UK
-    string name }
-  GAME_SESSIONS { int id PK
-    string played_at
-    string session_sync_id UK }
-  SESSION_PLAYERS { int session_id PK,FK
-    int player_id PK,FK
-    int turn_order
-    int seconds_per_question }
-  SCORES { int id PK
-    int session_id FK
-    int player_id FK
-    int question_id FK
-    int is_correct
-    int points
-    string score_sync_id UK }
-  TIMED_ANSWERS { int session_id PK,FK
-    int player_id PK,FK
-    int question_id PK,FK
-    int elapsed_ms
-    int timed_out }
-  QUESTION_BANK_IMPORTS { int id PK
-    string source
-    int inserted_count
-    string imported_at }
-```
-
-Scores derive category from their question. The migration preserves stable IDs and checks for conflicts; it deliberately stops instead of discarding inconsistent timed-answer history. Existing duplicate sibling categories are retained; triggers prevent new case-insensitive duplicates under the same parent. Player names need not be unique because permanent player IDs distinguish identities.
-
 ### PostgreSQL online ERD
 
-Flyway scripts `online/backend/src/main/resources/db/migration/V1__online_schema.sql` through `V16__email_provider_tracking.sql` define the complete schema. The base room-question bank link becomes nullable in V9 for independent question snapshots. The following diagram shows the main game, collection and sharing foreign keys, rather than all support tables.
+Flyway migrations V1 through V16 define the schema. SQL migrations live in `online/backend/src/main/resources/db/migration/` and Java migrations in `online/backend/src/main/java/db/migration/`. The `room_questions` table contains the room snapshots. Instant Quiz snapshots use a null `question_id` and record their provider category. My Quizzes snapshots reference the saved question by ID and copy the playable contents. Older shared questions and their category links remain available to historical games and analytics.
 
 ```mermaid
 erDiagram
@@ -129,9 +72,10 @@ erDiagram
   QUIZ_ROOMS ||--o{ ROOM_PARTICIPANTS : includes
   QUIZ_ROOMS ||--o| GAME_SESSIONS : starts
   QUIZ_ROOMS ||--o{ ROOM_QUESTIONS : presents
+  CATEGORIES o|--o{ QUIZ_ROOMS : historical_filter
   CATEGORIES o|--o{ CATEGORIES : parent_of
   CATEGORIES ||--o{ QUESTIONS : categorizes
-  QUESTIONS o|--o{ ROOM_QUESTIONS : source_for
+  QUESTIONS o|--o{ ROOM_QUESTIONS : saved_or_historical_source
   USERS ||--o{ ANSWERS : submits
   ROOM_QUESTIONS ||--o{ ANSWERS : receives
   GAME_SESSIONS ||--o{ SCORES : contains
@@ -148,7 +92,11 @@ erDiagram
     string email UK }
   QUIZ_ROOMS { UUID id PK
     UUID host_id FK
-    string code UK }
+    string code UK
+    string question_source
+    int opentdb_category_id
+    long category_id FK
+    UUID custom_quiz_id FK }
   GAME_SESSIONS { UUID id PK
     UUID room_id FK,UK }
   ROOM_PARTICIPANTS { UUID room_id PK,FK
@@ -232,24 +180,92 @@ erDiagram
     string ATTRIBUTE_NAME PK }
 ```
 
-`analytics_signing_keys` and `import_mutex` are standalone tables with no declared foreign keys. `COMPARED_GAMES.game_id` identifies imported history and is not a foreign key to local `GAME_SESSIONS`.
+`opentdb_category_cache` stores the provider’s category list. `analytics_signing_keys`, `opentdb_category_cache`, and `import_mutex` have no foreign keys. My Quizzes still uses `import_mutex` to serialize creation of storage categories. The former shared bank import log remains for historical compatibility. `COMPARED_GAMES.game_id` identifies imported history independently of local sessions.
+
+### SQLite ERD for the retained academic application
+
+The core schema and preservation-oriented migration are in `src/main/java/com/triviagame/db/Database.java`; session membership and timing are created by `SessionPlayerDao` and `TimedAnswerDao`. `QuestionBankService` creates `question_bank_imports` independently, without the relationships below.
+
+```mermaid
+erDiagram
+  CATEGORIES o|--o{ CATEGORIES : parent_of
+  CATEGORIES ||--o{ QUESTIONS : categorizes
+  GAME_SESSIONS ||--o{ SESSION_PLAYERS : includes
+  PLAYERS ||--o{ SESSION_PLAYERS : participates
+  GAME_SESSIONS ||--o{ SCORES : contains
+  PLAYERS ||--o{ SCORES : earns
+  QUESTIONS ||--o{ SCORES : determines_category
+  GAME_SESSIONS ||--o{ TIMED_ANSWERS : records
+  PLAYERS ||--o{ TIMED_ANSWERS : submits
+  QUESTIONS ||--o{ TIMED_ANSWERS : times
+  CATEGORIES { int id PK
+    int parent_id FK
+    string name }
+  QUESTIONS { int id PK
+    int category_id FK
+    string text
+    string correct_answer
+    string incorrect_answers
+    string difficulty
+    string question_type
+    string external_id UK
+    string created_at }
+  PLAYERS { int id PK
+    string player_sync_id UK
+    string name }
+  GAME_SESSIONS { int id PK
+    string played_at
+    string session_sync_id UK }
+  SESSION_PLAYERS { int session_id PK,FK
+    int player_id PK,FK
+    int turn_order
+    int seconds_per_question }
+  SCORES { int id PK
+    int session_id FK
+    int player_id FK
+    int question_id FK
+    int is_correct
+    int points
+    string score_sync_id UK }
+  TIMED_ANSWERS { int session_id PK,FK
+    int player_id PK,FK
+    int question_id PK,FK
+    int elapsed_ms
+    int timed_out }
+  QUESTION_BANK_IMPORTS { int id PK
+    string source
+    int inserted_count
+    string imported_at }
+```
+
+Scores derive category from their question. The migration preserves stable IDs and checks for conflicts; it deliberately stops instead of discarding inconsistent timed-answer history. Existing duplicate sibling categories are retained; triggers prevent new case-insensitive duplicates under the same parent. Player names need not be unique because permanent player IDs distinguish identities.
 
 ## 5. API integration
 
-`OpenTdbClient` requests `https://opentdb.com/api.php` with amount and applicable category, difficulty, type and encoding parameters. DTOs (`api/dto`), `OpenTdbResponseParser`, and `OpenTdbQuestionMapper` parse and map JSON, including encoded answer text. `OpenTdbResult` represents success, empty and failure; clients and UI handle provider failures. A provider can return fewer questions than requested, and room creation must have enough usable questions. Offline desktop play uses the existing local bank.
+`OpenTdbClient` requests `https://opentdb.com/api.php` with amount and applicable category, difficulty, type and encoding parameters. DTOs (`api/dto`), `OpenTdbResponseParser`, and `OpenTdbQuestionMapper` parse and map JSON, including encoded answer text. Instant Quiz reports provider errors or insufficient results and prevents creation of an incomplete room. My Quizzes loads the owner’s saved questions in quiz order. JSON question import into a private draft remains available through the quiz API.
 
 ```mermaid
 sequenceDiagram
   participant UI as Host interface
-  participant S as Bank / room service
+  participant S as Room service
   participant API as OpenTDB
-  participant DB as Local bank or room snapshot
-  UI->>S: Request questions and filters
-  S->>API: HTTPS GET with supported parameters
-  API-->>S: JSON response or failure
-  S->>S: Parse DTO, decode, validate, map
-  S->>DB: Persist imported questions or room snapshots
-  S-->>UI: Available questions or understandable error
+  participant DB as PostgreSQL
+  UI->>S: Create room with selected source
+  alt Instant Quiz
+    S->>API: HTTPS GET with requested filters
+    API-->>S: JSON response or provider error
+    S->>S: Decode and validate the response
+    break Provider error or insufficient questions
+      S-->>UI: Report error
+    end
+  else My Quizzes
+    S->>DB: Read the host’s ready quiz and its ordered questions
+    break Quiz unavailable
+      S-->>UI: Report error
+    end
+  end
+  S->>DB: Save room and question snapshots together
+  S-->>UI: Room code
 ```
 
 Online REST routes include `/api/auth`, `/api/rooms`, `/api/analytics` and `/api/quizzes`; room events use `/ws/rooms/{code}`. `AnalyticsExport`, `SnapshotValidation`, `ExportSigning`, and `Comparisons` preserve import identity signatures, duplicate detection and conflicts. Mailjet REST or the configured SMTP provider delivers account messages; test profiles use captured/mocked delivery. Acceptance by a mail provider is not a delivery receipt.
@@ -285,7 +301,7 @@ Desktop `AnalyticsDao` aggregates persisted scores by player ID, category and se
 
 ## 8. Testing summary
 
-Tests use isolated SQLite/H2 and disposable PostgreSQL Testcontainers. On 18 November 2026, desktop `mvn test` completed 188 tests, online backend tests completed 115, and PostgreSQL integration tests completed 53, all with zero failures, errors or skips. The frontend Vitest run completed 137 tests with zero failures or skips, and the production build succeeded. See `doc/KNOWN_ISSUES.md` for remaining verification limits and requirement evidence. No live test email was sent during this audit.
+The online Maven tests use the H2 test profile and disposable PostgreSQL Testcontainers. The source tests cover empty-database Instant Quiz creation, saved-quiz ownership, and continued play and export from a historical room snapshot. Frontend verification uses Vitest, Playwright, and the production build. See `doc/KNOWN_ISSUES.md` for test results and requirement evidence. The retained desktop suite previously completed 188 tests with zero failures, errors, or skips on 18 November 2026.
 
 ## 9. Individual contributions
 

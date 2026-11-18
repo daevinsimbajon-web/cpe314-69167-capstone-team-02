@@ -1,6 +1,13 @@
 ﻿# Hootly — Trivia & Quiz Night Manager
 
-Hootly lets a host run online trivia rooms while players answer on their own devices. It supports custom quizzes, Open Trivia Database questions, retry chances, results, personal analytics, and consent-based comparison of exported statistics. The legacy JavaFX/SQLite desktop application remains in this repository for the CPE 314 requirements.
+Hootly Online lets a host run trivia rooms while players answer on their own devices. The app supports retry chances, game history, personal analytics, and consent-based comparison of exported statistics.
+
+Hosts choose one of two question sources:
+
+- **Instant Quiz** fetches fresh questions from Open Trivia Database (OpenTDB) when the host creates a room. If the provider cannot supply the requested questions, room creation reports the error.
+- **My Quizzes** uses a ready quiz saved to the host’s private collection. It works independently of OpenTDB.
+
+Both sources save a question snapshot at room creation. Existing snapshots and their historical records remain readable. A legacy lobby with missing snapshots needs to be recreated using one of the two current sources.
 
 **Team 02, CPE 314 section 3A:** John Daevin S. Simbajon, Clarence Philip A. Elegino, Justine B. Cuizon, Joshua Neil G. Malaya, and Gebrielle P. Mirasol.
 
@@ -85,4 +92,4 @@ From the repository root:
 mvn javafx:run
 ```
 
-The entry point is `com.triviagame.App`. Desktop SQLite defaults to `data/trivia.db`; preserve that file. The desktop implementation supplies the course-required JavaFX, SQLite, queue, scored-answer undo, recursive categories, background import, and charts. See [design document](doc/design-document.md), [requirement map](doc/KNOWN_ISSUES.md), and [defense outline](doc/FINAL_DEFENSE.md).
+The entry point is `com.triviagame.App` and the default SQLite file is `data/trivia.db`. This retained application supplies the course-required JavaFX and SQLite implementation. The online build reuses selected Java models and API classes without loading the desktop GUI, SQLite storage, or bundled questions. See [design document](doc/design-document.md), [requirement map](doc/KNOWN_ISSUES.md), and [defense outline](doc/FINAL_DEFENSE.md).

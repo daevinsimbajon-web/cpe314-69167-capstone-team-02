@@ -17,7 +17,7 @@ public record RoomCreateRequest(
         @NotBlank @Size(max = 80) String title,
         Long categoryId,
         String difficulty,
-        @NotNull @Pattern(regexp = "any|multiple|boolean|MULTIPLE_CHOICE|TRUE_FALSE")
+        @NotNull @Pattern(regexp = "any|multiple|boolean")
                 String questionType,
         @JsonDeserialize(using = StrictInteger.class) @Min(1) @Max(50) int questionCount,
         @JsonDeserialize(using = StrictInteger.class) @Min(5) @Max(120) int secondsPerQuestion,
@@ -28,6 +28,4 @@ public record RoomCreateRequest(
         @Pattern(regexp = "OPENTDB|LOCAL") String questionSource,
         @JsonDeserialize(using = StrictInteger.class) @Min(1) Integer openTdbCategoryId,
         UUID quizId,
-        Boolean revealAnswers) {
-    public RoomCreateRequest(String title,Long categoryId,String difficulty,String questionType,int questionCount,int secondsPerQuestion,int maxPlayers,String password,Integer retryAllowance,String questionSource,Integer openTdbCategoryId,UUID quizId){this(title,categoryId,difficulty,questionType,questionCount,secondsPerQuestion,maxPlayers,password,retryAllowance,questionSource,openTdbCategoryId,quizId,null);}
-}
+        Boolean revealAnswers) {}

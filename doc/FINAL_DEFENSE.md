@@ -7,23 +7,23 @@ This is a draft content outline, not the missing official `Final_Defense_Templat
 ## 1. Problem and solution
 
 - Quiz hosts need a repeatable way to collect answers, calculate scores and retain results.
-- Hootly supports online hosts and players with individual devices; the desktop application supports a local trivia night and preserves the required JavaFX/SQLite implementation.
+- Hootly Online is the final product for hosts and players on separate devices. The retained JavaFX and SQLite source supports academic demonstrations.
 - Show the purpose and intended users; do not promise external services will always be available.
 
 ## 2. Main features
 
-- Accounts, verification codes, custom quizzes, OpenTDB questions, host rooms and room codes.
+- Accounts, verification codes, host rooms and room codes. Instant Quiz fetches fresh OpenTDB questions. My Quizzes hosts from a saved private collection.
 - Server-authoritative multiplayer countdowns, individual question timers and optional retry chances.
 - Final standings, game history, personal results, score export/import and consent-based player comparison.
 - Privacy: imported snapshots remain after disconnect; renewed live updates need fresh permission.
 
 ## 3. Architecture
 
-Show the architecture diagram in design §3: React/Vite → Spring Boot controllers/services/repositories → PostgreSQL, plus OpenTDB and the configured mail transport. The JavaFX desktop app uses its own service/DAO layer and SQLite. Mention that desktop MVC separation is improved but not yet complete.
+Show the online architecture diagram in design §3. React/Vite talks to Spring Boot over REST and WebSockets. PostgreSQL stores the quiz collections, room snapshots, results, and history. OpenTDB supplies fresh Instant Quiz questions. The shared Java client and models compile into the backend while JavaFX and SQLite remain separate.
 
 ## 4. Database and ERDs
 
-Show the SQLite and PostgreSQL diagrams in design §4. Explain players, sessions, questions and scores; the SQLite session/player join table; and online users, rooms, participants, answers and scores. SQLite scores refer to questions and derive category; stable IDs separate duplicate display names. PostgreSQL evolves through Flyway. Describe the migration's safety checks and explain that the diagrams are core overviews; the source schemas define all columns.
+Lead with the PostgreSQL ERD in design §4. Explain the relationship between users, rooms, participants, question snapshots, and scores. Both current sources save snapshots before play. An Instant Quiz snapshot holds its own question and category. A saved quiz snapshot also links to its source question. Historical shared-bank links remain readable. Show the SQLite ERD separately for the academic implementation.
 
 ## 5. Object-oriented design
 
@@ -35,7 +35,7 @@ Show `GameEngine` using FIFO `ArrayDeque` for questions and a LIFO deque for sco
 
 ## 7. API and JSON
 
-Show the API sequence diagram in design §5. Walk through an OpenTDB request, DTO parsing/mapping and decoded question/answer text. Explain offline/provider failure and fewer-than-requested results. Show historical JSON import/export and how signed online identity, duplicate detection and conflict checks protect comparisons.
+Show both paths in the API sequence diagram in design §5. Walk through an OpenTDB request, DTO mapping, and decoded question and answer text. Provider failure or insufficient results stops Instant Quiz creation. A ready saved quiz can still be hosted. Show historical JSON import/export and how signatures, duplicate detection, and conflict checks protect comparisons.
 
 ## 8. Concurrency and timing
 
@@ -61,7 +61,7 @@ Frontend production build succeeded. Test profiles capture or mock email; no rea
 ## 11. Demonstration flow
 
 1. Start the application using the README, with the existing database preserved. Confirm the frontend and backend are reachable.
-2. Using two previously prepared accounts, show host room creation, joining, countdown, a correct answer and a wrong answer with a chance. Show the final leaderboard and history.
+2. Using two prepared accounts, show Instant Quiz and My Quizzes in room setup. Host from a ready saved quiz, join on the other account, and demonstrate the countdown, retry decision, final standings, and history. Show the Instant Quiz provider path when OpenTDB is reachable.
 3. Show analytics and export/import a signed statistics file. Request sharing, allow it on the other account, disconnect, then request again and show that access remains off until a new Allow.
 4. Open the JavaFX application. Show an actual category hierarchy, a scored-answer Undo, SQLite-backed history and labeled charts.
 5. Explain what happens if OpenTDB or email is unavailable. Do not send a real email during the defense without the account owner's explicit permission.
