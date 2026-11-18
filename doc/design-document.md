@@ -1,14 +1,20 @@
-# Hootly — Project Design Document
+# CPE 314 — Software Design
+**University of Cebu**  
+**Computer Engineering Department**
 
-| Item | Details |
-|---|---|
-| Project title | Trivia & Quiz Game Night Manager |
-| Application | Hootly |
-| Course and section | CPE 314 — Software Design, Section 3A |
-| Team | 02 |
-| Instructor | Richyll Son |
-| Revision | 1.1 |
-| Date | 18 November 2026 |
+## Hootly — Trivia & Quiz Night Manage
+### Project Design Document
+
+### Table 1: Project Information
+
+| Information | Details |
+| :--- | :--- |
+| **Group Name / No.:** | 2 |
+| **Members:** | **John Daevin S. Simbajon** - (Team Lead + Integrator/DevOps)<br>**Clarence Philip A. Elegino** - (Core OOP/Logic Developer)<br>**Justine B. Cuizon** - (Database Admin + Data Developer + API)<br>**Joshua Neil G. Malaya** - (UI/UX Designer + JavaFX Developer)<br>**Gebrielle P. Mirasol** - (Analytics + QA) |
+| **Instructor:** | Richyll Son |
+| **Term:** | First Semester, S.Y. 2026-2027 |
+| **Document Version / Date:** | V1.0 - 11/18/26 |
+
 
 ## Table of Contents
 
