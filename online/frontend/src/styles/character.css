@@ -1,0 +1,4 @@
+.hootly-character{aspect-ratio:1;flex-shrink:0;position:relative;pointer-events:none;color:var(--color-lavender)}
+.hootly-character>svg{display:block;width:100%;height:100%;overflow:visible}
+/* The peeking entrance slides inside its reserved slot rather than the page edge. */
+.scene-join{overflow:clip}

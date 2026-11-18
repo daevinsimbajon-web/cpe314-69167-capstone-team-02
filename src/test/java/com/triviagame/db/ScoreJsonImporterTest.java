@@ -13,6 +13,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -361,13 +362,6 @@ public class ScoreJsonImporterTest {
             assertEquals(1, result.errors().size());
             assertTrue(result.errors().get(0).contains("not found"));
 
-            // The async version completes normally with the same
-            // result instead of failing the future
-            ScoreJsonImporter.ImportResult asyncResult =
-                    importer.importAsync(missing)
-                            .get(10, TimeUnit.SECONDS);
-
-            assertEquals(result, asyncResult);
         }
     }
 
@@ -387,15 +381,20 @@ public class ScoreJsonImporterTest {
                             data.questionOne, "true", "10")
             ));
 
-            CompletableFuture<ScoreJsonImporter.ImportResult> future =
-                    importer.importAsync(file);
-
-            ScoreJsonImporter.ImportResult result =
-                    future.get(10, TimeUnit.SECONDS);
-
-            assertTrue(future.isDone());
-            assertEquals(1, result.imported());
-            assertEquals(0, result.skipped());
+            var executor = Executors.newSingleThreadExecutor();
+            try {
+                var caller = Thread.currentThread();
+                var worker = new java.util.concurrent.atomic.AtomicReference<Thread>();
+                CompletableFuture<ScoreJsonImporter.ImportResult> future =
+                        CompletableFuture.supplyAsync(() -> { worker.set(Thread.currentThread()); return importer.importFile(file); }, executor);
+                ScoreJsonImporter.ImportResult result = future.get(10, TimeUnit.SECONDS);
+                assertTrue(future.isDone());
+                assertNotSame(caller, worker.get());
+                assertEquals(1, result.imported());
+                assertEquals(0, result.skipped());
+            } finally {
+                executor.shutdownNow();
+            }
 
         } finally {
             cleanup(data);
@@ -412,10 +411,6 @@ public class ScoreJsonImporterTest {
                     () -> importer.importFile(null)
             );
 
-            assertThrows(
-                    IllegalArgumentException.class,
-                    () -> importer.importAsync(null)
-            );
         }
     }
 

@@ -37,6 +37,7 @@ public final class ScoreJsonExporter {
  gs.session_sync_id AS session_sync_id,
  gs.played_at AS played_at,
  p.name AS player,
+ p.player_sync_id AS player_sync_id,
  c.name AS category,
  c.id AS category_id,
  q.text AS question_text,
@@ -49,8 +50,8 @@ public final class ScoreJsonExporter {
  FROM scores s
  JOIN game_sessions gs ON gs.id = s.session_id
  JOIN players p ON p.id = s.player_id
- JOIN categories c ON c.id = s.category_id
  JOIN questions q ON q.id = s.question_id
+ JOIN categories c ON c.id = q.category_id
  ORDER BY gs.id ASC, s.id ASC
  """;
  ArrayNode entries = JSON.createArrayNode();
@@ -71,6 +72,7 @@ public final class ScoreJsonExporter {
  item.put("sessionSyncId", sessionId);
  item.put("playedAt", result.getString("played_at"));
  item.put("player", result.getString("player"));
+ item.put("playerSyncId", result.getString("player_sync_id"));
  item.put("category", result.getString("category"));
  item.put("questionText", result.getString("question_text"));
  ArrayNode path = item.putArray("categoryPath");

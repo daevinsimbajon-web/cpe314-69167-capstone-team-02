@@ -88,13 +88,11 @@ public final class Database {
  id INTEGER PRIMARY KEY AUTOINCREMENT,
  session_id INTEGER NOT NULL,
  player_id INTEGER NOT NULL,
- category_id INTEGER NOT NULL,
  question_id INTEGER NOT NULL,
  is_correct INTEGER NOT NULL CHECK (is_correct IN (0, 1)),
  points INTEGER NOT NULL,
  FOREIGN KEY (session_id) REFERENCES game_sessions(id),
  FOREIGN KEY (player_id) REFERENCES players(id),
- FOREIGN KEY (category_id) REFERENCES categories(id),
  FOREIGN KEY (question_id) REFERENCES questions(id)
  )
  """);
@@ -104,10 +102,18 @@ public final class Database {
  statement.executeUpdate(
  "ALTER TABLE game_sessions ADD COLUMN session_sync_id TEXT");
  }
+ if (!hasColumn(connection, "players", "player_sync_id")) {
+ statement.executeUpdate("ALTER TABLE players ADD COLUMN player_sync_id TEXT");
+ }
  if (!hasColumn(connection, "scores", "score_sync_id")) {
  statement.executeUpdate(
  "ALTER TABLE scores ADD COLUMN score_sync_id TEXT");
  }
+ migrateScores(connection);
+ statement.executeUpdate("UPDATE players SET player_sync_id=lower(hex(randomblob(16))) WHERE player_sync_id IS NULL OR player_sync_id=''");
+ statement.executeUpdate("CREATE UNIQUE INDEX IF NOT EXISTS ux_players_player_sync_id ON players(player_sync_id)");
+ // Drop the earlier trigger if present: it changes SQLite's reported insert count.
+ statement.executeUpdate("DROP TRIGGER IF EXISTS trg_player_sync_id");
  // Backfill any old records. Also repairs rows inserted by old
  // code before a previous version of this migration ran.
  statement.executeUpdate("""
@@ -152,6 +158,21 @@ public final class Database {
  WHERE id = NEW.id;
  END
  """);
+ // Prevent new duplicate sibling names without deleting or renaming legacy rows.
+ statement.executeUpdate("""
+ CREATE TRIGGER IF NOT EXISTS trg_category_sibling_insert
+ BEFORE INSERT ON categories
+ WHEN EXISTS (SELECT 1 FROM categories WHERE parent_id IS NEW.parent_id
+     AND lower(trim(name))=lower(trim(NEW.name)))
+ BEGIN SELECT RAISE(ABORT, 'Category already exists under this parent'); END
+ """);
+ statement.executeUpdate("""
+ CREATE TRIGGER IF NOT EXISTS trg_category_sibling_update
+ BEFORE UPDATE OF name,parent_id ON categories
+ WHEN EXISTS (SELECT 1 FROM categories WHERE id<>NEW.id AND parent_id IS NEW.parent_id
+     AND lower(trim(name))=lower(trim(NEW.name)))
+ BEGIN SELECT RAISE(ABORT, 'Category already exists under this parent'); END
+ """);
  statement.execute("COMMIT");
  } catch (SQLException | RuntimeException exception) {
  try {
@@ -161,6 +182,73 @@ public final class Database {
  }
  throw exception;
  }
+ }
+ }
+ /** Removes the redundant score category while preserving legacy conflicting categories. */
+ private static void migrateScores(Connection connection) throws SQLException {
+ if (!hasColumn(connection,"scores","category_id")) return;
+ try (Statement statement=connection.createStatement()) {
+ try (ResultSet columns=statement.executeQuery("PRAGMA table_info(scores)")) {
+ java.util.Set<String> known=java.util.Set.of("id","session_id","player_id","category_id","question_id","is_correct","points","score_sync_id");
+ while(columns.next()) if(!known.contains(columns.getString("name")))
+ throw new SQLException("Cannot migrate scores with unrecognized columns; existing data was left unchanged");
+ }
+ try (ResultSet extras=statement.executeQuery("SELECT name FROM sqlite_master WHERE tbl_name='scores' AND type IN ('index','trigger') AND sql IS NOT NULL AND name NOT IN ('ux_scores_score_sync_id','trg_score_sync_id')")) {
+ if(extras.next())throw new SQLException("Cannot migrate scores with custom indexes or triggers; existing data was left unchanged");
+ }
+ java.util.List<String> tables=new java.util.ArrayList<>();
+ try(ResultSet names=statement.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name<>'scores'")){
+ while(names.next())tables.add(names.getString(1));
+ }
+ for(String table:tables){
+ try(ResultSet keys=statement.executeQuery("PRAGMA foreign_key_list('"+table.replace("'","''")+"')")){
+ while(keys.next())if("scores".equalsIgnoreCase(keys.getString("table")))
+ throw new SQLException("Cannot migrate scores referenced by another table; existing data was left unchanged");
+ }
+ }
+ try (ResultSet invalid=statement.executeQuery("SELECT COUNT(*) FROM scores s LEFT JOIN questions q ON q.id=s.question_id LEFT JOIN categories c ON c.id=s.category_id WHERE q.id IS NULL OR c.id IS NULL")) {
+ if(invalid.next()&&invalid.getInt(1)>0)throw new SQLException("Cannot migrate scores with missing questions or categories; existing data was left unchanged");
+ }
+ java.util.List<int[]> conflicts=new java.util.ArrayList<>();
+ try(ResultSet rows=statement.executeQuery("SELECT DISTINCT s.question_id,s.category_id FROM scores s JOIN questions q ON q.id=s.question_id WHERE s.category_id<>q.category_id")){
+ while(rows.next())conflicts.add(new int[]{rows.getInt(1),rows.getInt(2)});
+ }
+ // A timed answer uses the original question ID as part of its identity. If a
+ // conflicting score is linked to one, cloning only the question would break
+ // that relationship. Refuse the migration instead of guessing or losing data.
+ if(!conflicts.isEmpty()&&tables.stream().anyMatch("timed_answers"::equalsIgnoreCase)){
+ try(ResultSet rows=statement.executeQuery("""
+ SELECT COUNT(*) FROM timed_answers t WHERE EXISTS (
+ SELECT 1 FROM scores s JOIN questions q ON q.id=s.question_id
+ WHERE s.session_id=t.session_id AND s.player_id=t.player_id
+ AND s.question_id=t.question_id AND s.category_id<>q.category_id)
+ """)){
+ if(rows.next()&&rows.getInt(1)>0)throw new SQLException("Cannot migrate conflicting score categories linked to timed answers; existing data was left unchanged");
+ }
+ }
+ for(int[] conflict:conflicts){
+ try(var copy=connection.prepareStatement("INSERT INTO questions(text,correct_answer,incorrect_answers,difficulty,question_type,created_at,external_id,category_id) SELECT text,correct_answer,incorrect_answers,difficulty,question_type,created_at,NULL,? FROM questions WHERE id=?")){
+ copy.setInt(1,conflict[1]);copy.setInt(2,conflict[0]);if(copy.executeUpdate()!=1)throw new SQLException("Cannot preserve historical question category");
+ }
+ long clone;
+ try(ResultSet row=statement.executeQuery("SELECT last_insert_rowid()")){if(!row.next())throw new SQLException("Cannot identify historical question copy");clone=row.getLong(1);}
+ try(var update=connection.prepareStatement("UPDATE scores SET question_id=? WHERE question_id=? AND category_id=?")){
+ update.setLong(1,clone);update.setInt(2,conflict[0]);update.setInt(3,conflict[1]);update.executeUpdate();
+ }
+ }
+ statement.executeUpdate("""
+ CREATE TABLE scores_migrated (
+ id INTEGER PRIMARY KEY AUTOINCREMENT, session_id INTEGER NOT NULL,
+ player_id INTEGER NOT NULL, question_id INTEGER NOT NULL,
+ is_correct INTEGER NOT NULL CHECK (is_correct IN (0,1)), points INTEGER NOT NULL,
+ score_sync_id TEXT,
+ FOREIGN KEY (session_id) REFERENCES game_sessions(id),
+ FOREIGN KEY (player_id) REFERENCES players(id),
+ FOREIGN KEY (question_id) REFERENCES questions(id))
+ """);
+ statement.executeUpdate("INSERT INTO scores_migrated(id,session_id,player_id,question_id,is_correct,points,score_sync_id) SELECT id,session_id,player_id,question_id,is_correct,points,score_sync_id FROM scores");
+ statement.executeUpdate("DROP TABLE scores");
+ statement.executeUpdate("ALTER TABLE scores_migrated RENAME TO scores");
  }
  }
  private static void migrateQuestions(Connection connection) throws SQLException {

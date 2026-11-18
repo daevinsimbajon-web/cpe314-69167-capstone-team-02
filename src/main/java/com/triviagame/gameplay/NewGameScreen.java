@@ -1,24 +1,26 @@
 package com.triviagame.gameplay;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.concurrent.Task;
 
 import com.triviagame.api.QuestionParser;
+import com.triviagame.controller.GameController;
 import com.triviagame.db.CategoryDao;
 import com.triviagame.db.PlayerDao;
-import com.triviagame.db.QuestionBankService;
+import com.triviagame.service.GameSetupService;
 import com.triviagame.db.QuestionDao;
 import com.triviagame.db.SessionPlayerDao;
+import com.triviagame.db.TimedAnswerDao;
 import com.triviagame.home.Navigator;
 import com.triviagame.home.Ui;
 import com.triviagame.home.VectorIcons;
-import com.triviagame.m2.RoundRobinGame;
 import com.triviagame.questions.Question;
 
 import javafx.animation.KeyFrame;
@@ -44,9 +46,10 @@ public final class NewGameScreen {
  @Override public String toString() { return name; }
  }
  private final Navigator navigator;
- private final QuestionBankService bank = new QuestionBankService();
- private final CategoryDao categoryDao = new CategoryDao();
- private final PlayerDao playerDao = new PlayerDao();
+ private final GameController gameController = new GameController();
+ private final ExecutorService workers;
+ private long countVersion;
+ private boolean loadingSetup;
  private final List<SessionPlayerDao.PlayerSetup> pending = new ArrayList<>();
  private final VBox root = new VBox(20);
  private final ScrollPane view = new ScrollPane(root);
@@ -83,22 +86,25 @@ public final class NewGameScreen {
  e -> startCountdown());
  private final Button next = Ui.button("Next Turn", "primary-button",
  e -> nextTurn());
- private RoundRobinGame game;
+ private final Button undoAnswer = Ui.button("Undo last answer", "secondary-button",
+ e -> undoLastAnswer());
+ private GameSession game;
  private Timeline countdownTimeline;
  private Timeline answerClock;
- private long startedAt;
- private int secondsRemaining;
  private boolean questionVisible;
+ private boolean gameBusy;
+ private boolean disposed;
  private static final int STARTING_LIVES = 3;
  /** Hearts left per player id for the current game. */
  private final Map<Integer, Integer> lives = new HashMap<>();
- public NewGameScreen(Navigator navigator) {
+ public NewGameScreen(Navigator navigator, ExecutorService workers) {
  this.navigator = navigator;
+ this.workers = workers;
  root.getStyleClass().add("screen");
  view.setFitToWidth(true);
  view.setStyle("-fx-background: #10111F; -fx-background-color: #10111F;");
  view.sceneProperty().addListener((o, oldScene, newScene) -> {
- if (newScene == null) stopTimers();
+ if (oldScene != null && newScene == null) { disposed = true; stopTimers(); }
  });
  categories.setPrefWidth(330);
  categories.setPromptText("Choose a category");
@@ -119,7 +125,7 @@ public final class NewGameScreen {
  registeredPlayers.setPrefWidth(240);
  registeredPlayers.setConverter(new StringConverter<>() {
  @Override public String toString(PlayerDao.PlayerRecord p) {
- return p == null ? "" : p.name();
+ return p == null ? "" : p.name() + " (#" + p.id() + ")";
  }
  @Override public PlayerDao.PlayerRecord fromString(String text) { return null; }
  });
@@ -187,7 +193,7 @@ public final class NewGameScreen {
  questionText.setWrapText(true);
  message.setWrapText(true);
  questionPanel.getChildren().addAll(turnName, questionNumber, hearts,
- timeLeft, currentScore, questionText, answers, message, next);
+ timeLeft, currentScore, questionText, answers, message, new HBox(12, undoAnswer, next));
  show(questionPanel, false);
  next.setDisable(true);
  gameCard.getStyleClass().add("card");
@@ -212,8 +218,15 @@ public final class NewGameScreen {
  }
  public Parent getView() { return view; }
  private void loadSetup() {
- try {
- List<CategoryDao.CategoryRecord> list = categoryDao.getAllCategories();
+ loadingSetup = true;
+ beginGame.setDisable(true);
+ Task<GameSetupService.Setup> task = new Task<>() {
+ @Override protected GameSetupService.Setup call() throws Exception { return gameController.setup(); }
+ };
+ task.setOnSucceeded(event -> {
+ if (disposed) return;
+ var setup = task.getValue();
+ List<CategoryDao.CategoryRecord> list = setup.categories();
  Map<Integer, String> names = new HashMap<>();
  for (var c : list) names.put(c.id(), QuestionParser.displayText(c.name()));
  categories.getItems().clear();
@@ -226,37 +239,37 @@ public final class NewGameScreen {
  }
  categories.getSelectionModel().selectFirst();
  registeredPlayers.getItems().clear();
- Set<String> unique = new HashSet<>();
- for (var p : playerDao.getAllPlayers()) {
- if (unique.add(p.name().toLowerCase(Locale.ROOT)))
- registeredPlayers.getItems().add(p);
- }
+ registeredPlayers.getItems().addAll(setup.players());
+ loadingSetup = false;
  updateAvailable();
- status.setText("Add players to begin. Each player has three hearts.");
- } catch (SQLException e) {
+ status.setText("Add players to begin. Each player has three optional chances.");
+ });
+ task.setOnFailed(event -> {
+ if (disposed) return;
+ loadingSetup = false;
  beginGame.setDisable(false);
- Ui.error("Could not load setup: " + e.getMessage());
+ reportFailure("Could not load game setup.", task.getException());
+ });
+ workers.execute(task);
  }
- }
- private List<QuestionDao.QuestionRecord> matchingQuestions() throws SQLException {
+ private GameSetupService.Filters filters() {
  CategoryChoice category = categories.getValue();
- if (category == null) return List.of();
- List<QuestionDao.QuestionRecord> pool = category.id() == 0
- ? bank.getQuestions(0)
- : categoryDao.getQuestionsRecursively(category.id());
  String diff = difficulty.getValue() == null ? "Any" : difficulty.getValue();
  String type = questionType.getValue() == null ? "Any" : questionType.getValue();
- return pool.stream().filter(q ->
- (diff.equals("Any") || q.difficulty().equalsIgnoreCase(diff))
- && (type.equals("Any")
- || (type.equals("Multiple Choice") && q.questionType().equals("MULTIPLE_CHOICE"))
- || (type.equals("True / False") && q.questionType().equals("TRUE_FALSE"))))
- .toList();
+ return new GameSetupService.Filters(category == null ? 0 : category.id(), diff,
+ type.equals("Multiple Choice") ? "MULTIPLE_CHOICE" : type.equals("True / False") ? "TRUE_FALSE" : "ANY");
  }
  private void updateAvailable() {
- try {
- int count = matchingQuestions().size();
+ if (loadingSetup || categories.getValue() == null) return;
+ var selection = filters();
  int needed = questionsPerPlayer.getValue();
+ long version = ++countVersion;
+ Task<Integer> task = new Task<>() {
+ @Override protected Integer call() throws Exception { return gameController.count(selection); }
+ };
+ task.setOnSucceeded(event -> {
+ if (disposed || version != countVersion) return;
+ int count = task.getValue();
  if (count < needed) {
  available.setText("Only " + count + " matching questions saved; "
  + "you need " + needed + ". Choose another category, "
@@ -268,11 +281,15 @@ public final class NewGameScreen {
  }
  // Keep Start enabled: a disabled JavaFX button cannot show a popup.
  beginGame.setDisable(false);
- } catch (SQLException e) {
+ });
+ task.setOnFailed(event -> {
+ if (disposed || version != countVersion) return;
+ Logger.getLogger(NewGameScreen.class.getName()).log(Level.WARNING, "Question count failed", task.getException());
  available.setText("Unable to check saved questions. "
  + "Press Start Game to see the error.");
  beginGame.setDisable(false);
- }
+ });
+ workers.execute(task);
  }
  private void addPlayer() {
  String entered = playerName.getText().trim();
@@ -282,9 +299,10 @@ public final class NewGameScreen {
  try {
  if (pending.size() >= 12)
  throw new IllegalArgumentException("Maximum of 12 players");
- if (pending.stream().anyMatch(p -> p.name().equalsIgnoreCase(name)))
+ Integer playerId = entered.isBlank() && selected != null ? selected.id() : null;
+ if (playerId != null && pending.stream().anyMatch(p -> playerId.equals(p.playerId())))
  throw new IllegalArgumentException("This player is already added");
- pending.add(new SessionPlayerDao.PlayerSetup(name, timeLimit.getValue()));
+ pending.add(new SessionPlayerDao.PlayerSetup(name, timeLimit.getValue(), playerId));
  refreshPlayers();
  playerName.clear();
  registeredPlayers.getSelectionModel().clearSelection();
@@ -313,43 +331,47 @@ public final class NewGameScreen {
  }
  private void startGame() {
  if (pending.isEmpty()) { Ui.warning("Add at least one player"); return; }
- try {
- List<QuestionDao.QuestionRecord> available = matchingQuestions();
+ var selection = filters();
+ var players = List.copyOf(pending);
  int wanted = questionsPerPlayer.getValue();
- if (available.size() < wanted) {
+ setupCard.setDisable(true);
+  Task<GameController.GameStart> task = new Task<>() {
+  @Override protected GameController.GameStart call() throws Exception {
+  return gameController.startGame(players, selection, wanted);
+  }
+ };
+ task.setOnSucceeded(event -> {
+ if (disposed) return;
+ setupCard.setDisable(false);
+  GameController.GameStart start = task.getValue();
+  if (start.game().isEmpty()) {
  Ui.warning("Not enough questions saved for this selection. "
- + "Available: " + available.size() + ". "
- + "Needed: " + wanted + ". "
+  + "Available: " + start.availableQuestions()
+  + ". Needed: " + wanted + ". "
  + "Try another category, difficulty or question type, "
  + "reduce Questions per Player, or use Get More Questions "
  + "on Dashboard.");
  return;
  }
- game = new RoundRobinGame(List.copyOf(pending), available, wanted);
+ game = start.game().orElseThrow();
  lives.clear();
  show(setupCard, false);
  show(finalCard, false);
  show(gameCard, true);
  prepareTurn();
- } catch (Exception e) { Ui.error("Unable to start: " + e.getMessage()); }
+ });
+ task.setOnFailed(event -> { if (!disposed) { setupCard.setDisable(false); reportFailure("Unable to start the game.", task.getException()); } });
+ workers.execute(task);
+ }
+ private void reportFailure(String message, Throwable error) {
+ Logger.getLogger(NewGameScreen.class.getName()).log(Level.WARNING, message, error);
+ Ui.error(message + " Please try again.");
  }
  /** No upcoming question is shown until the player presses Ready. */
  private void prepareTurn() {
  stopTimers();
  if (game == null || game.finished()) return;
- RoundRobinGame.Turn turn = game.currentTurn();
- try {
- // A player with no hearts left is out: their remaining turns are
- // recorded as timed-out forfeits and skipped automatically.
- while (livesOf(turn) <= 0) {
- game.answer("", (long) turn.secondsPerQuestion() * 1000, true);
- if (!game.nextTurn()) { showLeaderboard(); return; }
- turn = game.currentTurn();
- }
- } catch (Exception e) {
- Ui.error("Could not skip an eliminated player: " + e.getMessage());
- return;
- }
+ GameSession.Turn turn = game.currentTurn();
  show(readyPanel, true);
  show(questionPanel, false);
  readyTitle.setText(turn.playerName() + ", it's your turn!");
@@ -380,7 +402,7 @@ public final class NewGameScreen {
  }
  private void showQuestion() {
  if (game == null || game.awaitingNext() || game.finished()) return;
- RoundRobinGame.Turn turn = game.currentTurn();
+ GameSession.Turn turn = game.currentTurn();
  Question question = turn.question();
  if (question == null) { Ui.error("Question unavailable"); return; }
  show(readyPanel, false);
@@ -404,17 +426,17 @@ public final class NewGameScreen {
  next.setDisable(true);
  next.setVisible(false);
  next.setManaged(false);
- secondsRemaining = turn.secondsPerQuestion();
- timeLeft.setText("Time left: " + secondsRemaining + " s");
+ game.startTurn();
+ timeLeft.setText("Time left: " + game.remainingSeconds() + " s");
  questionVisible = true;
- startedAt = System.nanoTime();
- answerClock = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
+ undoAnswer.setDisable(true);
+ answerClock = new Timeline(new KeyFrame(Duration.millis(250), e -> {
  if (!questionVisible || game == null || game.awaitingNext()) {
  stopClock(); return;
  }
- secondsRemaining--;
- timeLeft.setText("Time left: " + Math.max(0, secondsRemaining) + " s");
- if (secondsRemaining <= 0) submit("", null, true);
+ int remaining = game.remainingSeconds();
+ timeLeft.setText("Time left: " + remaining + " s");
+ if (remaining == 0) submit("", null, true);
  }));
  answerClock.setCycleCount(Timeline.INDEFINITE);
  answerClock.play();
@@ -423,34 +445,48 @@ public final class NewGameScreen {
  private void submit(String option, Button clicked, boolean timedOut) {
  if (!questionVisible || game == null || game.awaitingNext() || game.finished())
  return;
- RoundRobinGame.Turn turn = game.currentTurn();
- long limit = (long) turn.secondsPerQuestion() * 1000;
- long elapsed = timedOut ? limit
- : Math.min(limit, Math.max(0, (System.nanoTime() - startedAt) / 1_000_000));
- // Hearts are tracked here: a wrong pick or a timeout costs one heart.
- boolean right = !timedOut && turn.question().checkAnswer(option);
- int livesLeft = livesOf(turn) - (right ? 0 : 1);
- if (!timedOut && !right && livesLeft > 0) {
- // Wrong attempt with hearts left: nothing is saved yet, and the
- // question and its original countdown stay active.
- lives.put(turn.playerId(), livesLeft);
- refreshHearts(livesLeft);
- if (clicked != null) {
- clicked.setDisable(true);
- clicked.getStyleClass().add("choice-wrong");
- }
- message.setText("Not quite! You lost a heart. Try another answer.");
- status.setText(livesLeft + (livesLeft == 1 ? " heart" : " hearts")
- + " remaining — time is still running.");
+ GameSession.Turn turn = game.currentTurn();
+ boolean expired = timedOut || game.remainingSeconds() == 0;
+ boolean right = !expired && turn.question().checkAnswer(option);
+ if (!expired && !right && livesOf(turn) > 0) {
+ try { game.noteIncorrectAttempt(); }
+ catch (IllegalStateException expiredDuringClick) { finishAnswer("", null); return; }
+ for (var node : answers.getChildren()) if (node instanceof Button button) button.setDisable(true);
+ if (clicked != null) clicked.getStyleClass().add("choice-wrong");
+ Button use = Ui.button("Use a chance", "primary-button", e -> {
+ if (!questionVisible || game.remainingSeconds() == 0) { finishAnswer("", null); return; }
+ lives.put(turn.playerId(), livesOf(turn) - 1);
+ refreshHearts(livesOf(turn));
+ answers.getChildren().removeIf(node -> node instanceof HBox);
+ for (var node : answers.getChildren()) if (node instanceof Button button && button != clicked) button.setDisable(false);
+ message.setText("Choose another answer. Time is still running.");
+ });
+ Button decline = Ui.button("Continue", "secondary-button", e -> finishAnswer(option, clicked));
+ answers.getChildren().add(new HBox(12, use, decline));
+ message.setText("Use a chance to retry, or continue with this answer.");
  return;
  }
- try {
- RoundRobinGame.AnswerResult result = game.answer(option, elapsed, timedOut);
- lives.put(turn.playerId(), livesLeft);
- refreshHearts(livesLeft);
+ finishAnswer(expired ? "" : option, clicked);
+ }
+ private void finishAnswer(String option, Button clicked) {
+ if (gameBusy || !questionVisible || game == null || game.awaitingNext() || game.finished()) return;
+ GameSession.Turn turn = game.currentTurn();
+ final GameSession.PendingAnswer pendingAnswer;
+ try { pendingAnswer = game.prepareAnswer(option); }
+ catch (IllegalStateException error) { reportFailure("Could not record the answer.", error); return; }
+ gameBusy = true;
  stopClock();
+ for (var node : answers.getChildren()) node.setDisable(true);
+ Task<GameSession.AnswerResult> task = new Task<>() {
+ @Override protected GameSession.AnswerResult call() throws Exception { return game.commitAnswer(pendingAnswer); }
+ };
+ task.setOnSucceeded(event -> {
+ if (disposed) return;
+ gameBusy = false;
+ GameSession.AnswerResult result = task.getValue();
+ answers.getChildren().removeIf(node -> node instanceof HBox);
  for (var node : answers.getChildren()) {
- Button button = (Button) node;
+ if (!(node instanceof Button button)) continue;
  button.setDisable(true);
  if (button.getText().equalsIgnoreCase(
  QuestionParser.displayText(turn.question().getCorrectAnswer()))) {
@@ -459,13 +495,8 @@ public final class NewGameScreen {
  }
  currentScore.setText("Score: " + result.score());
  String correct = QuestionParser.displayText(turn.question().getCorrectAnswer());
- if (livesLeft == 0) {
- message.setText("You lost your final heart - eliminated! "
- + "Correct answer: " + correct);
- status.setText(turn.playerName()
- + " is out of the game. Other players can continue.");
- } else if (timedOut) {
- message.setText("Time is up! One heart lost. Answer: " + correct);
+ if (result.timedOut()) {
+ message.setText("Time is up! Answer: " + correct);
  status.setText("Continue to the next player's turn.");
  } else if (result.correct()) {
  message.setText("Correct! Nicely done.");
@@ -477,23 +508,51 @@ public final class NewGameScreen {
  next.setDisable(false);
  next.setVisible(true);
  next.setManaged(true);
- } catch (Exception e) {
- Ui.error("Could not record answer: " + e.getMessage());
+ undoAnswer.setDisable(false);
+ });
+ task.setOnFailed(event -> {
+ if (disposed) return;
+ gameBusy = false;
+ reportFailure("Could not record the answer.", task.getException());
+ if (view.getScene() != null) showQuestion();
+ });
+ workers.execute(task);
  }
+ private void undoLastAnswer() {
+ if (gameBusy || game == null || !game.awaitingNext()) return;
+ gameBusy = true;
+ next.setDisable(true);
+ undoAnswer.setDisable(true);
+ Task<Boolean> task = new Task<>() {
+ @Override protected Boolean call() throws Exception { return game.undoLast(); }
+ };
+ task.setOnSucceeded(event -> {
+ if (disposed) return;
+ gameBusy = false;
+ if (task.getValue()) { if (view.getScene() != null) showQuestion(); }
+ else { next.setDisable(false); undoAnswer.setDisable(false); }
+ });
+ task.setOnFailed(event -> {
+ if (disposed) return;
+ gameBusy = false;
+ next.setDisable(false); undoAnswer.setDisable(false);
+ reportFailure("Could not undo the saved answer.", task.getException());
+ });
+ workers.execute(task);
  }
  private void refreshHearts(int remaining) {
  hearts.getChildren().clear();
- hearts.getChildren().add(Ui.label("Lives", "field-label"));
+ hearts.getChildren().add(Ui.label("Chances", "field-label"));
  for (int i = 0; i < STARTING_LIVES; i++)
  hearts.getChildren().add(VectorIcons.heart(i < remaining));
  hearts.getChildren().add(Ui.label(remaining + " remaining", "muted"));
  hearts.setAlignment(Pos.CENTER_LEFT);
  }
- private int livesOf(RoundRobinGame.Turn turn) {
+ private int livesOf(GameSession.Turn turn) {
  return lives.getOrDefault(turn.playerId(), STARTING_LIVES);
  }
  private void nextTurn() {
- if (game == null || !game.awaitingNext()) return;
+ if (gameBusy || game == null || !game.awaitingNext()) return;
  try {
  if (game.nextTurn()) prepareTurn();
  else showLeaderboard();
@@ -503,10 +562,15 @@ public final class NewGameScreen {
  stopTimers();
  show(gameCard, false);
  show(finalCard, true);
- try {
+ ranking.setText("Loading rankings…");
+ Task<List<TimedAnswerDao.Ranking>> task = new Task<>() {
+ @Override protected List<TimedAnswerDao.Ranking> call() throws Exception { return game.leaderboard(); }
+ };
+ task.setOnSucceeded(event -> {
+ if (disposed) return;
  StringBuilder lines = new StringBuilder();
  int place = 1;
- for (var p : game.leaderboard()) {
+ for (var p : task.getValue()) {
  lines.append(place++).append(". ").append(p.name())
  .append(" • ").append(p.points()).append(" points")
  .append(" • ").append(String.format(Locale.ROOT, "%.2f",
@@ -514,9 +578,10 @@ public final class NewGameScreen {
  }
  ranking.setText(lines.toString());
  status.setText("Ranking: points first, then time, then turn order.");
- } catch (SQLException e) {
- ranking.setText("Couldn't load rankings: " + e.getMessage());
- }
+ });
+ task.setOnFailed(event -> { if (!disposed) { ranking.setText("Could not load rankings. Please try again.");
+ Logger.getLogger(NewGameScreen.class.getName()).log(Level.WARNING, "Leaderboard query failed", task.getException()); } });
+ workers.execute(task);
  }
  private void stopClock() {
  questionVisible = false;
