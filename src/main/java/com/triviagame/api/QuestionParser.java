@@ -313,16 +313,10 @@ public final class QuestionParser {
             return value;
         }
 
-        try {
-            return new String(
-                    value.getBytes(
-                            Charset.forName("windows-1252")
-                    ),
-                    StandardCharsets.UTF_8
-            );
-        } catch (Exception ignored) {
-            return value;
-        }
+        return new String(
+                value.getBytes(Charset.forName("windows-1252")),
+                StandardCharsets.UTF_8
+        );
     }
 
     private static String decodeHtml(
